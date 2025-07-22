@@ -42,7 +42,7 @@ func New(app types.AppState) *Model {
 		spinner:        spinner.New(),
 	}
 
-	m.spinner.Spinner = spinner.Dot
+	m.spinner.Spinner = spinner.MiniDot
 
 	m.setStyles()
 	return m
