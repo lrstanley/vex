@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
@@ -63,7 +64,7 @@ func (m *Model) setStyles() {
 }
 
 func (m *Model) SetCode(code, language string) {
-	m.code = code
+	m.code = strings.TrimSpace(code)
 	m.language = language
 	m.renderCode()
 }
