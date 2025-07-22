@@ -23,6 +23,9 @@ type PageState interface {
 	// All returns all pages in the page stack.
 	All() []Page
 
+	// UUIDs returns all the UUIDs of the pages in the page stack.
+	UUIDs() []string
+
 	// Get returns the current active page.
 	Get() Page
 

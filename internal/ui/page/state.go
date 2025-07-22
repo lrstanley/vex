@@ -149,6 +149,13 @@ func (s *state) All() (pages []types.Page) {
 	return s.pages.Get()
 }
 
+func (s *state) UUIDs() (uuids []string) {
+	for _, page := range s.pages.Get() {
+		uuids = append(uuids, page.UUID())
+	}
+	return uuids
+}
+
 func (s *state) Get() types.Page {
 	return s.pages.Peek()
 }

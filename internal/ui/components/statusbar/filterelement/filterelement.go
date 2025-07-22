@@ -5,6 +5,8 @@
 package filterelement
 
 import (
+	"slices"
+
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -28,10 +30,10 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	debounce      types.Debouncer
-	inputWidth    int
-	previousValue string
-	previousUUID  string
+	debounce     types.Debouncer
+	inputWidth   int
+	previousUUID string
+	filterState  map[string]string // page uuid -> filter value.
 
 	// Styles.
 	baseStyle   lipgloss.Style
@@ -46,6 +48,7 @@ func New(app types.AppState) *Model {
 		ComponentModel: types.ComponentModel{},
 		app:            app,
 		filter:         textinput.New(),
+		filterState:    make(map[string]string),
 	}
 
 	m.filter.Placeholder = "type to filter..."
@@ -93,10 +96,34 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, m.filter.Focus())
 		}
 
-		if !m.app.Page().Get().GetSupportFiltering() || m.previousUUID != m.app.Page().Get().UUID() {
-			m.filter.Reset()
+		currentUUID := m.app.Page().Get().UUID()
+
+		// Save current filter state before switching.
+		if m.previousUUID != "" && m.previousUUID != currentUUID {
+			m.filterState[m.previousUUID] = m.filter.Value()
 		}
 
+		// Remove filter state for pages that are no longer active.
+		activeUUIDs := m.app.Page().UUIDs()
+		for uuid := range m.filterState {
+			if !slices.Contains(activeUUIDs, uuid) {
+				delete(m.filterState, uuid)
+			}
+		}
+
+		// Update to new page.
+		if m.previousUUID != currentUUID {
+			m.previousUUID = currentUUID
+
+			// Restore filter state for the new page.
+			if savedFilter, exists := m.filterState[currentUUID]; exists {
+				m.filter.SetValue(savedFilter)
+			} else {
+				m.filter.Reset()
+			}
+		}
+
+		// Always re-send the current filter state for the active page.
 		cmds = append(cmds, m.sendFilter())
 
 		return tea.Batch(cmds...)
@@ -104,6 +131,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch {
 		case key.Matches(msg, types.KeyCancel) && m.filter.Value() != "":
 			m.filter.Reset()
+			delete(m.filterState, m.app.Page().Get().UUID())
 			return m.sendFilter()
 		case key.Matches(msg, types.KeyCancel) && m.filter.Value() == "":
 			return types.RequestPreviousFocus()
@@ -124,8 +152,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.filter, cmd = m.filter.Update(msg)
 		cmds = append(cmds, cmd, m.debounce.Send())
 	case types.DebounceMsg:
-		if m.debounce.Is(msg) && m.filter.Value() != m.previousValue {
-			m.previousValue = m.filter.Value()
+		if m.debounce.Is(msg) {
+			// Update the filter state for the current page.
+			currentUUID := m.app.Page().Get().UUID()
+			m.filterState[currentUUID] = m.filter.Value()
 			cmds = append(cmds, m.sendFilter())
 		}
 	}
