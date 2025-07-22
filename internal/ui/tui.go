@@ -18,9 +18,9 @@ import (
 	"github.com/lrstanley/vex/internal/ui/dialogs/commander"
 	"github.com/lrstanley/vex/internal/ui/dialogs/help"
 	"github.com/lrstanley/vex/internal/ui/page"
+	"github.com/lrstanley/vex/internal/ui/page/aclpolicies"
 	"github.com/lrstanley/vex/internal/ui/page/configstate"
 	"github.com/lrstanley/vex/internal/ui/page/mounts"
-	"github.com/lrstanley/vex/internal/ui/page/policies"
 	"github.com/lrstanley/vex/internal/ui/page/secrets"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -42,10 +42,10 @@ func pageInitializer(app types.AppState) []commander.PageRef {
 			},
 		},
 		{
-			Description: "View policies",
-			Commands:    policies.Commands,
+			Description: "View ACL policies",
+			Commands:    aclpolicies.Commands,
 			New: func() types.Page {
-				return policies.New(app)
+				return aclpolicies.New(app)
 			},
 		},
 		{

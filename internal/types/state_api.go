@@ -17,6 +17,8 @@ type Client interface {
 	GetHealth() tea.Cmd
 	ListMounts(uuid string) tea.Cmd
 	ListSecrets(uuid string, mount *Mount, path string) tea.Cmd
+	ListACLPolicies(uuid string) tea.Cmd
+	GetACLPolicy(uuid string, policyName string) tea.Cmd
 	GetConfigState(uuid string) tea.Cmd
 }
 
@@ -53,6 +55,15 @@ type ClientListSecretsMsg struct {
 type SecretListRef struct {
 	Mount *Mount
 	Path  string
+}
+
+type ClientListACLPoliciesMsg struct {
+	Policies []string
+}
+
+type ClientGetACLPolicyMsg struct {
+	Name    string
+	Content string
 }
 
 type ClientConfigStateMsg struct {
