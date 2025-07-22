@@ -5,8 +5,6 @@
 package types
 
 import (
-	"sync"
-
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
@@ -36,18 +34,14 @@ type Component interface {
 }
 
 type ComponentModel struct {
-	once sync.Once
-	uuid string
+	uuid uuid
 
 	Height int
 	Width  int
 }
 
 func (b *ComponentModel) UUID() string {
-	b.once.Do(func() {
-		b.uuid = UUID()
-	})
-	return b.uuid
+	return b.uuid.String()
 }
 
 func (b *ComponentModel) GetHeight() int {

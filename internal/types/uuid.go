@@ -5,10 +5,19 @@
 package types
 
 import (
-	"github.com/gofrs/uuid/v5"
+	"sync"
+
+	uuidv5 "github.com/gofrs/uuid/v5"
 )
 
-// UUID generates a random UUID.
-func UUID() string {
-	return uuid.Must(uuid.NewV4()).String()
+type uuid struct {
+	once  sync.Once
+	value string
+}
+
+func (u *uuid) String() string {
+	u.once.Do(func() {
+		u.value = uuidv5.Must(uuidv5.NewV4()).String()
+	})
+	return u.value
 }

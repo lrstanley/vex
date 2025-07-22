@@ -5,8 +5,6 @@
 package types
 
 import (
-	"sync"
-
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -70,8 +68,7 @@ type Page interface {
 }
 
 type PageModel struct {
-	once sync.Once
-	uuid string
+	uuid uuid
 
 	Commands         []string
 	SupportFiltering bool
@@ -80,10 +77,7 @@ type PageModel struct {
 }
 
 func (b *PageModel) UUID() string {
-	b.once.Do(func() {
-		b.uuid = UUID()
-	})
-	return b.uuid
+	return b.uuid.String()
 }
 
 func (b *PageModel) GetCommands() []string {

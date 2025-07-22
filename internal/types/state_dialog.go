@@ -5,8 +5,6 @@
 package types
 
 import (
-	"sync"
-
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -94,8 +92,7 @@ type Dialog interface {
 
 // DialogModel is the base model for a dialog.
 type DialogModel struct {
-	once sync.Once
-	uuid string
+	uuid uuid
 
 	Size            DialogSize
 	Height          int
@@ -106,10 +103,7 @@ type DialogModel struct {
 }
 
 func (m *DialogModel) UUID() string {
-	m.once.Do(func() {
-		m.uuid = UUID()
-	})
-	return m.uuid
+	return m.uuid.String()
 }
 
 func (m *DialogModel) GetSize() DialogSize {
