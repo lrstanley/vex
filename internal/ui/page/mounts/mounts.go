@@ -17,9 +17,10 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-var Commands = []string{"mounts", "mount"}
-
-var dataColumns = []string{"Path", "Type", "Description", "Accessor", "Deprecated", "Plugin Version"}
+var (
+	Commands    = []string{"mounts", "mount"}
+	dataColumns = []string{"Path", "Type", "Description", "Accessor", "Deprecated", "Plugin Version"}
+)
 
 type Data struct {
 	Mount *types.Mount
@@ -115,7 +116,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, types.KeyQuit):
 			return tea.Quit
 		case key.Matches(msg, types.KeyRefresh):
-			return m.app.Client().ListMounts(m.UUID())
+			cmds = append(
+				cmds,
+				m.tableComponent.SetLoading(),
+				m.app.Client().ListMounts(m.UUID()),
+			)
 		}
 	case types.AppFilterMsg:
 		if msg.UUID != m.UUID() {

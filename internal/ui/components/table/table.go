@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/v2/key"
+	"github.com/charmbracelet/bubbles/v2/spinner"
 	"github.com/charmbracelet/bubbles/v2/table"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -34,6 +35,7 @@ type Row[T any] interface {
 type TableStyles struct {
 	Base      lipgloss.Style
 	NoResults lipgloss.Style
+	Loading   lipgloss.Style
 	Table     table.Styles
 }
 
@@ -58,21 +60,28 @@ type Model[T Row[T]] struct {
 	columns  []string
 	allData  []T
 	filtered []T
+	loading  bool
 
 	// Styles.
 	styles TableStyles
 
 	// Child components.
-	table table.Model
+	table   table.Model
+	spinner spinner.Model
 }
 
+// New returns a new table component. it will by default be in a loading state.
 func New[T Row[T]](app types.AppState, config Config[T]) *Model[T] {
 	m := &Model[T]{
 		ComponentModel: &types.ComponentModel{},
 		app:            app,
 		config:         config,
+		loading:        true,
 		table:          table.New(table.WithFocused(true)),
+		spinner:        spinner.New(),
 	}
+
+	m.spinner.Spinner = spinner.MiniDot
 
 	if m.config.NoResultsMsg == "" {
 		m.config.NoResultsMsg = "no results found"
@@ -104,7 +113,20 @@ func (m *Model[T]) initStyles() {
 		Padding(0, 1).
 		Align(lipgloss.Center)
 
-	m.styles.Table.Header = m.styles.Table.Header.Bold(true)
+	m.styles.Loading = lipgloss.NewStyle().
+		Foreground(styles.Theme.Fg()).
+		Background(styles.Theme.Bg()).
+		Padding(0, 1).
+		Align(lipgloss.Center)
+
+	m.spinner.Style = lipgloss.NewStyle().
+		Foreground(styles.Theme.Fg()).
+		Background(styles.Theme.Bg())
+
+	m.styles.Table.Header = m.styles.Table.Header.Bold(true).
+		Foreground(styles.Theme.Fg()).
+		Background(styles.Theme.Bg())
+
 	m.styles.Table.Selected = m.styles.Table.Selected.
 		Foreground(styles.Theme.InfoFg()).
 		Background(styles.Theme.InfoBg()).
@@ -119,7 +141,7 @@ func (m *Model[T]) SetStyles(styles TableStyles) {
 }
 
 func (m *Model[T]) Init() tea.Cmd {
-	return nil
+	return m.spinner.Tick
 }
 
 func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
@@ -134,6 +156,12 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		m.updateTable()
+	case spinner.TickMsg:
+		if m.loading {
+			var cmd tea.Cmd
+			m.spinner, cmd = m.spinner.Update(msg)
+			cmds = append(cmds, cmd)
+		}
 	case tea.KeyMsg:
 		switch {
 		case (key.Matches(msg, types.KeySelectItem) || key.Matches(msg, types.KeySelectItemAlt)) && m.table.Focused():
@@ -247,6 +275,7 @@ func (m *Model[T]) SetData(columns []string, data []T) {
 	m.columns = columns
 	m.allData = data
 	m.updateTable()
+	m.loading = false
 }
 
 func (m *Model[T]) GetSelectedData() *T {
@@ -263,6 +292,11 @@ func (m *Model[T]) GetSelectedData() *T {
 	return nil
 }
 
+func (m *Model[T]) SetLoading() tea.Cmd {
+	m.loading = true
+	return m.spinner.Tick
+}
+
 func (m *Model[T]) View() string {
 	if m.Width == 0 || m.Height == 0 {
 		return ""
@@ -270,12 +304,20 @@ func (m *Model[T]) View() string {
 
 	var out []string
 
-	// Check if we have no results.
-	if len(m.filtered) == 0 {
+	switch {
+	case m.loading:
+		centeredLoading := m.styles.Loading.
+			Width(m.Width).
+			Height(m.Height).
+			Align(lipgloss.Center, lipgloss.Center).
+			Render(m.spinner.View() + m.styles.Loading.Render("loading..."))
+
+		out = append(out, centeredLoading)
+	case len(m.filtered) == 0:
 		out = append(out, m.styles.NoResults.
 			Width(m.Width).
 			Render(m.config.NoResultsMsg))
-	} else {
+	default:
 		out = append(out, m.styles.Base.
 			MaxHeight(m.Height).
 			MaxWidth(m.Width).

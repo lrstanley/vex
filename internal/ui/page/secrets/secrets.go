@@ -14,7 +14,10 @@ import (
 	"github.com/lrstanley/vex/internal/ui/components/table"
 )
 
-var dataColumns = []string{"Mount", "Key"}
+var (
+	Commands    = []string{"secrets", "secret"}
+	dataColumns = []string{"Mount", "Key"}
+)
 
 type Data struct {
 	data *types.SecretListRef
@@ -30,8 +33,6 @@ func (d Data) Row() []string {
 		d.data.Path,
 	}
 }
-
-var Commands = []string{"secrets", "secret"}
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
@@ -103,7 +104,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, types.KeyQuit):
 			return tea.Quit
 		case key.Matches(msg, types.KeyRefresh):
-			return m.app.Client().ListSecrets(m.UUID(), m.mount, m.path)
+			cmds = append(
+				cmds,
+				m.tableComponent.SetLoading(),
+				m.app.Client().ListSecrets(m.UUID(), m.mount, m.path),
+			)
 		}
 	case types.AppFilterMsg:
 		if msg.UUID != m.UUID() {
@@ -119,6 +124,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListSecretsMsg:
+			cmds = append(cmds, m.tableComponent.SetLoading())
 			if msg.Error == nil {
 				m.secrets = vmsg.Values
 				m.updateTableData()
