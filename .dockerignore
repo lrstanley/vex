@@ -1,0 +1,15 @@
+*.log
+~*
+*.tmp
+*.txt
+dist
+*.test
+*.prof
+*.conf
+*.toml
+*.db
+YOUR_PROJECT_NAME
+.git
+bin
+**/node_modules
+**/*.md

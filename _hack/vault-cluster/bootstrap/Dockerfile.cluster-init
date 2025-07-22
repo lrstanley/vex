@@ -1,0 +1,6 @@
+FROM hashicorp/vault:latest
+
+RUN apk add --no-cache jq bash
+
+ENTRYPOINT ["/init.sh"]
+CMD []

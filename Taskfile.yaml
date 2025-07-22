@@ -1,0 +1,134 @@
+# yaml-language-server: $schema=https://json.schemastore.org/taskfile.json
+version: "3"
+vars:
+  PROJECT: "vex"
+  PACKAGE: "github.com/lrstanley/vex"
+dotenv: [".env"]
+method: timestamp
+tasks:
+  default:
+    desc: build the project
+    cmds:
+      - task: build
+  vault:up:
+    desc: start vault cluster
+    dir: _hack/vault-cluster
+    platforms: [linux]
+    cmds:
+      - mkdir -vp data/vault1 data/vault2 data/vault3 init
+      - docker compose up --detach --build --pull always
+  vault:logs:
+    desc: show vault cluster logs
+    dir: _hack/vault-cluster
+    platforms: [linux]
+    cmds:
+      - docker compose logs --follow -n 1000 --since 10m vault1 vault2 vault3 vault-cluster-init
+  vault:down:
+    desc: stop vault cluster
+    dir: _hack/vault-cluster
+    platforms: [linux]
+    cmds:
+      - docker compose down --remove-orphans --timeout 2
+  vault:rm:
+    desc: remove vault cluster and data
+    platforms: [linux]
+    cmds:
+      - task: vault:down
+      - cd _hack/vault-cluster && docker compose rm --force --stop --volumes
+      - sudo rm -rf _hack/vault-cluster/data _hack/vault-cluster/init
+  license:
+    desc: generate license headers
+    cmds:
+      - curl -sL https://liam.sh/-/gh/g/license-header.sh | bash -s
+  clean:
+    desc: clean build artifacts
+    cmds:
+      - rm -rfv {{.PROJECT}}
+  fetch:
+    desc: tidy go modules
+    aliases: [tidy, download]
+    cmds:
+      - go mod tidy
+  up:
+    desc: update dependencies
+    aliases: [update, upgrade]
+    cmds:
+      - go get -u ./...
+      - go get -u -t ./...
+      - task: fetch
+  prepare:
+    desc: prepare build environment
+    deps: [fetch]
+    aliases: [init]
+    sources:
+      - internal/ui/styles/theme.go
+    generates:
+      - internal/ui/styles/theme.gen.go
+    cmds:
+      - go generate -x ./...
+  profile:cpu: go tool pprof -http :6061 'http://localhost:6060/debug/pprof/profile?seconds=15'
+  profile:heap: go tool pprof -http :6061 'http://localhost:6060/debug/pprof/heap'
+  profile:allocs: go tool pprof -http :6061 'http://localhost:6060/debug/pprof/allocs'
+  dlv:
+    desc: run with delve debugger
+    deps: [prepare]
+    aliases: [delve, debugger]
+    cmds:
+      - |
+        dlv debug \
+          --headless \
+          --listen=:2345 \
+          --api-version=2 \
+          --log \
+          --allow-non-terminal-interactive \
+          {{.PACKAGE}} -- --logging.level=debug {{.CLI_ARGS}}
+  debug:
+    desc: run in debug mode
+    deps: [prepare]
+    aliases: [dev, run]
+    interactive: true
+    cmds:
+      - |
+        go run {{.PACKAGE}} \
+          --logging.level=debug \
+          --enable-pprof \
+          {{.CLI_ARGS}}
+  debug:basic:
+    desc: run in debug mode
+    deps: [prepare]
+    interactive: true
+    cmds:
+      - |
+        TERM="xterm" COLORTERM="xterm" go run {{.PACKAGE}} \
+          --logging.level=debug \
+          --enable-pprof \
+          {{.CLI_ARGS}}
+  build:
+    desc: build the application
+    deps: [prepare]
+    env:
+      CGO_ENABLED: 0
+    cmds:
+      - |
+        go build \
+          -ldflags '-d -s -w -extldflags=-static' \
+          -tags=netgo,osusergo,static_build \
+          -installsuffix netgo \
+          -trimpath \
+          -o {{.PROJECT}} {{.PACKAGE}}
+  test:
+    desc: run tests
+    deps: [prepare]
+    cmds:
+      - go test ./...
+  lint:
+    desc: run linter
+    deps: [prepare]
+    cmds:
+      - golangci-lint run
+  fmt:
+    desc: format code
+    deps: [prepare]
+    aliases: [format]
+    cmds:
+      - gofumpt -w .
