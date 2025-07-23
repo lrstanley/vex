@@ -127,6 +127,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, m.sendFilter())
 
 		return tea.Batch(cmds...)
+	case types.AppFilterClearedMsg:
+		if _, ok := m.filterState[m.app.Page().Get().UUID()]; ok {
+			m.filter.Reset()
+			delete(m.filterState, m.app.Page().Get().UUID())
+			return m.sendFilter()
+		}
+		return nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyCancel) && m.filter.Value() != "":

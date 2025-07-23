@@ -112,6 +112,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.height = msg.Height
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, types.KeyCancel):
+			return types.ClearAppFilter()
 		case key.Matches(msg, types.KeyQuit):
 			return tea.Quit
 		case key.Matches(msg, types.KeyRefresh):

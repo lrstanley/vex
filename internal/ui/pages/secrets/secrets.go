@@ -97,7 +97,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyCancel):
-			if m.app.Page().HasParent() {
+			switch {
+			case m.filter != "":
+				return types.ClearAppFilter()
+			case m.app.Page().HasParent():
 				return types.CloseActivePage()
 			}
 			return nil
