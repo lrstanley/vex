@@ -16,16 +16,22 @@ import (
 
 //go:generate go run github.com/masaushi/accessory@latest -type ThemeConfig -receiver tc -lock mu -output theme.gen.go
 
-var Theme = (&ThemeConfig{}).init(true)
+var Theme = (&ThemeConfig{
+	registry: tint.NewRegistry(
+		tint.TintPencilDark,
+		tint.TintAfterglow,
+		tint.TintSpacedust,
+		tint.TintLabFox,
+		// tint.DefaultTints()...,
+	),
+}).init(true)
 
 type ThemeConfig struct {
-	mu sync.RWMutex
+	registry *tint.Registry
+	mu       sync.RWMutex
 
-	dark bool       `accessor:"getter"`
-	tint *tint.Tint `accessor:"getter"`
-
-	fg color.Color `accessor:"getter"`
-	bg color.Color `accessor:"getter"`
+	dark bool        `accessor:"getter"`
+	fg   color.Color `accessor:"getter"`
 
 	successFg color.Color `accessor:"getter"`
 	successBg color.Color `accessor:"getter"`
@@ -40,6 +46,7 @@ type ThemeConfig struct {
 	statusBarFg           color.Color `accessor:"getter"`
 	statusBarActivePageFg color.Color `accessor:"getter"`
 	statusBarActivePageBg color.Color `accessor:"getter"`
+	statusBarFilterTextFg color.Color `accessor:"getter"`
 	statusBarFilterBg     color.Color `accessor:"getter"`
 	statusBarFilterFg     color.Color `accessor:"getter"`
 	statusBarAddrBg       color.Color `accessor:"getter"`
@@ -70,12 +77,11 @@ func (tc *ThemeConfig) init(dark bool) *ThemeConfig {
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
 
-	t := tint.TintAfterglow
+	t := tc.registry.Current()
+
 	tc.dark = dark
-	tc.tint = t
 
 	tc.fg = tc.adapt(t.Fg, t.Fg)
-	tc.bg = tc.adapt(t.Bg, t.Bg)
 
 	tc.successFg = tc.adapt(t.BrightGreen, t.BrightGreen)
 	tc.successBg = tc.adapt(colors.Darken(t.BrightGreen, 60), colors.Darken(t.BrightGreen, 60))
@@ -90,6 +96,7 @@ func (tc *ThemeConfig) init(dark bool) *ThemeConfig {
 	tc.statusBarBg = tc.adapt(colors.Lighten(t.Bg, 10), colors.Lighten(t.Bg, 10))
 	tc.statusBarActivePageFg = tc.adapt(colors.Lighten(t.BrightCyan, 40), colors.Lighten(t.BrightCyan, 40))
 	tc.statusBarActivePageBg = tc.adapt(colors.Darken(t.BrightCyan, 40), colors.Darken(t.BrightCyan, 40))
+	tc.statusBarFilterTextFg = tc.adapt(t.White, t.White)
 	tc.statusBarFilterBg = tc.infoBg
 	tc.statusBarFilterFg = tc.infoFg
 	tc.statusBarAddrFg = tc.adapt(t.White, t.White)
@@ -121,12 +128,26 @@ func (tc *ThemeConfig) ByStatus(status types.Status) (fg, bg color.Color) {
 	case types.Error:
 		return tc.errorFg, tc.errorBg
 	default:
-		return tc.fg, tc.bg
+		return tc.fg, nil
 	}
 }
 
 func (tc *ThemeConfig) Update(dark bool) tea.Cmd {
 	return types.CmdMsg(ThemeUpdatedMsg{Theme: tc.init(dark)})
+}
+
+func (tc *ThemeConfig) NextTint() tea.Cmd {
+	return func() tea.Msg {
+		tc.registry.NextTint()
+		return ThemeUpdatedMsg{Theme: tc.init(tc.dark)}
+	}
+}
+
+func (tc *ThemeConfig) PreviousTint() tea.Cmd {
+	return func() tea.Msg {
+		tc.registry.PreviousTint()
+		return ThemeUpdatedMsg{Theme: tc.init(tc.dark)}
+	}
 }
 
 type ThemeUpdatedMsg struct {

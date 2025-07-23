@@ -51,7 +51,7 @@ type BottomRightBorderEmbed interface {
 	BottomRightBorder() string
 }
 
-func Border(content string, borderColor color.Color, element any, embeddedText map[BorderPosition]string) string {
+func Border(content string, fg color.Color, element any, embeddedText map[BorderPosition]string) string {
 	height := lipgloss.Height(content)
 	width := lipgloss.Width(content)
 
@@ -88,7 +88,7 @@ func Border(content string, borderColor color.Color, element any, embeddedText m
 	var topGradient, rightGradient, bottomGradient, leftGradient []color.Color
 	var topLeftCornerGradient, topRightCornerGradient, bottomLeftCornerGradient, bottomRightCornerGradient color.Color
 
-	if borderColor == nil {
+	if fg == nil {
 		gradient := colors.BlendLinear1D(
 			height+width, // half of total number of border chars.
 			lipgloss.Color("#FF00FF"),
@@ -150,10 +150,10 @@ func Border(content string, borderColor color.Color, element any, embeddedText m
 		var leftBorderSegment strings.Builder
 		for i := range leftBorderLen {
 			var c color.Color
-			if borderColor == nil {
+			if fg == nil {
 				c = gradient[min(i, len(gradient)-1)]
 			} else {
-				c = borderColor
+				c = fg
 			}
 			style := lipgloss.NewStyle().Foreground(c)
 			leftBorderSegment.WriteString(style.Render(inbetween))
@@ -162,10 +162,10 @@ func Border(content string, borderColor color.Color, element any, embeddedText m
 		var rightBorderSegment strings.Builder
 		for i := range rightBorderLen {
 			var c color.Color
-			if borderColor == nil {
+			if fg == nil {
 				c = gradient[min(leftBorderLen+i, len(gradient)-1)]
 			} else {
-				c = borderColor
+				c = fg
 			}
 			style := lipgloss.NewStyle().Foreground(c)
 			rightBorderSegment.WriteString(style.Render(inbetween))
@@ -175,14 +175,14 @@ func Border(content string, borderColor color.Color, element any, embeddedText m
 		var leftPaddingBorder, rightPaddingBorder strings.Builder
 		var leftPaddingColor, rightPaddingColor color.Color
 
-		if borderColor == nil {
+		if fg == nil {
 			// Left padding should use the first gradient color (index 0)
 			// Right padding should use the gradient color at the position after all other elements
 			leftPaddingColor = gradient[0]
 			rightPaddingColor = gradient[min(leftBorderLen+lipgloss.Width(leftText)+lipgloss.Width(middleText)+lipgloss.Width(rightText)+rightBorderLen, len(gradient)-1)]
 		} else {
-			leftPaddingColor = borderColor
-			rightPaddingColor = borderColor
+			leftPaddingColor = fg
+			rightPaddingColor = fg
 		}
 
 		leftPaddingStyle := lipgloss.NewStyle().Foreground(leftPaddingColor)
@@ -191,12 +191,12 @@ func Border(content string, borderColor color.Color, element any, embeddedText m
 		rightPaddingBorder.WriteString(rightPaddingStyle.Render(inbetween))
 
 		var leftCornerStyle, rightCornerStyle lipgloss.Style
-		if borderColor == nil {
+		if fg == nil {
 			leftCornerStyle = lipgloss.NewStyle().Foreground(leftCornerGradient)
 			rightCornerStyle = lipgloss.NewStyle().Foreground(rightCornerGradient)
 		} else {
-			leftCornerStyle = lipgloss.NewStyle().Foreground(borderColor)
-			rightCornerStyle = lipgloss.NewStyle().Foreground(borderColor)
+			leftCornerStyle = lipgloss.NewStyle().Foreground(fg)
+			rightCornerStyle = lipgloss.NewStyle().Foreground(fg)
 		}
 
 		// Construct the complete border line with padding.
@@ -223,12 +223,12 @@ func Border(content string, borderColor color.Color, element any, embeddedText m
 
 		for i, line := range lines {
 			var leftColor, rightColor color.Color
-			if borderColor == nil {
+			if fg == nil {
 				leftColor = leftGradient[min(i, len(leftGradient)-1)]
 				rightColor = rightGradient[min(i, len(rightGradient)-1)]
 			} else {
-				leftColor = borderColor
-				rightColor = borderColor
+				leftColor = fg
+				rightColor = fg
 			}
 
 			leftBorderStyle := lipgloss.NewStyle().Foreground(leftColor)

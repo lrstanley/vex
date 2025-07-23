@@ -129,6 +129,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.BackgroundColorMsg:
 		cmds = append(cmds, styles.Theme.Update(msg.IsDark()))
 	case tea.KeyMsg:
+		switch {
+		case msg.String() == "[":
+			return m, styles.Theme.PreviousTint()
+		case msg.String() == "]":
+			return m, styles.Theme.NextTint()
+		}
+
 		switch m.focused {
 		case types.FocusDialog:
 			return m, m.app.Dialog().Update(msg)

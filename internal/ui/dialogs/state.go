@@ -42,7 +42,6 @@ func NewState() types.DialogState {
 func (s *state) initStyles() {
 	s.titleStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.DialogFg()).
-		Background(styles.Theme.Bg()).
 		Padding(0, 1).
 		Height(2)
 

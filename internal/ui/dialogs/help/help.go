@@ -51,25 +51,21 @@ func New(app types.AppState) *Model {
 
 func (m *Model) initStyles() {
 	m.titleStyle = lipgloss.NewStyle().
-		Background(styles.Theme.Bg()).
 		Foreground(styles.Theme.DialogFg()).
 		Border(lipgloss.NormalBorder(), false, false, true, false).
 		Bold(true)
 
 	m.keyStyle = lipgloss.NewStyle().
-		Background(styles.Theme.Bg()).
 		Foreground(styles.Theme.DialogFg())
 
 	m.keyInnerStyle = lipgloss.NewStyle().
-		Background(styles.Theme.Bg()).
 		Foreground(styles.Theme.ShortHelpKeyFg()).
 		Bold(true)
 
 	m.descStyle = lipgloss.NewStyle().
-		Background(styles.Theme.Bg()).
 		Foreground(styles.Theme.DialogFg())
 
-	m.viewport.Style = lipgloss.NewStyle().Background(styles.Theme.Bg()).Padding(0, 1)
+	m.viewport.Style = lipgloss.NewStyle().Padding(0, 1)
 }
 
 func (m *Model) GetTitle() string {

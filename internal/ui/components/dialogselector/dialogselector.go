@@ -73,7 +73,6 @@ func New(app types.AppState, config Config) *Model {
 
 func (m *Model) initStyles() {
 	m.BaseStyle = lipgloss.NewStyle().
-		Background(styles.Theme.Bg()).
 		Foreground(styles.Theme.DialogFg())
 
 	m.InputStyle = lipgloss.NewStyle().

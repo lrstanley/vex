@@ -3,7 +3,6 @@
 package styles
 
 import (
-	tint "github.com/lrstanley/bubbletint/v2"
 	"image/color"
 )
 
@@ -16,15 +15,6 @@ func (tc *ThemeConfig) Dark() bool {
 	return tc.dark
 }
 
-func (tc *ThemeConfig) Tint() *tint.Tint {
-	if tc == nil {
-		return nil
-	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
-	return tc.tint
-}
-
 func (tc *ThemeConfig) Fg() color.Color {
 	if tc == nil {
 		return nil
@@ -32,15 +22,6 @@ func (tc *ThemeConfig) Fg() color.Color {
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
 	return tc.fg
-}
-
-func (tc *ThemeConfig) Bg() color.Color {
-	if tc == nil {
-		return nil
-	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
-	return tc.bg
 }
 
 func (tc *ThemeConfig) SuccessFg() color.Color {
@@ -149,6 +130,15 @@ func (tc *ThemeConfig) StatusBarActivePageBg() color.Color {
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
 	return tc.statusBarActivePageBg
+}
+
+func (tc *ThemeConfig) StatusBarFilterTextFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.statusBarFilterTextFg
 }
 
 func (tc *ThemeConfig) StatusBarFilterBg() color.Color {

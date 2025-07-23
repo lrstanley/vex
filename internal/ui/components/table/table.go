@@ -104,8 +104,7 @@ func New[T Row[T]](app types.AppState, config Config[T]) *Model[T] {
 
 func (m *Model[T]) initStyles() {
 	m.styles.Base = lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg()).
-		Background(styles.Theme.Bg())
+		Foreground(styles.Theme.Fg())
 
 	m.styles.NoResults = lipgloss.NewStyle().
 		Foreground(styles.Theme.ErrorFg()).
@@ -115,17 +114,14 @@ func (m *Model[T]) initStyles() {
 
 	m.styles.Loading = lipgloss.NewStyle().
 		Foreground(styles.Theme.Fg()).
-		Background(styles.Theme.Bg()).
 		Padding(0, 1).
 		Align(lipgloss.Center)
 
 	m.spinner.Style = lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg()).
-		Background(styles.Theme.Bg())
+		Foreground(styles.Theme.Fg())
 
 	m.styles.Table.Header = m.styles.Table.Header.Bold(true).
-		Foreground(styles.Theme.Fg()).
-		Background(styles.Theme.Bg())
+		Foreground(styles.Theme.Fg())
 
 	m.styles.Table.Selected = m.styles.Table.Selected.
 		Foreground(styles.Theme.InfoFg()).

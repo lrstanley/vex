@@ -55,11 +55,9 @@ func New(app types.AppState) *Model {
 
 func (m *Model) setStyles() {
 	m.baseStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg()).
-		Background(styles.Theme.Bg())
+		Foreground(styles.Theme.Fg())
 
 	m.viewport.Style = lipgloss.NewStyle().
-		Background(styles.Theme.Bg()).
 		Padding(0, 1)
 }
 
@@ -98,7 +96,7 @@ func (m *Model) renderCode() {
 		lexer = lexers.Fallback
 	}
 
-	// Use a simple style for syntax highligvexng.
+	// Use a simple style for syntax highlighting.
 	style := chromastyles.Fallback
 
 	// Use a simple formatter that outputs ANSI color codes.

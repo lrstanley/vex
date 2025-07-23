@@ -75,7 +75,7 @@ func (m *Model) setStyles() {
 		Background(colors.Darken(styles.Theme.StatusBarFilterBg(), 10))
 
 	m.filter.Styles.Focused.Text = m.filter.Styles.Focused.Text.
-		Foreground(styles.Theme.Tint().White).
+		Foreground(styles.Theme.StatusBarFilterTextFg()).
 		Background(colors.Darken(styles.Theme.StatusBarFilterBg(), 10))
 }
 
