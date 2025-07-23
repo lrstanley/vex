@@ -17,11 +17,11 @@ import (
 	"github.com/lrstanley/vex/internal/ui/dialogs"
 	"github.com/lrstanley/vex/internal/ui/dialogs/commander"
 	"github.com/lrstanley/vex/internal/ui/dialogs/help"
-	"github.com/lrstanley/vex/internal/ui/page"
-	"github.com/lrstanley/vex/internal/ui/page/aclpolicies"
-	"github.com/lrstanley/vex/internal/ui/page/configstate"
-	"github.com/lrstanley/vex/internal/ui/page/mounts"
-	"github.com/lrstanley/vex/internal/ui/page/secrets"
+	"github.com/lrstanley/vex/internal/ui/pages"
+	"github.com/lrstanley/vex/internal/ui/pages/aclpolicies"
+	"github.com/lrstanley/vex/internal/ui/pages/configstate"
+	"github.com/lrstanley/vex/internal/ui/pages/mounts"
+	"github.com/lrstanley/vex/internal/ui/pages/secrets"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -80,7 +80,7 @@ func New(client types.Client) *Model {
 		task:   tasks.NewState(),
 	}
 
-	app.page = page.NewState(mounts.New(app))
+	app.page = pages.NewState(mounts.New(app))
 
 	return &Model{
 		app: app,

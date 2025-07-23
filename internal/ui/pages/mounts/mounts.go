@@ -13,7 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
-	"github.com/lrstanley/vex/internal/ui/page/secrets"
+	"github.com/lrstanley/vex/internal/ui/pages/secrets"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
