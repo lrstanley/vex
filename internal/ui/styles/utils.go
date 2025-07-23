@@ -5,6 +5,7 @@
 package styles
 
 import (
+	"fmt"
 	"image/color"
 	"iter"
 	"slices"
@@ -97,4 +98,13 @@ func Expand(v int) string {
 // This treats the text as a sequence of graphemes.
 func Trunc(s string, length int) string {
 	return ansi.Truncate(s, length, IconEllipsis)
+}
+
+// Pluralize returns a string with the count and the singular or plural form of
+// the word, primarily used for things like border based titles.
+func Pluralize(count int, singular, plural string) string {
+	if count == 1 {
+		return fmt.Sprintf("%d %s", count, singular)
+	}
+	return fmt.Sprintf("%d %s", count, plural)
 }

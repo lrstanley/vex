@@ -6,7 +6,6 @@ package mounts
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/v2/key"
@@ -174,8 +173,5 @@ func (m *Model) View() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	if len(m.mounts) == 0 {
-		return ""
-	}
-	return strconv.Itoa(len(m.mounts)) + " mounts"
+	return styles.Pluralize(len(m.mounts), "mount", "mounts")
 }

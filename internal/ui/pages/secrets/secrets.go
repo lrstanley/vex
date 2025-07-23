@@ -5,13 +5,13 @@
 package secrets
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
+	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
 var (
@@ -168,8 +168,5 @@ func (m *Model) View() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	if len(m.secrets) > 0 {
-		return strconv.Itoa(len(m.secrets)) + " secrets"
-	}
-	return ""
+	return styles.Pluralize(len(m.secrets), "secret", "secrets")
 }

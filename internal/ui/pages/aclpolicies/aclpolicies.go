@@ -5,13 +5,12 @@
 package aclpolicies
 
 import (
-	"strconv"
-
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/pages/genericcode"
+	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
 var (
@@ -154,8 +153,5 @@ func (m *Model) View() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	if len(m.policies) == 0 {
-		return ""
-	}
-	return strconv.Itoa(len(m.policies)) + " acl policies"
+	return styles.Pluralize(len(m.policies), "acl policy", "acl policies")
 }
