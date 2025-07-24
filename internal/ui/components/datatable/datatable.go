@@ -166,6 +166,7 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 		m.Height, m.Width = msg.Height, msg.Width
 		m.updateDimensions()
 		m.updateTable()
+		m.table.GotoTop()
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		m.updateTable()
@@ -223,7 +224,6 @@ func (m *Model[T]) updateTable() {
 	}
 	m.table.SetColumns(tcols)
 	m.table.SetRows(trows)
-	m.table.GotoTop()
 }
 
 func (m *Model[T]) calculateColumnWidths() []int {
@@ -286,6 +286,9 @@ func (m *Model[T]) SetFilter(filter string) {
 }
 
 func (m *Model[T]) SetData(columns []string, values []T) {
+	oldLen := len(m.data)
+	wasNil := m.data == nil
+
 	m.columns = columns
 	m.data = make([]T, 0, len(values))
 	for _, value := range values {
@@ -293,6 +296,12 @@ func (m *Model[T]) SetData(columns []string, values []T) {
 	}
 	m.updateTable()
 	m.loading = false
+
+	// If we might be out of the view, or the data was originally nil (initial load),
+	// then we need to go to the top.
+	if oldLen > len(m.data) || wasNil {
+		m.table.GotoTop()
+	}
 }
 
 func (m *Model[T]) GetSelectedData() (T, bool) {
