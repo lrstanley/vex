@@ -19,19 +19,20 @@ import (
 var Theme = (&ThemeConfig{
 	registry: tint.NewRegistry(
 		tint.TintPencilDark,
+		tint.TintDjango,
 		tint.TintAfterglow,
 		tint.TintSpacedust,
 		tint.TintLabFox,
+		tint.TintTokyoNightLight,
 		// tint.DefaultTints()...,
 	),
-}).init(true)
+}).set()
 
 type ThemeConfig struct {
 	registry *tint.Registry
 	mu       sync.RWMutex
 
-	dark bool        `accessor:"getter"`
-	fg   color.Color `accessor:"getter"`
+	fg color.Color `accessor:"getter"`
 
 	successFg color.Color `accessor:"getter"`
 	successBg color.Color `accessor:"getter"`
@@ -63,56 +64,61 @@ type ThemeConfig struct {
 	dialogTitleFromFg color.Color `accessor:"getter"`
 	dialogTitleToFg   color.Color `accessor:"getter"`
 
-	pageBorderFg color.Color `accessor:"getter"`
+	pageBorderFg       color.Color `accessor:"getter"`
+	pageBorderFilterFg color.Color `accessor:"getter"`
 }
 
 func (tc *ThemeConfig) adapt(light, dark color.Color) color.Color {
-	if tc.dark {
+	if tc.registry.Current().Dark {
 		return dark
 	}
 	return light
 }
 
-func (tc *ThemeConfig) init(dark bool) *ThemeConfig {
+func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
 
 	t := tc.registry.Current()
 
-	tc.dark = dark
-
 	tc.fg = tc.adapt(t.Fg, t.Fg)
 
-	tc.successFg = tc.adapt(t.BrightGreen, t.BrightGreen)
-	tc.successBg = tc.adapt(colors.Darken(t.BrightGreen, 60), colors.Darken(t.BrightGreen, 60))
-	tc.warningFg = tc.adapt(t.BrightYellow, t.BrightYellow)
-	tc.warningBg = tc.adapt(colors.Darken(t.BrightYellow, 60), colors.Darken(t.BrightYellow, 60))
-	tc.errorFg = tc.adapt(colors.Lighten(t.BrightRed, 20), colors.Lighten(t.BrightRed, 20))
-	tc.errorBg = tc.adapt(colors.Darken(t.BrightRed, 60), colors.Darken(t.BrightRed, 60))
-	tc.infoFg = tc.adapt(colors.Lighten(t.BrightBlue, 20), colors.Lighten(t.BrightBlue, 20))
-	tc.infoBg = tc.adapt(colors.Darken(t.BrightBlue, 60), colors.Darken(t.BrightBlue, 60))
+	white := tc.adapt(colors.Lighten(t.White, 20), colors.Lighten(t.White, 20))
+
+	statusFgLighten := 40
+	statusBgDarken := 60
+
+	tc.successFg = tc.adapt(colors.Lighten(t.BrightGreen, statusFgLighten), colors.Lighten(t.BrightGreen, statusFgLighten))
+	tc.successBg = tc.adapt(colors.Darken(t.BrightGreen, statusBgDarken), colors.Darken(t.BrightGreen, statusBgDarken))
+	tc.warningFg = tc.adapt(colors.Lighten(t.BrightYellow, statusFgLighten), colors.Lighten(t.BrightYellow, statusFgLighten))
+	tc.warningBg = tc.adapt(colors.Darken(t.BrightYellow, statusBgDarken), colors.Darken(t.BrightYellow, statusBgDarken))
+	tc.errorFg = tc.adapt(colors.Lighten(t.BrightRed, statusFgLighten), colors.Lighten(t.BrightRed, statusFgLighten))
+	tc.errorBg = tc.adapt(colors.Darken(t.BrightRed, statusBgDarken), colors.Darken(t.BrightRed, statusBgDarken))
+	tc.infoFg = tc.adapt(colors.Lighten(t.BrightBlue, statusFgLighten), colors.Lighten(t.BrightBlue, statusFgLighten))
+	tc.infoBg = tc.adapt(colors.Darken(t.BrightBlue, statusBgDarken), colors.Darken(t.BrightBlue, statusBgDarken))
 
 	tc.statusBarFg = tc.adapt(t.Fg, t.Fg)
-	tc.statusBarBg = tc.adapt(colors.Lighten(t.Bg, 10), colors.Lighten(t.Bg, 10))
+	tc.statusBarBg = tc.adapt(colors.Lighten(t.Bg, 20), colors.Darken(t.Bg, 20))
 	tc.statusBarActivePageFg = tc.adapt(colors.Lighten(t.BrightCyan, 40), colors.Lighten(t.BrightCyan, 40))
 	tc.statusBarActivePageBg = tc.adapt(colors.Darken(t.BrightCyan, 40), colors.Darken(t.BrightCyan, 40))
-	tc.statusBarFilterTextFg = tc.adapt(t.White, t.White)
+	tc.statusBarFilterTextFg = white
 	tc.statusBarFilterBg = tc.infoBg
 	tc.statusBarFilterFg = tc.infoFg
-	tc.statusBarAddrFg = tc.adapt(t.White, t.White)
+	tc.statusBarAddrFg = white
 	tc.statusBarAddrBg = tc.adapt(colors.Darken(t.BrightBlue, 40), colors.Darken(t.BrightBlue, 40))
-	tc.statusBarLogoFg = tc.adapt(t.White, t.White)
-	tc.statusBarLogoBg = tc.adapt(t.Purple, t.Purple)
+	tc.statusBarLogoFg = white
+	tc.statusBarLogoBg = tc.adapt(t.Purple, colors.Lighten(t.Bg, 20))
 
 	tc.shortHelpKeyFg = tc.adapt(colors.Lighten(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 20))
 
-	tc.dialogFg = tc.adapt(t.White, t.White)
+	tc.dialogFg = white
 	tc.dialogBorderFg = tc.adapt(t.Purple, t.Purple)
-	tc.dialogTitleFg = tc.adapt(colors.Lighten(t.BrightRed, 50), colors.Lighten(t.BrightRed, 50))
+	tc.dialogTitleFg = tc.adapt(colors.Darken(t.BrightRed, 50), colors.Lighten(t.BrightRed, 50))
 	tc.dialogTitleFromFg = tc.adapt(colors.Lighten(t.Blue, 20), colors.Lighten(t.Blue, 20))
 	tc.dialogTitleToFg = tc.adapt(t.BrightPurple, t.BrightPurple)
 
 	tc.pageBorderFg = tc.adapt(t.Purple, t.Purple)
+	tc.pageBorderFilterFg = tc.adapt(colors.Darken(t.BrightBlue, 30), colors.Lighten(t.BrightBlue, 30))
 
 	return tc
 }
@@ -132,24 +138,43 @@ func (tc *ThemeConfig) ByStatus(status types.Status) (fg, bg color.Color) {
 	}
 }
 
-func (tc *ThemeConfig) Update(dark bool) tea.Cmd {
-	return types.CmdMsg(ThemeUpdatedMsg{Theme: tc.init(dark)})
+func (tc *ThemeConfig) Init() tea.Cmd {
+	tc.set()
+	return tea.Sequence(
+		types.CmdMsg(ThemeUpdatedMsg{}),
+		tea.SetBackgroundColor(tc.registry.Current().Bg),
+	)
+}
+
+func (tc *ThemeConfig) Update(msg tea.Msg) tea.Cmd {
+	switch msg.(type) {
+	case tea.BackgroundColorMsg:
+		// TODO: if user hasn't explicitly configured a tint, we should switch to
+		// one which is the same as the current background color. We should also
+		// make setting of the background color optional.
+		tc.set()
+		return tc.updateThemeCmd()
+	}
+	return nil
 }
 
 func (tc *ThemeConfig) NextTint() tea.Cmd {
-	return func() tea.Msg {
-		tc.registry.NextTint()
-		return ThemeUpdatedMsg{Theme: tc.init(tc.dark)}
-	}
+	tc.registry.NextTint()
+	tc.set()
+	return tc.updateThemeCmd()
 }
 
 func (tc *ThemeConfig) PreviousTint() tea.Cmd {
-	return func() tea.Msg {
-		tc.registry.PreviousTint()
-		return ThemeUpdatedMsg{Theme: tc.init(tc.dark)}
-	}
+	tc.registry.PreviousTint()
+	tc.set()
+	return tc.updateThemeCmd()
 }
 
-type ThemeUpdatedMsg struct {
-	Theme *ThemeConfig
+func (tc *ThemeConfig) updateThemeCmd() tea.Cmd {
+	return tea.Batch(
+		types.CmdMsg(ThemeUpdatedMsg{}),
+		tea.SetBackgroundColor(tc.registry.Current().Bg),
+	)
 }
+
+type ThemeUpdatedMsg struct{}

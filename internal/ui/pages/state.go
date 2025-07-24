@@ -5,10 +5,10 @@
 package pages
 
 import (
-	"fmt"
 	"sync/atomic"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -26,14 +26,25 @@ type state struct {
 	windowHeight  int
 	windowWidth   int
 	filter        string
+	pages         types.AtomicSlice[types.Page]
 
-	pages types.AtomicSlice[types.Page]
+	filterStyle     lipgloss.Style
+	filterIconStyle lipgloss.Style
 }
 
 func NewState(initial types.Page) types.PageState {
 	t := &state{}
 	t.pages.Push(initial)
+	t.setStyles()
 	return t
+}
+
+func (s *state) setStyles() {
+	s.filterStyle = lipgloss.NewStyle().
+		Foreground(styles.Theme.PageBorderFilterFg()).
+		PaddingLeft(1)
+	s.filterIconStyle = lipgloss.NewStyle().
+		Foreground(styles.Theme.PageBorderFilterFg())
 }
 
 func (s *state) Init() tea.Cmd {
@@ -62,6 +73,9 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		}
 
 		return tea.Batch(cmds...)
+	case styles.ThemeUpdatedMsg:
+		s.setStyles()
+		all = true
 	case types.PageMsg:
 		switch msg := msg.Msg.(type) {
 		case types.OpenPageMsg:
@@ -134,7 +148,7 @@ func (s *state) View() string {
 
 	embeddedText := make(map[styles.BorderPosition]string)
 	if p.GetSupportFiltering() && s.filter != "" {
-		embeddedText[styles.BottomRightBorder] = fmt.Sprintf("filter: %s", s.filter)
+		embeddedText[styles.BottomRightBorder] = s.filterIconStyle.Render(styles.IconFilter) + s.filterIconStyle.Render("filter: "+s.filter)
 	}
 
 	return styles.Border(

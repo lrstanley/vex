@@ -73,18 +73,41 @@ func New(app types.AppState, config Config) *Model {
 
 func (m *Model) initStyles() {
 	m.BaseStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.DialogFg())
+		Foreground(styles.Theme.Fg())
 
 	m.InputStyle = lipgloss.NewStyle().
 		Padding(0, 1, 1, 1)
 
+	m.input.Styles.Focused.Placeholder = m.input.Styles.Focused.Placeholder.
+		Foreground(styles.Theme.Fg()).Faint(true)
+
+	m.input.Styles.Focused.Suggestion = m.input.Styles.Focused.Suggestion.
+		Foreground(styles.Theme.Fg()).Faint(true)
+
+	m.input.Styles.Focused.Text = m.input.Styles.Focused.Text.
+		Foreground(styles.Theme.Fg())
+
+	m.input.Styles.Focused.Prompt = m.input.Styles.Focused.Prompt.
+		Foreground(styles.Theme.Fg())
+
+	m.input.Styles.Blurred.Prompt = m.input.Styles.Blurred.Prompt.
+		Foreground(styles.Theme.InfoFg())
+
+	m.input.Styles.Cursor.Color = styles.Theme.Fg()
+	// TODO: bug with bubbles v2, returns cursor.BlinkMsg, then returns cursor.blinkCanceled,
+	// which we can't handle because its private. Can technically use %T and strings.Contains,
+	// but even that, the cursor stops blinking after the first blink, and disappears.
+	m.input.Styles.Cursor.Blink = false
+
 	s := table.DefaultStyles()
-	s.Header = s.Header.
-		Bold(true)
+
+	s.Header = s.Header.Bold(true).
+		Foreground(styles.Theme.Fg())
+
 	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
+		Foreground(styles.Theme.InfoFg()).
+		Background(styles.Theme.InfoBg()).
+		Bold(true)
 
 	m.table.SetStyles(s)
 }
@@ -122,6 +145,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.updateDimensions()
 		m.updateTable()
 	case styles.ThemeUpdatedMsg:
+		m.initStyles()
 		m.updateDimensions()
 	case tea.KeyMsg:
 		switch {
@@ -244,5 +268,5 @@ func (m *Model) View() string {
 		out = append(out, lipgloss.NewStyle().MaxHeight(len(m.table.Rows())+1).Render(m.table.View()))
 	}
 
-	return lipgloss.JoinVertical(lipgloss.Top, out...)
+	return m.BaseStyle.Render(lipgloss.JoinVertical(lipgloss.Top, out...))
 }

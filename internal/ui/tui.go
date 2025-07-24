@@ -95,7 +95,7 @@ func New(client types.Client) *Model {
 
 func (m Model) Init() tea.Cmd {
 	return tea.Sequence(
-		styles.Theme.Update(true),
+		styles.Theme.Init(),
 		m.app.Page().Init(),
 		tea.Batch(
 			m.app.Client().Init(),
@@ -127,7 +127,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}),
 		)
 	case tea.BackgroundColorMsg:
-		cmds = append(cmds, styles.Theme.Update(msg.IsDark()))
+		return m, styles.Theme.Update(msg)
 	case tea.KeyMsg:
 		switch {
 		case msg.String() == "[":

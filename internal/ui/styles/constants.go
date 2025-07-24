@@ -4,7 +4,11 @@
 
 package styles
 
-// https://gist.githubusercontent.com/nico/befa4300d44ffe579553d37ae0981941/raw/f61795f231a10ccc2c97c8b75b20fdcecfab6377/blocks.txt
+// refs:
+//   - https://gist.githubusercontent.com/nico/befa4300d44ffe579553d37ae0981941/raw/f61795f231a10ccc2c97c8b75b20fdcecfab6377/blocks.txt
+//   - https://shapecatcher.com/
+//
+// TODO: convert these to methods, so we can provide fallbacks?
 const (
 	IconSeparator        = "•"
 	IconEllipsis         = "…"
@@ -12,6 +16,7 @@ const (
 	IconSemiFilledCircle = "◎"
 	IconClosedCircle     = "◉"
 	IconFilledCircle     = "⏺"
+	IconFilter           = "🔍"
 
 	IconCaution     = "⚠"
 	IconMaybeDanger = "⁈"

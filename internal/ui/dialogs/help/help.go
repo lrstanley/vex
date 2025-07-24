@@ -51,19 +51,19 @@ func New(app types.AppState) *Model {
 
 func (m *Model) initStyles() {
 	m.titleStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.DialogFg()).
+		Foreground(styles.Theme.Fg()).
 		Border(lipgloss.NormalBorder(), false, false, true, false).
 		Bold(true)
 
 	m.keyStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.DialogFg())
+		Foreground(styles.Theme.Fg())
 
 	m.keyInnerStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.ShortHelpKeyFg()).
 		Bold(true)
 
 	m.descStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.DialogFg())
+		Foreground(styles.Theme.Fg())
 
 	m.viewport.Style = lipgloss.NewStyle().Padding(0, 1)
 }
@@ -160,6 +160,7 @@ func (m *Model) generateHelp() {
 
 			buf.WriteString(lipgloss.NewStyle().
 				Width(m.Width).
+				Foreground(styles.Theme.Fg()).
 				Background(m.titleStyle.GetBackground()).
 				Render(
 					m.titleStyle.Render(group.Title),

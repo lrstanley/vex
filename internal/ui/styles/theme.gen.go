@@ -6,15 +6,6 @@ import (
 	"image/color"
 )
 
-func (tc *ThemeConfig) Dark() bool {
-	if tc == nil {
-		return false
-	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
-	return tc.dark
-}
-
 func (tc *ThemeConfig) Fg() color.Color {
 	if tc == nil {
 		return nil
@@ -256,4 +247,13 @@ func (tc *ThemeConfig) PageBorderFg() color.Color {
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
 	return tc.pageBorderFg
+}
+
+func (tc *ThemeConfig) PageBorderFilterFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.pageBorderFilterFg
 }

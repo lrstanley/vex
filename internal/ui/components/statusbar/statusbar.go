@@ -62,15 +62,18 @@ func (m *Model) setStyles() {
 		Foreground(styles.Theme.StatusBarFg()).
 		Background(styles.Theme.StatusBarBg())
 
-	m.helpEl.Styles.Base = m.helpEl.Styles.Base.
-		Background(styles.Theme.StatusBarBg()).
-		Foreground(styles.Theme.StatusBarFg())
-	m.helpEl.Styles.Key = m.helpEl.Styles.Key.
-		Foreground(styles.Theme.ShortHelpKeyFg())
-	m.helpEl.Styles.Desc = m.helpEl.Styles.Desc.
-		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30))
-	m.helpEl.Styles.Separator = m.helpEl.Styles.Separator.
-		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30))
+	m.helpEl.Styles.Base = lipgloss.NewStyle().
+		Foreground(styles.Theme.StatusBarFg()).
+		Background(styles.Theme.StatusBarBg())
+	m.helpEl.Styles.Key = lipgloss.NewStyle().
+		Foreground(styles.Theme.ShortHelpKeyFg()).
+		Background(styles.Theme.StatusBarBg())
+	m.helpEl.Styles.Desc = lipgloss.NewStyle().
+		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30)).
+		Background(styles.Theme.StatusBarBg())
+	m.helpEl.Styles.Separator = lipgloss.NewStyle().
+		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30)).
+		Background(styles.Theme.StatusBarBg())
 
 	m.logoStyle = lipgloss.NewStyle().
 		Padding(0, 1).

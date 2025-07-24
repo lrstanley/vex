@@ -14,7 +14,7 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.2
+	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.3
 	github.com/rivo/uniseg v0.4.7
 	github.com/sourcegraph/conc v0.3.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1

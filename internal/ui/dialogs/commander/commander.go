@@ -79,9 +79,6 @@ type Model struct {
 	// UI state.
 	config Config
 
-	// Styles.
-	baseStyle lipgloss.Style
-
 	// Child components.
 	selector *dialogselector.Model
 }

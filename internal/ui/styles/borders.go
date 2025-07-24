@@ -73,23 +73,25 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 		embeddedText = make(map[BorderPosition]string)
 	}
 
+	defaultEmbedStyle := lipgloss.NewStyle().Foreground(Theme.Fg())
+
 	if v, ok := element.(TopLeftBorderEmbed); ok {
-		embeddedText[TopLeftBorder] = v.TopLeftBorder()
+		embeddedText[TopLeftBorder] = defaultEmbedStyle.Render(v.TopLeftBorder())
 	}
 	if v, ok := element.(TopMiddleBorderEmbed); ok {
-		embeddedText[TopMiddleBorder] = v.TopMiddleBorder()
+		embeddedText[TopMiddleBorder] = defaultEmbedStyle.Render(v.TopMiddleBorder())
 	}
 	if v, ok := element.(TopRightBorderEmbed); ok {
-		embeddedText[TopRightBorder] = v.TopRightBorder()
+		embeddedText[TopRightBorder] = defaultEmbedStyle.Render(v.TopRightBorder())
 	}
 	if v, ok := element.(BottomLeftBorderEmbed); ok {
-		embeddedText[BottomLeftBorder] = v.BottomLeftBorder()
+		embeddedText[BottomLeftBorder] = defaultEmbedStyle.Render(v.BottomLeftBorder())
 	}
 	if v, ok := element.(BottomMiddleBorderEmbed); ok {
-		embeddedText[BottomMiddleBorder] = v.BottomMiddleBorder()
+		embeddedText[BottomMiddleBorder] = defaultEmbedStyle.Render(v.BottomMiddleBorder())
 	}
 	if v, ok := element.(BottomRightBorderEmbed); ok {
-		embeddedText[BottomRightBorder] = v.BottomRightBorder()
+		embeddedText[BottomRightBorder] = defaultEmbedStyle.Render(v.BottomRightBorder())
 	}
 
 	border := lipgloss.Border(lipgloss.RoundedBorder())
