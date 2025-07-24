@@ -13,7 +13,6 @@ import (
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
-	chromastyles "github.com/alecthomas/chroma/v2/styles"
 	"github.com/charmbracelet/bubbles/v2/viewport"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -96,8 +95,7 @@ func (m *Model) renderCode() {
 		lexer = lexers.Fallback
 	}
 
-	// Use a simple style for syntax highlighting.
-	style := chromastyles.Fallback
+	style := chroma.MustNewStyle("vex", styles.Theme.Chroma())
 
 	// Use a simple formatter that outputs ANSI color codes.
 	formatter := formatters.TTY256

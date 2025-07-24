@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"sync"
 
+	"github.com/alecthomas/chroma/v2"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2/colors"
 	tint "github.com/lrstanley/bubbletint/v2"
@@ -32,7 +33,8 @@ type ThemeConfig struct {
 	registry *tint.Registry
 	mu       sync.RWMutex
 
-	fg color.Color `accessor:"getter"`
+	chroma chroma.StyleEntries
+	fg     color.Color `accessor:"getter"`
 
 	successFg color.Color `accessor:"getter"`
 	successBg color.Color `accessor:"getter"`
@@ -81,6 +83,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 
 	t := tc.registry.Current()
 
+	tc.chroma = tc.generateChromaStyle()
 	tc.fg = tc.adapt(t.Fg, t.Fg)
 
 	white := tc.adapt(colors.Lighten(t.White, 20), colors.Lighten(t.White, 20))
@@ -98,7 +101,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.infoBg = tc.adapt(colors.Darken(t.BrightBlue, statusBgDarken), colors.Darken(t.BrightBlue, statusBgDarken))
 
 	tc.statusBarFg = tc.adapt(t.Fg, t.Fg)
-	tc.statusBarBg = tc.adapt(colors.Lighten(t.Bg, 20), colors.Darken(t.Bg, 20))
+	tc.statusBarBg = tc.adapt(colors.Lighten(t.Bg, 10), colors.Darken(t.Bg, 20))
 	tc.statusBarActivePageFg = tc.adapt(colors.Lighten(t.BrightCyan, 40), colors.Lighten(t.BrightCyan, 40))
 	tc.statusBarActivePageBg = tc.adapt(colors.Darken(t.BrightCyan, 40), colors.Darken(t.BrightCyan, 40))
 	tc.statusBarFilterTextFg = white
@@ -109,7 +112,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.statusBarLogoFg = white
 	tc.statusBarLogoBg = tc.adapt(t.Purple, colors.Lighten(t.Bg, 20))
 
-	tc.shortHelpKeyFg = tc.adapt(colors.Lighten(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 20))
+	tc.shortHelpKeyFg = tc.adapt(colors.Darken(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 40))
 
 	tc.dialogFg = white
 	tc.dialogBorderFg = tc.adapt(t.Purple, t.Purple)
@@ -175,6 +178,15 @@ func (tc *ThemeConfig) updateThemeCmd() tea.Cmd {
 		types.CmdMsg(ThemeUpdatedMsg{}),
 		tea.SetBackgroundColor(tc.registry.Current().Bg),
 	)
+}
+
+func (tc *ThemeConfig) Chroma() chroma.StyleEntries {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.chroma
 }
 
 type ThemeUpdatedMsg struct{}

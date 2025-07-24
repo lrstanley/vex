@@ -59,7 +59,7 @@ tasks:
   prepare:
     desc: prepare build environment
     deps: [fetch]
-    aliases: [init]
+    aliases: [init, generate, gen]
     sources:
       - internal/ui/styles/theme.go
     generates:
