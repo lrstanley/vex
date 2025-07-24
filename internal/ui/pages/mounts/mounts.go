@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/table"
+	"github.com/lrstanley/vex/internal/ui/components/datatable"
 	"github.com/lrstanley/vex/internal/ui/pages/secrets"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -20,43 +20,6 @@ var (
 	Commands    = []string{"mounts", "mount"}
 	dataColumns = []string{"Path", "Type", "Description", "Accessor", "Deprecated", "Plugin Version"}
 )
-
-type Data struct {
-	Mount *types.Mount
-}
-
-func (d Data) Get() Data {
-	return d
-}
-
-func (d Data) Row() []string {
-	var opts []string
-
-	for k, v := range d.Mount.Options {
-		var name string
-
-		switch k {
-		case "version":
-			name = "ver"
-		}
-
-		opts = append(opts, fmt.Sprintf("%s=%s", name, v))
-	}
-
-	sopts := strings.Join(opts, ",")
-	if len(sopts) > 0 {
-		sopts = " (" + sopts + ")"
-	}
-
-	return []string{
-		d.Mount.Path,
-		styles.Trunc(d.Mount.Type+sopts, 15),
-		styles.Trunc(d.Mount.Description, 40),
-		d.Mount.Accessor,
-		d.Mount.DeprecationStatus,
-		d.Mount.RunningVersion,
-	}
-}
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
@@ -67,14 +30,10 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	height        int
-	width         int
-	filter        string
-	mounts        []*types.Mount
-	selectedMount *types.Mount
+	filter string
 
 	// Child components.
-	tableComponent *table.Model[Data]
+	table *datatable.Model[*types.Mount]
 }
 
 func New(app types.AppState) *Model {
@@ -82,98 +41,106 @@ func New(app types.AppState) *Model {
 		PageModel: &types.PageModel{
 			Commands:         Commands,
 			SupportFiltering: true,
-			ShortKeyBinds:    []key.Binding{types.KeyRefresh, types.KeyQuit},
-			FullKeyBinds:     [][]key.Binding{{types.KeyRefresh, types.KeyQuit}},
+			ShortKeyBinds:    []key.Binding{types.KeyCancel, types.KeyRefresh, types.KeyQuit},
+			FullKeyBinds:     [][]key.Binding{{types.KeyCancel, types.KeyRefresh, types.KeyQuit}},
 		},
 		app: app,
 	}
-	m.tableComponent = table.New(app, table.Config[Data]{
-		OnSelect: func(item Data) {
-			m.selectedMount = item.Mount
+
+	m.table = datatable.New(app, datatable.Config[*types.Mount]{
+		FetchFn: func(app types.AppState) tea.Cmd {
+			return app.Client().ListMounts(m.UUID())
 		},
+		SelectFn: func(app types.AppState, value *types.Mount) tea.Cmd {
+			return types.OpenPage(secrets.New(app, value, ""), false)
+		},
+		RowFn: m.rowFn,
 	})
 
 	return m
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(
-		m.app.Client().ListMounts(m.UUID()),
-		m.tableComponent.Init(),
-	)
+	return m.table.Init()
 }
 
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyCancel):
-			return types.ClearAppFilter()
+			switch {
+			case m.filter != "":
+				return types.ClearAppFilter()
+			case m.app.Page().HasParent():
+				return types.CloseActivePage()
+			}
+			return nil
 		case key.Matches(msg, types.KeyQuit):
 			return tea.Quit
-		case key.Matches(msg, types.KeyRefresh):
-			cmds = append(
-				cmds,
-				m.tableComponent.SetLoading(),
-				m.app.Client().ListMounts(m.UUID()),
-			)
 		}
 	case types.AppFilterMsg:
 		if msg.UUID != m.UUID() {
 			return nil
 		}
-
 		m.filter = msg.Text
-		m.tableComponent.SetFilter(msg.Text)
+		m.table.SetFilter(msg.Text)
 	case types.ClientMsg:
+		if msg.UUID != m.UUID() {
+			return nil
+		}
+
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListMountsMsg:
+			cmds = append(cmds, m.table.SetLoading())
 			if msg.Error == nil {
-				m.mounts = vmsg.Mounts
-				m.updateTableData()
+				m.table.SetData(
+					dataColumns,
+					vmsg.Mounts,
+				)
 			}
 		}
 	}
 
-	cmds = append(cmds, m.tableComponent.Update(msg))
-
-	if v := m.selectedMount; v != nil {
-		m.selectedMount = nil
-		return types.OpenPage(secrets.New(m.app, v, ""), false)
-	}
-	return tea.Batch(cmds...)
+	return tea.Batch(append(cmds, m.table.Update(msg))...)
 }
 
-func (m *Model) updateTableData() {
-	if len(m.mounts) == 0 {
-		m.tableComponent.SetData([]string{}, []Data{})
-		return
+func (m *Model) rowFn(app types.AppState, value *types.Mount) []string {
+	var opts []string
+
+	for k, v := range value.Options {
+		var name string
+		switch k {
+		case "version":
+			name = "ver"
+		}
+		opts = append(opts, fmt.Sprintf("%s=%s", name, v))
 	}
 
-	var mountData []Data
-	for _, mount := range m.mounts {
-		mountData = append(mountData, Data{Mount: mount})
+	sopts := strings.Join(opts, ",")
+	if len(sopts) > 0 {
+		sopts = " (" + sopts + ")"
 	}
 
-	m.tableComponent.SetData(
-		dataColumns,
-		mountData,
-	)
+	return []string{
+		value.Path,
+		styles.Trunc(value.Type+sopts, 15),
+		styles.Trunc(value.Description, 40),
+		value.Accessor,
+		value.DeprecationStatus,
+		value.RunningVersion,
+	}
 }
 
 func (m *Model) View() string {
-	if m.width == 0 || m.height == 0 {
+	if m.table.Width == 0 || m.table.Height == 0 {
 		return ""
 	}
-
-	return m.tableComponent.View()
+	return m.table.View()
 }
 
 func (m *Model) TopMiddleBorder() string {
-	return styles.Pluralize(len(m.mounts), "mount", "mounts")
+	return styles.Pluralize(m.table.DataLen(), "mount", "mounts")
 }

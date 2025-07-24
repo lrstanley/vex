@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package table
+package datatable
 
 import (
 	"strings"
@@ -16,21 +16,6 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-type mockRow struct{}
-
-func (r mockRow) Get() mockRow {
-	return r
-}
-
-func (r mockRow) Row() []string {
-	return []string{"mock"}
-}
-
-type Row[T any] interface {
-	Get() T
-	Row() []string
-}
-
 // TableStyles contains all the customizable styles for the table component.
 type TableStyles struct {
 	Base      lipgloss.Style
@@ -42,13 +27,15 @@ type TableStyles struct {
 // Config contains the configuration for the table component.
 type Config[T any] struct {
 	NoResultsMsg string
-	FilterFunc   func(item T, filter string) bool
-	OnSelect     func(item T)
+	FilterFunc   func(value T, filter string) bool
+	SelectFn     func(app types.AppState, value T) tea.Cmd
+	RowFn        func(app types.AppState, value T) []string
+	FetchFn      func(app types.AppState) tea.Cmd
 }
 
-var _ types.Component = (*Model[mockRow])(nil) // Ensure we implement the component interface.
+var _ types.Component = (*Model[any])(nil) // Ensure we implement the component interface.
 
-type Model[T Row[T]] struct {
+type Model[T any] struct {
 	*types.ComponentModel
 
 	// Core state.
@@ -58,8 +45,9 @@ type Model[T Row[T]] struct {
 	config   Config[T]
 	filter   string
 	columns  []string
-	allData  []T
+	data     []T
 	filtered []T
+	selected *T
 	loading  bool
 
 	// Styles.
@@ -71,7 +59,7 @@ type Model[T Row[T]] struct {
 }
 
 // New returns a new table component. it will by default be in a loading state.
-func New[T Row[T]](app types.AppState, config Config[T]) *Model[T] {
+func New[T any](app types.AppState, config Config[T]) *Model[T] {
 	m := &Model[T]{
 		ComponentModel: &types.ComponentModel{},
 		app:            app,
@@ -92,7 +80,7 @@ func New[T Row[T]](app types.AppState, config Config[T]) *Model[T] {
 			if filter == "" {
 				return true
 			}
-			return strings.Contains(strings.ToLower(strings.Join(item.Row(), " ")), strings.ToLower(filter))
+			return strings.Contains(strings.ToLower(strings.Join(m.config.RowFn(m.app, item), " ")), strings.ToLower(filter))
 		}
 	}
 
@@ -137,7 +125,36 @@ func (m *Model[T]) SetStyles(styles TableStyles) {
 }
 
 func (m *Model[T]) Init() tea.Cmd {
-	return m.spinner.Tick
+	return tea.Batch(
+		m.spinner.Tick,
+		m.Fetch(),
+	)
+}
+
+func (m *Model[T]) Fetch() tea.Cmd {
+	if m.config.FetchFn == nil {
+		return nil
+	}
+	return tea.Batch(
+		m.config.FetchFn(m.app),
+		m.SetLoading(),
+	)
+}
+
+func (m *Model[T]) GetData() []T {
+	return m.data
+}
+
+func (m *Model[T]) GetFilteredData() []T {
+	return m.filtered
+}
+
+func (m *Model[T]) DataLen() int {
+	return len(m.data)
+}
+
+func (m *Model[T]) FilteredDataLen() int {
+	return len(m.filtered)
 }
 
 func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
@@ -161,12 +178,14 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case (key.Matches(msg, types.KeySelectItem) || key.Matches(msg, types.KeySelectItemAlt)) && m.table.Focused():
-			selected := m.GetSelectedData()
-			if selected != nil && m.config.OnSelect != nil {
-				m.config.OnSelect(*selected)
+			if m.config.SelectFn != nil {
+				selected, ok := m.GetSelectedData()
+				if ok {
+					cmds = append(cmds, m.config.SelectFn(m.app, selected))
+				}
 			}
-		case key.Matches(msg, types.KeyCancel):
-			return nil
+		case key.Matches(msg, types.KeyRefresh):
+			return m.Fetch()
 		}
 	}
 
@@ -177,16 +196,15 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model[T]) updateTable() {
-	m.filtered = make([]T, 0, len(m.allData))
-
 	if m.filter != "" && m.config.FilterFunc != nil {
-		for _, item := range m.allData {
+		m.filtered = make([]T, 0, len(m.data))
+		for _, item := range m.data {
 			if m.config.FilterFunc(item, m.filter) {
 				m.filtered = append(m.filtered, item)
 			}
 		}
 	} else {
-		m.filtered = m.allData
+		m.filtered = m.data
 	}
 
 	// Calculate column widths.
@@ -201,7 +219,7 @@ func (m *Model[T]) updateTable() {
 
 	trows := make([]table.Row, len(m.filtered))
 	for i, row := range m.filtered {
-		trows[i] = row.Row()
+		trows[i] = m.config.RowFn(m.app, row)
 	}
 	m.table.SetColumns(tcols)
 	m.table.SetRows(trows)
@@ -219,7 +237,7 @@ func (m *Model[T]) calculateColumnWidths() []int {
 	for i := range m.columns {
 		colWidths[i] = lipgloss.Width(m.columns[i])
 		for _, data := range m.filtered {
-			row := data.Row()
+			row := m.config.RowFn(m.app, data)
 			if i < len(row) {
 				colWidths[i] = max(colWidths[i], lipgloss.Width(row[i]))
 			}
@@ -267,25 +285,29 @@ func (m *Model[T]) SetFilter(filter string) {
 	m.updateTable()
 }
 
-func (m *Model[T]) SetData(columns []string, data []T) {
+func (m *Model[T]) SetData(columns []string, values []T) {
 	m.columns = columns
-	m.allData = data
+	m.data = make([]T, 0, len(values))
+	for _, value := range values {
+		m.data = append(m.data, value)
+	}
 	m.updateTable()
 	m.loading = false
 }
 
-func (m *Model[T]) GetSelectedData() *T {
+func (m *Model[T]) GetSelectedData() (T, bool) {
+	var v T
 	row := m.table.SelectedRow()
 	if row == nil {
-		return nil
+		return v, false
 	}
 
 	selectedIndex := m.table.Cursor()
 	if selectedIndex >= 0 && selectedIndex < len(m.filtered) {
-		return &m.filtered[selectedIndex]
+		return m.filtered[selectedIndex], true
 	}
 
-	return nil
+	return v, false
 }
 
 func (m *Model[T]) SetLoading() tea.Cmd {
