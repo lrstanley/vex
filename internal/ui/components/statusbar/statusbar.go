@@ -162,12 +162,8 @@ func (m *Model) View() string {
 
 	available := m.Width - styles.W(append(out, vault, logo)...)
 
-	help := m.helpEl.View()
-	if styles.W(help) > available-2 {
-		help = m.baseStyle.Width(available).Padding(0, 1).Render(styles.Trunc(help, available-2))
-	} else {
-		help = m.baseStyle.Width(available).Align(lipgloss.Right).Padding(0, 1).Render(help)
-	}
+	m.helpEl.SetMaxWidth(available)
+	help := m.baseStyle.Width(available).Align(lipgloss.Right).Render(m.helpEl.View())
 
 	out = append(out, help)
 	out = append(out, vault)

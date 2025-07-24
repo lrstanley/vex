@@ -58,6 +58,10 @@ func (m *Model) setStyles() {
 		m.Styles.SeparatorChars = " " + styles.IconSeparator + " "
 	}
 
+	m.Styles.Base = m.Styles.Base.
+		Padding(0, 1).
+		Align(lipgloss.Left).
+		Inherit(m.Styles.Base)
 	m.Styles.Desc = m.Styles.Desc.Inherit(m.Styles.Base)
 	m.Styles.Key = m.Styles.Key.Inherit(m.Styles.Base)
 	m.Styles.Separator = m.Styles.Separator.Inherit(m.Styles.Base)
@@ -66,6 +70,14 @@ func (m *Model) setStyles() {
 func (m *Model) SetKeyBinds(kb ...key.Binding) {
 	m.kb = kb
 	m.generateShortHelp()
+}
+
+func (m *Model) SetMaxWidth(width int) {
+	cur := m.Width
+	m.Width = width
+	if cur != width {
+		m.generateShortHelp()
+	}
 }
 
 func (m *Model) generateShortHelp() {
@@ -110,6 +122,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) View() string {
-	// TODO: bundle truncation logic.
-	return m.help
+	if m.Width > 0 {
+		return m.Styles.Base.Render(styles.Trunc(
+			m.help,
+			m.Width-m.Styles.Base.GetHorizontalFrameSize(),
+		))
+	}
+	return m.Styles.Base.Render(m.help)
 }
