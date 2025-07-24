@@ -48,7 +48,7 @@ func New(app types.AppState) *Model {
 		app:            app,
 		statusEl:       statuselement.New(app),
 		filterEl:       filterelement.New(app),
-		helpEl:         shorthelp.New(app),
+		helpEl:         shorthelp.New(),
 		vaultEl:        vaultelement.New(app),
 	}
 
@@ -62,18 +62,21 @@ func (m *Model) setStyles() {
 		Foreground(styles.Theme.StatusBarFg()).
 		Background(styles.Theme.StatusBarBg())
 
-	m.helpEl.Styles.Base = lipgloss.NewStyle().
+	helpStyles := shorthelp.Styles{}
+	helpStyles.Base = helpStyles.Base.
 		Foreground(styles.Theme.StatusBarFg()).
-		Background(styles.Theme.StatusBarBg())
-	m.helpEl.Styles.Key = lipgloss.NewStyle().
+		Background(styles.Theme.StatusBarBg()).
+		Padding(0, 1)
+	helpStyles.Key = helpStyles.Key.
 		Foreground(styles.Theme.ShortHelpKeyFg()).
 		Background(styles.Theme.StatusBarBg())
-	m.helpEl.Styles.Desc = lipgloss.NewStyle().
+	helpStyles.Desc = helpStyles.Desc.
 		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30)).
 		Background(styles.Theme.StatusBarBg())
-	m.helpEl.Styles.Separator = lipgloss.NewStyle().
+	helpStyles.Separator = helpStyles.Separator.
 		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30)).
 		Background(styles.Theme.StatusBarBg())
+	m.helpEl.SetStyles(helpStyles)
 
 	m.logoStyle = lipgloss.NewStyle().
 		Padding(0, 1).

@@ -28,21 +28,17 @@ var _ types.Component = (*Model)(nil) // Ensure we implement the component inter
 type Model struct {
 	types.ComponentModel
 
-	// Core state.
-	app types.AppState
-
 	// UI state.
 	help string
 	kb   []key.Binding
 
 	// Styles.
-	Styles Styles
+	styles Styles
 }
 
-func New(app types.AppState) *Model {
+func New() *Model {
 	m := &Model{
 		ComponentModel: types.ComponentModel{},
-		app:            app,
 	}
 
 	m.setStyles()
@@ -50,21 +46,22 @@ func New(app types.AppState) *Model {
 }
 
 func (m *Model) setStyles() {
-	if m.Styles.EllipsisChar == "" {
-		m.Styles.EllipsisChar = styles.IconEllipsis
+	if m.styles.EllipsisChar == "" {
+		m.styles.EllipsisChar = styles.IconEllipsis
 	}
 
-	if m.Styles.SeparatorChars == "" {
-		m.Styles.SeparatorChars = " " + styles.IconSeparator + " "
+	if m.styles.SeparatorChars == "" {
+		m.styles.SeparatorChars = " " + styles.IconSeparator + " "
 	}
 
-	m.Styles.Base = m.Styles.Base.
-		Padding(0, 1).
-		Align(lipgloss.Left).
-		Inherit(m.Styles.Base)
-	m.Styles.Desc = m.Styles.Desc.Inherit(m.Styles.Base)
-	m.Styles.Key = m.Styles.Key.Inherit(m.Styles.Base)
-	m.Styles.Separator = m.Styles.Separator.Inherit(m.Styles.Base)
+	m.styles.Desc = m.styles.Desc.Inherit(m.styles.Base)
+	m.styles.Key = m.styles.Key.Inherit(m.styles.Base)
+	m.styles.Separator = m.styles.Separator.Inherit(m.styles.Base)
+}
+
+func (m *Model) SetStyles(styles Styles) {
+	m.styles = styles
+	m.setStyles()
 }
 
 func (m *Model) SetKeyBinds(kb ...key.Binding) {
@@ -89,13 +86,13 @@ func (m *Model) generateShortHelp() {
 		}
 
 		if i > 0 {
-			s.WriteString(m.Styles.Separator.Render(m.Styles.SeparatorChars))
+			s.WriteString(m.styles.Separator.Render(m.styles.SeparatorChars))
 		}
 
 		s.WriteString(
-			m.Styles.Key.Render(kb.Help().Key) +
-				m.Styles.Key.Render(" ") +
-				m.Styles.Desc.Render(kb.Help().Desc),
+			m.styles.Key.Render(kb.Help().Key) +
+				m.styles.Key.Render(" ") +
+				m.styles.Desc.Render(kb.Help().Desc),
 		)
 	}
 
@@ -123,10 +120,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 func (m *Model) View() string {
 	if m.Width > 0 {
-		return m.Styles.Base.Render(styles.Trunc(
+		return m.styles.Base.Render(styles.Trunc(
 			m.help,
-			m.Width-m.Styles.Base.GetHorizontalFrameSize(),
+			m.Width-m.styles.Base.GetHorizontalFrameSize(),
 		))
 	}
-	return m.Styles.Base.Render(m.help)
+	return m.styles.Base.Render(m.help)
 }
