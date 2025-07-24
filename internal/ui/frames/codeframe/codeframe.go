@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package genericcode
+package codeframe
 
 import (
 	"github.com/charmbracelet/bubbles/v2/key"
