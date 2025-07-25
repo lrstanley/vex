@@ -162,6 +162,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.initStyles()
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, types.KeyCommander):
+			if m.selector.Value() == "" {
+				return types.CloseDialog(m)
+			}
 		case key.Matches(msg, types.KeyCancel):
 			if m.selector.Value() == "" {
 				return types.CloseDialog(m)
