@@ -153,7 +153,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
-		m.renderCode()
+		if m.code != "" {
+			m.renderCode()
+		}
 		return nil
 	}
 
