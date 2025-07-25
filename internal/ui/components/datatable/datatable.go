@@ -127,6 +127,8 @@ func (m *Model[T]) Init() tea.Cmd {
 	)
 }
 
+// Fetch fetches the data from the config.FetchFn. This is automatically called
+// on Init, and can be called manually to refresh the data.
 func (m *Model[T]) Fetch() tea.Cmd {
 	if m.config.FetchFn == nil {
 		return nil
@@ -137,18 +139,22 @@ func (m *Model[T]) Fetch() tea.Cmd {
 	)
 }
 
+// GetData returns the data.
 func (m *Model[T]) GetData() []T {
 	return m.data
 }
 
+// GetFilteredData returns the filtered data.
 func (m *Model[T]) GetFilteredData() []T {
 	return m.filtered
 }
 
+// DataLen returns the total number of data entries.
 func (m *Model[T]) DataLen() int {
 	return len(m.data)
 }
 
+// FilteredDataLen returns the number of filtered rows.
 func (m *Model[T]) FilteredDataLen() int {
 	return len(m.filtered)
 }
@@ -259,23 +265,45 @@ func (m *Model[T]) updateDimensions() {
 	m.table.SetHeight(m.Height)
 }
 
+// Focus focuses the table.
 func (m *Model[T]) Focus() {
 	m.table.Focus()
 }
 
+// Blur unfocuses the table.
 func (m *Model[T]) Blur() {
 	m.table.Blur()
 }
 
+// Focused returns true if the table is focused.
 func (m *Model[T]) Focused() bool {
 	return m.table.Focused()
 }
 
+// GoToTop scrolls the table to the top.
+func (m *Model[T]) GoToTop() {
+	m.table.GotoTop()
+}
+
+// GotoBottom scrolls the table to the bottom.
+func (m *Model[T]) GotoBottom() {
+	m.table.GotoBottom()
+}
+
+// SetIndex sets the cursor (selected row) to the given index.
+func (m *Model[T]) SetIndex(i int) {
+	m.table.SetCursor(max(0, min(i, len(m.filtered)-1))) // Clamped to 0-len(m.filtered)-1.
+}
+
+// SetFilter sets the filter string and updates the table. Setting to an empty
+// string will render all rows.
 func (m *Model[T]) SetFilter(filter string) {
 	m.filter = filter
 	m.updateTable()
+	m.table.GotoTop()
 }
 
+// SetData sets the data for the table.
 func (m *Model[T]) SetData(columns []string, values []T) {
 	oldLen := len(m.data)
 	wasNil := m.data == nil
@@ -295,6 +323,8 @@ func (m *Model[T]) SetData(columns []string, values []T) {
 	}
 }
 
+// GetSelectedData returns the selected data and a boolean indicating if it was
+// found and valid.
 func (m *Model[T]) GetSelectedData() (T, bool) {
 	var v T
 	row := m.table.SelectedRow()
@@ -310,6 +340,8 @@ func (m *Model[T]) GetSelectedData() (T, bool) {
 	return v, false
 }
 
+// SetLoading sets the loading state to true. Will automatically be set back to
+// false once data has been updated/fetched/etc.
 func (m *Model[T]) SetLoading() tea.Cmd {
 	m.loading = true
 	return m.spinner.Tick

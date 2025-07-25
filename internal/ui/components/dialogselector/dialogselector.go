@@ -20,6 +20,12 @@ type Listable interface {
 	GetData() ([]string, [][]string)
 }
 
+type Styles struct {
+	Base      lipgloss.Style
+	InputBase lipgloss.Style
+	Input     textinput.Styles
+}
+
 type Config struct {
 	List              Listable
 	FilterPlaceholder string
@@ -39,8 +45,7 @@ type Model struct {
 	previousInput string
 
 	// Styles.
-	BaseStyle  lipgloss.Style
-	InputStyle lipgloss.Style
+	styles Styles
 
 	// Child components.
 	input textinput.Model
@@ -76,46 +81,54 @@ func New(app types.AppState, config Config) *Model {
 }
 
 func (m *Model) initStyles() {
-	m.BaseStyle = lipgloss.NewStyle().
+	m.styles.Base = m.styles.Base.
 		Foreground(styles.Theme.Fg())
 
-	m.InputStyle = lipgloss.NewStyle().
-		Padding(0, 1, 1, 1)
+	m.styles.InputBase = m.styles.InputBase.Padding(0, 1, 1, 1)
 
-	m.input.Styles.Focused.Placeholder = m.input.Styles.Focused.Placeholder.
-		Foreground(styles.Theme.Fg()).Faint(true)
+	m.styles.Input.Focused.Placeholder = m.styles.Input.Focused.Placeholder.
+		Foreground(styles.Theme.Fg()).
+		Faint(true)
 
-	m.input.Styles.Focused.Suggestion = m.input.Styles.Focused.Suggestion.
-		Foreground(styles.Theme.Fg()).Faint(true)
+	m.styles.Input.Focused.Suggestion = m.styles.Input.Focused.Suggestion.
+		Foreground(styles.Theme.Fg()).
+		Faint(true)
 
-	m.input.Styles.Focused.Text = m.input.Styles.Focused.Text.
+	m.styles.Input.Focused.Text = m.styles.Input.Focused.Text.
 		Foreground(styles.Theme.Fg())
 
-	m.input.Styles.Focused.Prompt = m.input.Styles.Focused.Prompt.
+	m.styles.Input.Focused.Prompt = m.styles.Input.Focused.Prompt.
 		Foreground(styles.Theme.Fg())
 
-	m.input.Styles.Blurred.Prompt = m.input.Styles.Blurred.Prompt.
+	m.styles.Input.Blurred.Prompt = m.styles.Input.Blurred.Prompt.
 		Foreground(styles.Theme.InfoFg())
 
-	m.input.Styles.Cursor.Color = styles.Theme.Fg()
+	m.styles.Input.Cursor.Color = styles.Theme.Fg()
 	// TODO: bug with bubbles v2, returns cursor.BlinkMsg, then returns cursor.blinkCanceled,
 	// which we can't handle because its private. Can technically use %T and strings.Contains,
 	// but even that, the cursor stops blinking after the first blink, and disappears.
-	m.input.Styles.Cursor.Blink = false
+	m.styles.Input.Cursor.Blink = false
+
+	m.input.Styles = m.styles.Input
+}
+
+func (m *Model) SetStyles(styles Styles) {
+	m.styles = styles
+	m.initStyles()
 }
 
 func (m *Model) updateDimensions() {
-	m.InputStyle = m.InputStyle.Height(1)
+	m.styles.InputBase = m.styles.InputBase.Height(1)
 
 	// TODO: https://github.com/charmbracelet/bubbles/issues/812
-	m.input.SetWidth(m.Width - m.InputStyle.GetHorizontalFrameSize() - 5)
-	m.InputStyle = m.InputStyle.Width(m.Width - m.InputStyle.GetHorizontalFrameSize())
+	m.input.SetWidth(m.Width - m.styles.InputBase.GetHorizontalFrameSize() - 5)
+	m.styles.InputBase = m.styles.InputBase.Width(m.Width - m.styles.InputBase.GetHorizontalFrameSize())
 
 	// Re-calculate the height so the dialog is only as big as we need, up to the max
 	// of the default of [DialogModel.Size].
-	m.Height = min(m.Height, m.InputStyle.GetVerticalFrameSize()+m.config.List.Len()+1) // +1=table header.
+	m.Height = min(m.Height, m.styles.InputBase.GetVerticalFrameSize()+m.config.List.Len()+1) // +1=table header.
 
-	m.table.Height = m.Height - m.InputStyle.GetVerticalFrameSize()
+	m.table.Height = m.Height - m.styles.InputBase.GetVerticalFrameSize()
 	m.table.Width = m.Width
 }
 
@@ -206,7 +219,7 @@ func (m *Model) View() string {
 	if m.Width == 0 || m.Height == 0 {
 		return ""
 	}
-	out = append(out, m.InputStyle.Render(m.input.View()))
+	out = append(out, m.styles.InputBase.Render(m.input.View()))
 
 	if m.table.FilteredDataLen() == 0 {
 		out = append(out, lipgloss.NewStyle().Width(m.Width).
@@ -220,5 +233,5 @@ func (m *Model) View() string {
 		out = append(out, lipgloss.NewStyle().MaxHeight(m.table.FilteredDataLen()+1).Render(m.table.View()))
 	}
 
-	return m.BaseStyle.Render(lipgloss.JoinVertical(lipgloss.Top, out...))
+	return m.styles.Base.Render(lipgloss.JoinVertical(lipgloss.Top, out...))
 }
