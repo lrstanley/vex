@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/v2/key"
-	"github.com/charmbracelet/bubbles/v2/viewport"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/vex/internal/ui/components/viewport"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -30,7 +30,7 @@ type Model struct {
 	descStyle     lipgloss.Style
 
 	// Components.
-	viewport viewport.Model
+	viewport *viewport.Model
 }
 
 func New(app types.AppState) *Model {
@@ -42,10 +42,10 @@ func New(app types.AppState) *Model {
 			FullKeyBinds:    [][]key.Binding{{types.KeyCancel, types.KeyQuit}},
 		},
 		app:      app,
-		viewport: viewport.New(),
+		viewport: viewport.New(app),
 	}
 	m.initStyles()
-	m.viewport.FillHeight = true
+	m.generateHelp()
 	return m
 }
 
@@ -64,8 +64,6 @@ func (m *Model) initStyles() {
 
 	m.descStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.Fg())
-
-	m.viewport.Style = lipgloss.NewStyle().Padding(0, 1)
 }
 
 func (m *Model) GetTitle() string {
@@ -82,14 +80,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.Height, m.Width = msg.Height, msg.Width
-		m.viewport.SetHeight(m.Height)
-		m.viewport.SetWidth(m.Width)
-		m.generateHelp()
 
 		// If the viewport is smaller than the dialog height, resize the dialog
 		// even smaller.
-		m.Height = min(styles.H(m.viewport.GetContent()), m.Height)
+		m.Height = min(m.viewport.TotalLineCount(), m.Height)
 		m.viewport.SetHeight(m.Height)
+		m.viewport.SetWidth(m.Width)
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		m.generateHelp()
@@ -102,11 +99,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	var cmd tea.Cmd
-	m.viewport, cmd = m.viewport.Update(msg)
-	cmds = append(cmds, cmd)
-
-	return tea.Batch(cmds...)
+	return tea.Batch(append(
+		cmds,
+		m.viewport.Update(msg),
+	)...)
 }
 
 func (m *Model) generateHelp() {
@@ -159,9 +155,7 @@ func (m *Model) generateHelp() {
 			}
 
 			buf.WriteString(lipgloss.NewStyle().
-				Width(m.Width).
 				Foreground(styles.Theme.Fg()).
-				Background(m.titleStyle.GetBackground()).
 				Render(
 					m.titleStyle.Render(group.Title),
 				) + "\n",
@@ -174,8 +168,7 @@ func (m *Model) generateHelp() {
 							m.keyInnerStyle.Render(binding.Help().Key)+
 							m.keyStyle.Render(">"),
 					) +
-						m.descStyle.Width(m.Width-maxKeyWidth-4).Render(binding.Help().Desc) +
-						"\n",
+						m.descStyle.Render(binding.Help().Desc) + "\n",
 				)
 			}
 		}

@@ -167,6 +167,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 func (m *Model) SetHeight(h int) {
 	m.Height = h
 	m.ensureSize()
+	m.viewport.GotoTop()
 }
 
 func (m *Model) SetWidth(w int) {
