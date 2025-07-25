@@ -198,7 +198,7 @@ func (m *Model) View() string {
 		return lipgloss.JoinHorizontal(
 			lipgloss.Top,
 			m.viewport.View(),
-			styles.Theme.Scrollbar(
+			styles.Scrollbar(
 				m.Height,
 				m.viewport.TotalLineCount(),
 				m.viewport.VisibleLineCount(),

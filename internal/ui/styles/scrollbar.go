@@ -13,7 +13,7 @@ import (
 
 const ScrollbarWidth = 1
 
-func (tc *ThemeConfig) Scrollbar(height, total, visible, offset int) string {
+func Scrollbar(height, total, visible, offset int) string {
 	if total == visible {
 		return strings.TrimRight(strings.Repeat(" \n", height), "\n")
 	}
@@ -22,8 +22,8 @@ func (tc *ThemeConfig) Scrollbar(height, total, visible, offset int) string {
 	thumbHeight := max(1, int(math.Round(float64(visible)*ratio)))
 	thumbOffset := max(0, min(height-thumbHeight, int(math.Round(float64(offset)*ratio))))
 
-	track := lipgloss.NewStyle().Foreground(tc.ScrollbarTrackFg()).Render(IconScrollbar)
-	thumb := lipgloss.NewStyle().Foreground(tc.ScrollbarThumbFg()).Render(IconScrollbar)
+	track := lipgloss.NewStyle().Foreground(Theme.ScrollbarTrackFg()).Render(IconScrollbar)
+	thumb := lipgloss.NewStyle().Foreground(Theme.ScrollbarThumbFg()).Render(IconScrollbar)
 
 	return strings.TrimRight(
 		strings.Repeat(track+"\n", thumbOffset)+

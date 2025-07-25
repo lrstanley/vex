@@ -16,16 +16,6 @@ import (
 
 // TODO: all of this logic is kinda a mess, but it solves the issue for now.
 
-var baseGradient = []color.Color{
-	lipgloss.Color("#FF00FF"),
-	lipgloss.Color("#D633FF"),
-	lipgloss.Color("#AD66FF"),
-	lipgloss.Color("#8599FF"),
-	lipgloss.Color("#5CCCFF"),
-	lipgloss.Color("#3399FF"),
-	lipgloss.Color("#0066FF"),
-}
-
 type BorderPosition int
 
 const (
@@ -103,7 +93,8 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 	if fg == nil {
 		gradient := colors.BlendLinear1D(
 			height+width, // half of total number of border chars.
-			baseGradient...,
+			Theme.DialogBorderGradientFromFg(),
+			Theme.DialogBorderGradientToFg(),
 		)
 
 		// Duplicate the gradient (which is half size), and add it to the end of the gradient in reverse.

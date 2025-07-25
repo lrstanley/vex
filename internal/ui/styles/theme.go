@@ -62,8 +62,10 @@ type ThemeConfig struct {
 
 	shortHelpKeyFg color.Color `accessor:"getter"`
 
-	dialogFg       color.Color `accessor:"getter"`
-	dialogBorderFg color.Color `accessor:"getter"`
+	dialogFg                   color.Color `accessor:"getter"`
+	dialogBorderFg             color.Color `accessor:"getter"`
+	dialogBorderGradientFromFg color.Color `accessor:"getter"`
+	dialogBorderGradientToFg   color.Color `accessor:"getter"`
 
 	dialogTitleFg     color.Color `accessor:"getter"`
 	dialogTitleFromFg color.Color `accessor:"getter"`
@@ -122,9 +124,12 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 
 	tc.dialogFg = white
 	tc.dialogBorderFg = tc.adapt(t.Purple, t.Purple)
+	tc.dialogBorderGradientFromFg = tc.adapt(colors.Darken(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 20))
+	tc.dialogBorderGradientToFg = tc.adapt(colors.Darken(t.BrightBlue, 20), colors.Lighten(t.BrightBlue, 20))
+
 	tc.dialogTitleFg = tc.adapt(colors.Darken(t.BrightRed, 50), colors.Lighten(t.BrightRed, 50))
-	tc.dialogTitleFromFg = tc.adapt(colors.Lighten(t.Blue, 20), colors.Lighten(t.Blue, 20))
-	tc.dialogTitleToFg = tc.adapt(t.BrightPurple, t.BrightPurple)
+	tc.dialogTitleFromFg = tc.adapt(colors.Darken(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 20))
+	tc.dialogTitleToFg = tc.adapt(colors.Darken(t.BrightBlue, 20), colors.Lighten(t.BrightBlue, 20))
 
 	tc.pageBorderFg = tc.adapt(t.Purple, t.Purple)
 	tc.pageBorderFilterFg = tc.adapt(colors.Darken(t.BrightBlue, 30), colors.Lighten(t.BrightBlue, 30))

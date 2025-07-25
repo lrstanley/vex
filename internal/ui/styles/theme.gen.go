@@ -231,6 +231,24 @@ func (tc *ThemeConfig) DialogBorderFg() color.Color {
 	return tc.dialogBorderFg
 }
 
+func (tc *ThemeConfig) DialogBorderGradientFromFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.dialogBorderGradientFromFg
+}
+
+func (tc *ThemeConfig) DialogBorderGradientToFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.dialogBorderGradientToFg
+}
+
 func (tc *ThemeConfig) DialogTitleFg() color.Color {
 	if tc == nil {
 		return nil
