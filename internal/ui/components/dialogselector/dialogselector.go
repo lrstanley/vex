@@ -6,12 +6,11 @@ package dialogselector
 
 import (
 	"github.com/charmbracelet/bubbles/v2/key"
-	"github.com/charmbracelet/bubbles/v2/table"
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
-	"github.com/lrstanley/vex/internal/fuzzy"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/vex/internal/ui/components/datatable"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -45,7 +44,7 @@ type Model struct {
 
 	// Child components.
 	input textinput.Model
-	table table.Model
+	table *datatable.Model[[]string]
 }
 
 func New(app types.AppState, config Config) *Model {
@@ -54,7 +53,6 @@ func New(app types.AppState, config Config) *Model {
 		app:            app,
 		config:         config,
 		input:          textinput.New(),
-		table:          table.New(),
 	}
 
 	if m.config.FilterPlaceholder != "" {
@@ -65,6 +63,13 @@ func New(app types.AppState, config Config) *Model {
 	m.input.VirtualCursor = true
 	m.input.ShowSuggestions = true
 	m.input.SetSuggestions(m.config.List.Suggestions())
+
+	m.table = datatable.New(app, datatable.Config[[]string]{
+		SelectFn: func(row []string) tea.Cmd {
+			return config.SelectFunc(row)
+		},
+		RowFn: func(row []string) []string { return row },
+	})
 
 	m.initStyles()
 	return m
@@ -97,18 +102,6 @@ func (m *Model) initStyles() {
 	// which we can't handle because its private. Can technically use %T and strings.Contains,
 	// but even that, the cursor stops blinking after the first blink, and disappears.
 	m.input.Styles.Cursor.Blink = false
-
-	s := table.DefaultStyles()
-
-	s.Header = s.Header.Bold(true).
-		Foreground(styles.Theme.Fg())
-
-	s.Selected = s.Selected.
-		Foreground(styles.Theme.InfoFg()).
-		Background(styles.Theme.InfoBg()).
-		Bold(true)
-
-	m.table.SetStyles(s)
 }
 
 func (m *Model) updateDimensions() {
@@ -122,8 +115,8 @@ func (m *Model) updateDimensions() {
 	// of the default of [DialogModel.Size].
 	m.Height = min(m.Height, m.InputStyle.GetVerticalFrameSize()+m.config.List.Len()+1) // +1=table header.
 
-	m.table.SetWidth(m.Width)
-	m.table.SetHeight(m.Height - m.InputStyle.GetVerticalFrameSize())
+	m.table.Height = m.Height - m.InputStyle.GetVerticalFrameSize()
+	m.table.Width = m.Width
 }
 
 func (m *Model) Value() string {
@@ -159,12 +152,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 				m.input.Blur()
 			}
 		case key.Matches(msg, types.KeySelectItem):
-			row := m.table.SelectedRow()
-			if row == nil {
+			selected, ok := m.table.GetSelectedData()
+			if !ok {
 				return nil
 			}
-
-			return m.config.SelectFunc(row)
+			return m.config.SelectFunc(selected)
 		case key.Matches(msg, types.KeyCancel):
 			if m.input.Value() != "" {
 				m.input.Reset()
@@ -192,13 +184,12 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var tableUpdated bool
 	if m.input.Value() != m.previousInput {
 		m.previousInput = m.input.Value()
-		m.updateTable()
+		m.table.SetFilter(m.input.Value())
 		tableUpdated = true
 	}
 
 	if m.table.Focused() || tableUpdated {
-		m.table, cmd = m.table.Update(msg)
-		cmds = append(cmds, cmd)
+		cmds = append(cmds, m.table.Update(msg))
 	}
 
 	return tea.Batch(cmds...)
@@ -206,39 +197,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 func (m *Model) updateTable() {
 	cols, rows := m.config.List.GetData()
-	rows = fuzzy.FindRankedStrings(m.input.Value(), rows)
-
-	trows := make([]table.Row, len(rows))
-	for i := range rows {
-		trows[i] = rows[i]
-	}
-
-	// Since the table component doesn't really give us an easy way to know how much
-	// padding it will have, but we want to have the last column take up the remaining
-	// space, we need to calculate the width of each column, and then set the last column
-	// to the remaining width.
-	colWidths := make([]int, len(cols))
-	for i := range cols {
-		colWidths[i] = lipgloss.Width(cols[i])
-		for _, row := range trows {
-			colWidths[i] = max(colWidths[i], lipgloss.Width(row[i]))
-		}
-	}
-	colWidths[len(colWidths)-1] = m.Width - 2 // -2=table padding.
-	if len(cols) > 1 {
-		for i := range len(colWidths) - 1 {
-			colWidths[len(colWidths)-1] -= colWidths[i] + 2 // +2=column padding.
-		}
-	}
-
-	tcols := make([]table.Column, len(cols))
-	for i := range cols {
-		tcols[i].Title = cols[i]
-		tcols[i].Width = colWidths[i]
-	}
-
-	m.table.SetColumns(tcols)
-	m.table.SetRows(trows)
+	m.table.SetData(cols, rows)
 }
 
 func (m *Model) View() string {
@@ -249,7 +208,7 @@ func (m *Model) View() string {
 	}
 	out = append(out, m.InputStyle.Render(m.input.View()))
 
-	if len(m.table.Rows()) == 0 {
+	if m.table.FilteredDataLen() == 0 {
 		out = append(out, lipgloss.NewStyle().Width(m.Width).
 			Align(lipgloss.Center).
 			Foreground(styles.Theme.ErrorFg()).
@@ -258,7 +217,7 @@ func (m *Model) View() string {
 			Render("no results found"),
 		)
 	} else {
-		out = append(out, lipgloss.NewStyle().MaxHeight(len(m.table.Rows())+1).Render(m.table.View()))
+		out = append(out, lipgloss.NewStyle().MaxHeight(m.table.FilteredDataLen()+1).Render(m.table.View()))
 	}
 
 	return m.BaseStyle.Render(lipgloss.JoinVertical(lipgloss.Top, out...))

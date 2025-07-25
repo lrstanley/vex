@@ -267,6 +267,10 @@ func (m *Model[T]) Blur() {
 	m.table.Blur()
 }
 
+func (m *Model[T]) Focused() bool {
+	return m.table.Focused()
+}
+
 func (m *Model[T]) SetFilter(filter string) {
 	m.filter = filter
 	m.updateTable()
