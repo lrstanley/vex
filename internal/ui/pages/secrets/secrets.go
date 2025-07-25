@@ -50,16 +50,16 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 	}
 
 	m.table = datatable.New(app, datatable.Config[*types.SecretListRef]{
-		FetchFn: func(app types.AppState) tea.Cmd {
+		FetchFn: func() tea.Cmd {
 			return app.Client().ListSecrets(m.UUID(), m.mount, m.path)
 		},
-		SelectFn: func(app types.AppState, value *types.SecretListRef) tea.Cmd {
+		SelectFn: func(value *types.SecretListRef) tea.Cmd {
 			if !strings.HasSuffix(value.Path, "/") {
 				return nil
 			}
 			return types.OpenPage(New(app, value.Mount, value.Path), false)
 		},
-		RowFn: func(app types.AppState, value *types.SecretListRef) []string {
+		RowFn: func(value *types.SecretListRef) []string {
 			return []string{value.Mount.Path, value.Path}
 		},
 	})

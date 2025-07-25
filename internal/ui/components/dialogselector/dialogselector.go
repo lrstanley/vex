@@ -5,13 +5,12 @@
 package dialogselector
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/table"
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/fuzzy"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -207,17 +206,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 func (m *Model) updateTable() {
 	cols, rows := m.config.List.GetData()
+	rows = fuzzy.FindRankedStrings(m.input.Value(), rows)
 
-	// Filter first.
-	filter := m.input.Value()
-	var trows []table.Row
+	trows := make([]table.Row, len(rows))
 	for i := range rows {
-		if filter != "" {
-			if !strings.Contains(strings.ToLower(strings.Join(rows[i], ":")), strings.ToLower(filter)) {
-				continue
-			}
-		}
-		trows = append(trows, rows[i])
+		trows[i] = rows[i]
 	}
 
 	// Since the table component doesn't really give us an easy way to know how much

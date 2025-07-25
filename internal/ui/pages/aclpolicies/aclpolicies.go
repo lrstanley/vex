@@ -44,13 +44,13 @@ func New(app types.AppState) *Model {
 		app: app,
 	}
 	m.table = datatable.New(app, datatable.Config[string]{
-		FetchFn: func(app types.AppState) tea.Cmd {
+		FetchFn: func() tea.Cmd {
 			return app.Client().ListACLPolicies(m.UUID())
 		},
-		SelectFn: func(app types.AppState, value string) tea.Cmd {
+		SelectFn: func(value string) tea.Cmd {
 			return m.app.Client().GetACLPolicy(m.UUID(), value)
 		},
-		RowFn: func(app types.AppState, value string) []string {
+		RowFn: func(value string) []string {
 			return []string{value}
 		},
 	})

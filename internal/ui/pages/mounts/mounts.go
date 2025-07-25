@@ -48,10 +48,10 @@ func New(app types.AppState) *Model {
 	}
 
 	m.table = datatable.New(app, datatable.Config[*types.Mount]{
-		FetchFn: func(app types.AppState) tea.Cmd {
+		FetchFn: func() tea.Cmd {
 			return app.Client().ListMounts(m.UUID())
 		},
-		SelectFn: func(app types.AppState, value *types.Mount) tea.Cmd {
+		SelectFn: func(value *types.Mount) tea.Cmd {
 			return types.OpenPage(secrets.New(app, value, ""), false)
 		},
 		RowFn: m.rowFn,
@@ -107,7 +107,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(append(cmds, m.table.Update(msg))...)
 }
 
-func (m *Model) rowFn(app types.AppState, value *types.Mount) []string {
+func (m *Model) rowFn(value *types.Mount) []string {
 	var opts []string
 
 	for k, v := range value.Options {

@@ -5,13 +5,12 @@
 package datatable
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/spinner"
 	"github.com/charmbracelet/bubbles/v2/table"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/fuzzy"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -27,10 +26,10 @@ type TableStyles struct {
 // Config contains the configuration for the table component.
 type Config[T any] struct {
 	NoResultsMsg string
-	FilterFunc   func(value T, filter string) bool
-	SelectFn     func(app types.AppState, value T) tea.Cmd
-	RowFn        func(app types.AppState, value T) []string
-	FetchFn      func(app types.AppState) tea.Cmd
+	FilterFunc   func(filter string, values []T) []T
+	SelectFn     func(value T) tea.Cmd
+	RowFn        func(value T) []string
+	FetchFn      func() tea.Cmd
 }
 
 var _ types.Component = (*Model[any])(nil) // Ensure we implement the component interface.
@@ -76,11 +75,8 @@ func New[T any](app types.AppState, config Config[T]) *Model[T] {
 	}
 
 	if m.config.FilterFunc == nil {
-		m.config.FilterFunc = func(item T, filter string) bool {
-			if filter == "" {
-				return true
-			}
-			return strings.Contains(strings.ToLower(strings.Join(m.config.RowFn(m.app, item), " ")), strings.ToLower(filter))
+		m.config.FilterFunc = func(filter string, values []T) []T {
+			return fuzzy.FindRankedRow(filter, values, m.config.RowFn)
 		}
 	}
 
@@ -136,7 +132,7 @@ func (m *Model[T]) Fetch() tea.Cmd {
 		return nil
 	}
 	return tea.Batch(
-		m.config.FetchFn(m.app),
+		m.config.FetchFn(),
 		m.SetLoading(),
 	)
 }
@@ -182,7 +178,7 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 			if m.config.SelectFn != nil {
 				selected, ok := m.GetSelectedData()
 				if ok {
-					cmds = append(cmds, m.config.SelectFn(m.app, selected))
+					cmds = append(cmds, m.config.SelectFn(selected))
 				}
 			}
 		case key.Matches(msg, types.KeyRefresh):
@@ -197,16 +193,7 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model[T]) updateTable() {
-	if m.filter != "" && m.config.FilterFunc != nil {
-		m.filtered = make([]T, 0, len(m.data))
-		for _, item := range m.data {
-			if m.config.FilterFunc(item, m.filter) {
-				m.filtered = append(m.filtered, item)
-			}
-		}
-	} else {
-		m.filtered = m.data
-	}
+	m.filtered = m.config.FilterFunc(m.filter, m.data)
 
 	// Calculate column widths.
 	colWidths := m.calculateColumnWidths()
@@ -220,7 +207,7 @@ func (m *Model[T]) updateTable() {
 
 	trows := make([]table.Row, len(m.filtered))
 	for i, row := range m.filtered {
-		trows[i] = m.config.RowFn(m.app, row)
+		trows[i] = m.config.RowFn(row)
 	}
 	m.table.SetColumns(tcols)
 	m.table.SetRows(trows)
@@ -237,7 +224,7 @@ func (m *Model[T]) calculateColumnWidths() []int {
 	for i := range m.columns {
 		colWidths[i] = lipgloss.Width(m.columns[i])
 		for _, data := range m.filtered {
-			row := m.config.RowFn(m.app, data)
+			row := m.config.RowFn(data)
 			if i < len(row) {
 				colWidths[i] = max(colWidths[i], lipgloss.Width(row[i]))
 			}
