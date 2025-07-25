@@ -87,6 +87,24 @@ func (tc *ThemeConfig) InfoBg() color.Color {
 	return tc.infoBg
 }
 
+func (tc *ThemeConfig) ScrollbarThumbFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.scrollbarThumbFg
+}
+
+func (tc *ThemeConfig) ScrollbarTrackFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.scrollbarTrackFg
+}
+
 func (tc *ThemeConfig) StatusBarBg() color.Color {
 	if tc == nil {
 		return nil

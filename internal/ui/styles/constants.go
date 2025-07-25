@@ -22,4 +22,6 @@ const (
 	IconMaybeDanger = "⁈"
 	IconDanger      = "‼"
 	IconUnknown     = "⁇"
+
+	IconScrollbar = "┃"
 )

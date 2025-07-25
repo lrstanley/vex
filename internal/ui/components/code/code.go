@@ -29,9 +29,10 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	code     string
-	language string
-	content  string
+	code         string
+	language     string
+	content      string
+	hasScrollbar bool
 
 	// Styles.
 	baseStyle lipgloss.Style
@@ -49,6 +50,7 @@ func New(app types.AppState) *Model {
 
 	m.setStyles()
 	m.viewport.FillHeight = true
+	m.viewport.SoftWrap = true
 	return m
 }
 
@@ -132,8 +134,15 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.Height = msg.Height
 		m.Width = msg.Width
+		if m.viewport.TotalLineCount() > m.Height {
+			m.hasScrollbar = true
+			m.viewport.SetWidth(m.Width - styles.ScrollbarWidth)
+		} else {
+			m.hasScrollbar = false
+			m.viewport.SetWidth(m.Width)
+		}
+
 		m.viewport.SetHeight(m.Height)
-		m.viewport.SetWidth(m.Width)
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 		m.renderCode()
@@ -149,6 +158,19 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 func (m *Model) View() string {
 	if m.Height == 0 || m.Width == 0 {
 		return ""
+	}
+
+	if m.hasScrollbar {
+		return lipgloss.JoinHorizontal(
+			lipgloss.Top,
+			m.viewport.View(),
+			styles.Theme.Scrollbar(
+				m.Height,
+				m.viewport.TotalLineCount(),
+				m.viewport.VisibleLineCount(),
+				m.viewport.YOffset,
+			),
+		)
 	}
 
 	return m.viewport.View()

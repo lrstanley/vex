@@ -45,6 +45,9 @@ type ThemeConfig struct {
 	infoFg    color.Color `accessor:"getter"`
 	infoBg    color.Color `accessor:"getter"`
 
+	scrollbarThumbFg color.Color `accessor:"getter"`
+	scrollbarTrackFg color.Color `accessor:"getter"`
+
 	statusBarBg           color.Color `accessor:"getter"`
 	statusBarFg           color.Color `accessor:"getter"`
 	statusBarActivePageFg color.Color `accessor:"getter"`
@@ -99,6 +102,9 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.errorBg = tc.adapt(colors.Darken(t.BrightRed, statusBgDarken), colors.Darken(t.BrightRed, statusBgDarken))
 	tc.infoFg = tc.adapt(colors.Lighten(t.BrightBlue, statusFgLighten), colors.Lighten(t.BrightBlue, statusFgLighten))
 	tc.infoBg = tc.adapt(colors.Darken(t.BrightBlue, statusBgDarken), colors.Darken(t.BrightBlue, statusBgDarken))
+
+	tc.scrollbarThumbFg = tc.adapt(colors.Darken(t.BrightBlue, 20), colors.Lighten(t.BrightBlue, 20))
+	tc.scrollbarTrackFg = tc.adapt(colors.Darken(t.Bg, 30), colors.Lighten(t.Bg, 30))
 
 	tc.statusBarFg = tc.adapt(t.Fg, t.Fg)
 	tc.statusBarBg = tc.adapt(colors.Lighten(t.Bg, 10), colors.Darken(t.Bg, 20))
