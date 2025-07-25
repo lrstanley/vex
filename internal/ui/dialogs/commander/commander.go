@@ -109,10 +109,6 @@ func New(app types.AppState, config Config) *Model {
 		SelectFunc: func(row []string) tea.Cmd {
 			cmd := strings.SplitN(row[0][1:], " ", 2)[1]
 
-			if slices.Contains(m.app.Page().Get().GetCommands(), cmd) {
-				return types.CloseDialog(m)
-			}
-
 			var ref PageRef
 			for _, p := range m.config.Pages {
 				if slices.Contains(p.Commands, cmd) {
