@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package code
+package viewport
 
 import (
 	"bytes"
@@ -29,13 +29,9 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	code         string
-	language     string
-	content      string
-	hasScrollbar bool
-
-	// Styles.
-	baseStyle lipgloss.Style
+	code         string // Code content. Stored so we can re-render styled code on theme change.
+	language     string // Code language. Stored so we can re-render styled code on theme change.
+	hasScrollbar bool   // Whether to show a scrollbar.
 
 	// Components.
 	viewport viewport.Model
@@ -48,18 +44,38 @@ func New(app types.AppState) *Model {
 		viewport:       viewport.New(),
 	}
 
-	m.setStyles()
 	m.viewport.FillHeight = true
 	m.viewport.SoftWrap = true
+	m.setStyles()
 	return m
 }
 
 func (m *Model) setStyles() {
-	m.baseStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg())
-
 	m.viewport.Style = lipgloss.NewStyle().
 		Padding(0, 1)
+}
+
+func (m *Model) GotoTop() {
+	m.viewport.GotoTop()
+}
+
+func (m *Model) GotoBottom() {
+	m.viewport.GotoBottom()
+}
+
+func (m *Model) TotalLineCount() int {
+	return m.viewport.TotalLineCount()
+}
+
+func (m *Model) VisibleLineCount() int {
+	return m.viewport.VisibleLineCount()
+}
+
+func (m *Model) SetContent(content string) {
+	m.code = ""
+	m.language = ""
+	m.viewport.SetContent(content)
+	m.ensureSize()
 }
 
 func (m *Model) SetCode(code, language string) {
@@ -83,8 +99,8 @@ func (m *Model) SetError(err error) {
 
 func (m *Model) renderCode() {
 	if m.code == "" {
-		m.content = ""
 		m.viewport.SetContent("")
+		m.ensureSize()
 		return
 	}
 
@@ -105,8 +121,8 @@ func (m *Model) renderCode() {
 	// Tokenize the code.
 	iterator, err := lexer.Tokenise(nil, m.code)
 	if err != nil {
-		m.content = m.code
 		m.viewport.SetContent(m.code)
+		m.ensureSize()
 		return
 	}
 
@@ -114,13 +130,13 @@ func (m *Model) renderCode() {
 	var buf bytes.Buffer
 	err = formatter.Format(&buf, style, iterator)
 	if err != nil {
-		m.content = m.code
 		m.viewport.SetContent(m.code)
+		m.ensureSize()
 		return
 	}
 
-	m.content = buf.String()
-	m.viewport.SetContent(m.content)
+	m.viewport.SetContent(buf.String())
+	m.ensureSize()
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -132,20 +148,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.Height = msg.Height
-		m.Width = msg.Width
-		if m.viewport.TotalLineCount() > m.Height {
-			m.hasScrollbar = true
-			m.viewport.SetWidth(m.Width - styles.ScrollbarWidth)
-		} else {
-			m.hasScrollbar = false
-			m.viewport.SetWidth(m.Width)
-		}
-
-		m.viewport.SetHeight(m.Height)
+		m.SetHeight(msg.Height)
+		m.SetWidth(msg.Width)
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 		m.renderCode()
+		return nil
 	}
 
 	var cmd tea.Cmd
@@ -153,6 +162,28 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, cmd)
 
 	return tea.Batch(cmds...)
+}
+
+func (m *Model) SetHeight(h int) {
+	m.Height = h
+	m.ensureSize()
+}
+
+func (m *Model) SetWidth(w int) {
+	m.Width = w
+	m.ensureSize()
+}
+
+func (m *Model) ensureSize() {
+	m.viewport.SetHeight(m.Height)
+
+	if m.viewport.TotalLineCount() > m.Height {
+		m.hasScrollbar = true
+		m.viewport.SetWidth(m.Width - styles.ScrollbarWidth)
+	} else {
+		m.hasScrollbar = false
+		m.viewport.SetWidth(m.Width)
+	}
 }
 
 func (m *Model) View() string {

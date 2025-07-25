@@ -5,12 +5,10 @@
 package configstate
 
 import (
-	"encoding/json"
-
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/code"
+	"github.com/lrstanley/vex/internal/ui/components/viewport"
 )
 
 var Commands = []string{"configstate"}
@@ -26,10 +24,9 @@ type Model struct {
 	// UI state.
 	height int
 	width  int
-	data   json.RawMessage
 
 	// Child components.
-	code *code.Model
+	code *viewport.Model
 }
 
 func New(app types.AppState) *Model {
@@ -43,7 +40,7 @@ func New(app types.AppState) *Model {
 		app: app,
 	}
 
-	m.code = code.New(app)
+	m.code = viewport.New(app)
 
 	return m
 }
@@ -82,8 +79,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientConfigStateMsg:
 			if msg.Error == nil {
-				m.data = vmsg.Data
-				m.updateCodeComponent()
+				if vmsg.Data == nil {
+					m.code.SetCode("No data available", "text")
+				} else {
+					m.code.SetJSON(vmsg.Data)
+				}
 			} else {
 				m.code.SetError(msg.Error)
 			}
@@ -92,14 +92,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	cmds = append(cmds, m.code.Update(msg))
 	return tea.Batch(cmds...)
-}
-
-func (m *Model) updateCodeComponent() {
-	if m.data == nil {
-		m.code.SetCode("No data available", "text")
-		return
-	}
-	m.code.SetJSON(m.data)
 }
 
 func (m *Model) View() string {

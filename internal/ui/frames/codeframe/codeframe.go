@@ -8,7 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/code"
+	"github.com/lrstanley/vex/internal/ui/components/viewport"
 )
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
@@ -20,14 +20,12 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	height   int
-	width    int
-	title    string
-	content  string
-	language string
+	height int
+	width  int
+	title  string
 
 	// Child components.
-	codeComponent *code.Model
+	code *viewport.Model
 }
 
 func New(app types.AppState, title, content, language string) *Model {
@@ -38,20 +36,19 @@ func New(app types.AppState, title, content, language string) *Model {
 			ShortKeyBinds:    []key.Binding{types.KeyCancel, types.KeyQuit},
 			FullKeyBinds:     [][]key.Binding{{types.KeyCancel, types.KeyQuit}},
 		},
-		app:      app,
-		title:    title,
-		content:  content,
-		language: language,
+		app:   app,
+		title: title,
 	}
 
-	m.codeComponent = code.New(app)
+	m.code = viewport.New(app)
+	m.code.SetCode(content, language)
 
 	return m
 }
 
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
-		m.codeComponent.Init(),
+		m.code.Init(),
 	)
 }
 
@@ -74,13 +71,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	// Set the code content after initialization.
-	if m.content != "" {
-		m.codeComponent.SetCode(m.content, m.language)
-		m.content = "" // Clear to avoid setting repeatedly.
-	}
-
-	cmds = append(cmds, m.codeComponent.Update(msg))
+	cmds = append(cmds, m.code.Update(msg))
 	return tea.Batch(cmds...)
 }
 
@@ -88,7 +79,7 @@ func (m *Model) View() string {
 	if m.width == 0 || m.height == 0 {
 		return ""
 	}
-	return m.codeComponent.View()
+	return m.code.View()
 }
 
 func (m *Model) GetTitle() string {
