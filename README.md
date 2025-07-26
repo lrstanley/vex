@@ -4,4 +4,4 @@ Vex (**V**ault **Ex**plorer) is a **Work in Progress** HashiCorp Vault TUI (Term
 [Initial design doc](https://outline.ks.liam.sh/s/fe5484ef-07d5-4d30-ade2-8c6c76081124).
 Expect breaking changes, and/or things to not work at all.
 
-<img src="https://cdn.liam.sh/github/vex/demo.gif" alt="vex demo" />
+![vex demo](https://cdn.liam.sh/github/vex/demo.gif)

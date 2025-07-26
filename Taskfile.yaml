@@ -147,8 +147,9 @@ tasks:
     cmds:
       - mkdir -p tmp/
       - go run github.com/charmbracelet/vhs@latest demo.tape
+      - gifsicle -O3 --colors 256 --lossy=30 -o tmp/demo-optimized.gif tmp/demo.gif
       - task: clean
   tape:upload:
     desc: upload demo GIF to s3
     cmds:
-      - aws s3 cp tmp/demo.gif s3://lrstanley-cdn/github/vex/demo.gif
+      - aws s3 cp tmp/demo-optimized.gif s3://lrstanley-cdn/github/vex/demo.gif

@@ -4,14 +4,14 @@ Require go
 Require task
 
 Set Theme "Dracula+"
-Set FontSize 40
-Set Width 2800
-Set Height 1600
-Set Margin 40
-Set Padding 30
+Set FontSize 27
+Set Width 1862
+Set Height 1064
+Set Margin 35
+Set Padding 20
 Set MarginFill "#674EFF"
 Set BorderRadius 10
-Set Framerate 30
+Set Framerate 20
 Set TypingSpeed 200ms
 Env PS1 "$ "
 
