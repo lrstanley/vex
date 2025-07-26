@@ -86,7 +86,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 			s.pages.Set([]types.Page{msg.Page})
 		} else {
 			if s.isPageFocused.Load() && s.pages.Len() > 0 {
-				cmds = append(cmds, s.pages.Peek().Update(types.CmdMsg(types.PageBlurredMsg{})))
+				cmds = append(cmds, s.pages.Peek().Update(types.CmdMsg(types.PageHiddenMsg{})))
 			}
 			s.pages.Push(msg.Page)
 		}
@@ -111,6 +111,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		return tea.Batch(
 			page.Close(),
 			types.FocusChange(types.FocusPage),
+			s.pages.Peek().Update(types.PageVisibleMsg{}),
 		)
 	case types.AppFocusChangedMsg:
 		if msg.ID == types.FocusPage {
@@ -135,7 +136,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 					return types.CloseActivePage()
 				}
 			case key.Matches(msg, types.KeyRefresh):
-				return types.DataRefresh(s.Get().UUID())
+				return types.RefreshData(s.Get().UUID())
 			case key.Matches(msg, types.KeyQuit):
 				return tea.Quit
 			}
@@ -144,10 +145,10 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 	case types.DebounceMsg:
 		p := s.Get()
 		if p.GetRefreshDebouncer().Is(msg) {
-			return types.DataRefresh(p.UUID())
+			return types.RefreshData(p.UUID())
 		}
 		active = true
-	case types.DataRefreshMsg:
+	case types.RefreshDataMsg:
 		p := s.Get()
 		if p.UUID() != msg.UUID {
 			return nil

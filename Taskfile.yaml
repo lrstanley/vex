@@ -40,7 +40,8 @@ tasks:
     desc: ensure vault cluster @ $VAULT_ADDR is running
     cmds:
       - |
-        if ! curl -s -f {{.VAULT_ADDR}}/v1/sys/health | grep -q '\"sealed\":false'; then
+        if ! curl -s -f '{{.VAULT_ADDR}}/v1/sys/health?drsecondarycode=299&haunhealthycode=299&performancestandbycode=299&removedcode=299&sealedcode=299&standbycode=299&uninitcode=299' \
+          | grep -q '\"sealed\":false'; then
           echo "vault is not running at {{.VAULT_ADDR}}"
           exit 1
         fi

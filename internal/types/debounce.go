@@ -60,14 +60,14 @@ type DebounceMsg struct {
 	Timestamp int64
 }
 
-// DataRefreshMsg is sent when the data for a page should be refreshed.
-type DataRefreshMsg struct {
+// RefreshDataMsg is sent when the data for a page should be refreshed.
+type RefreshDataMsg struct {
 	UUID string
 }
 
-// DataRefresh is a helper for triggering a data refresh. It also helps reduce the
+// RefreshData is a helper for triggering a data refresh. It also helps reduce the
 // chance of duplicate data refreshes, as the page state tracker uses debounce logic
 // to prevent duplicate refreshes.
-func DataRefresh(uuid string) tea.Cmd {
-	return CmdMsg(DataRefreshMsg{UUID: uuid})
+func RefreshData(uuid string) tea.Cmd {
+	return CmdMsg(RefreshDataMsg{UUID: uuid})
 }

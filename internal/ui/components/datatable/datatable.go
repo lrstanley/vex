@@ -120,19 +120,20 @@ func (m *Model[T]) SetStyles(styles TableStyles) {
 	m.table.SetStyles(m.styles.Table)
 }
 
-func (m *Model[T]) Init() tea.Cmd { // TODO: check all places where this originally was called, and update to call Fetch.
+func (m *Model[T]) Init() tea.Cmd {
 	return m.SetLoading()
 }
 
 // Fetch fetches the data from the config.FetchFn.
-func (m *Model[T]) Fetch() tea.Cmd {
+func (m *Model[T]) Fetch(setLoading bool) tea.Cmd {
 	if m.config.FetchFn == nil {
 		return nil
 	}
-	return tea.Batch(
-		m.config.FetchFn(),
-		m.SetLoading(),
-	)
+	cmds := []tea.Cmd{m.config.FetchFn()}
+	if setLoading {
+		cmds = append(cmds, m.SetLoading())
+	}
+	return tea.Batch(cmds...)
 }
 
 // GetData returns the data.
@@ -183,8 +184,6 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 					cmds = append(cmds, m.config.SelectFn(selected))
 				}
 			}
-		case key.Matches(msg, types.KeyRefresh):
-			return m.Fetch()
 		}
 	}
 

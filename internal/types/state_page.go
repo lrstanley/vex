@@ -150,8 +150,20 @@ func CloseActivePage() tea.Cmd {
 	return CmdMsg(CloseActivePageMsg{})
 }
 
+// PageVisibleMsg is sent when the active page is made visible, to the active page ONLY.
+// It is not send on initial page creation, only in situations like when a child page is
+// closed, and the parent page is made visible again.
+type PageVisibleMsg struct{}
+
+// PageHiddenMsg is sent when the active page is made hidden, to the active page ONLY.
+// It's sent when the page is no longer being actively rendered (e.g. child page is being
+// displayed).
+type PageHiddenMsg struct{}
+
 // PageRefocusedMsg is sent when the active page is refocused, to the active page ONLY.
+// It's not sent on initial page load, only when the page is refocused.
 type PageRefocusedMsg struct{}
 
-// PageBlurredMsg is sent when the active page is blurred, to the active page ONLY.
+// PageBlurredMsg is sent when the active page is blurred, to the active page ONLY. Sent
+// when things like a dialog is opened in front of the page.
 type PageBlurredMsg struct{}

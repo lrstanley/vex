@@ -69,7 +69,7 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.table.Init(),
-		types.DataRefresh(m.UUID()),
+		types.RefreshData(m.UUID()),
 	)
 }
 
@@ -77,10 +77,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case types.PageRefocusedMsg:
-		return types.DataRefresh(m.UUID())
-	case types.DataRefreshMsg:
-		return m.table.Fetch()
+	case types.PageVisibleMsg:
+		return types.RefreshData(m.UUID())
+	case types.RefreshDataMsg:
+		return m.table.Fetch(true)
 	case types.AppFilterMsg:
 		if msg.UUID != m.UUID() {
 			return nil

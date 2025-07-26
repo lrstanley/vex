@@ -48,7 +48,7 @@ func New(app types.AppState) *Model {
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.code.Init(),
-		types.DataRefresh(m.UUID()),
+		types.RefreshData(m.UUID()),
 	)
 }
 
@@ -59,9 +59,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-	case types.PageRefocusedMsg:
-		return types.DataRefresh(m.UUID())
-	case types.DataRefreshMsg:
+	case types.PageVisibleMsg:
+		return types.RefreshData(m.UUID())
+	case types.RefreshDataMsg:
 		return m.app.Client().GetConfigState(m.UUID())
 	case types.ClientMsg:
 		if msg.UUID != m.UUID() {
