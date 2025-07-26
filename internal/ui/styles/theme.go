@@ -10,7 +10,7 @@ import (
 
 	"github.com/alecthomas/chroma/v2"
 	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/charmbracelet/lipgloss/v2/colors"
+	"github.com/charmbracelet/lipgloss/v2"
 	tint "github.com/lrstanley/bubbletint/v2"
 	"github.com/lrstanley/vex/internal/types"
 )
@@ -91,48 +91,48 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.chroma = tc.generateChromaStyle()
 	tc.fg = tc.adapt(t.Fg, t.Fg)
 
-	white := tc.adapt(colors.Lighten(t.White, 20), colors.Lighten(t.White, 20))
+	white := tc.adapt(lipgloss.Lighten(t.White, 0.2), lipgloss.Lighten(t.White, 0.2))
 
-	statusFgLighten := 40
-	statusBgDarken := 60
+	statusFgLighten := 0.4
+	statusBgDarken := 0.6
 
-	tc.successFg = tc.adapt(colors.Lighten(t.BrightGreen, statusFgLighten), colors.Lighten(t.BrightGreen, statusFgLighten))
-	tc.successBg = tc.adapt(colors.Darken(t.BrightGreen, statusBgDarken), colors.Darken(t.BrightGreen, statusBgDarken))
-	tc.warningFg = tc.adapt(colors.Lighten(t.BrightYellow, statusFgLighten), colors.Lighten(t.BrightYellow, statusFgLighten))
-	tc.warningBg = tc.adapt(colors.Darken(t.BrightYellow, statusBgDarken), colors.Darken(t.BrightYellow, statusBgDarken))
-	tc.errorFg = tc.adapt(colors.Lighten(t.BrightRed, statusFgLighten), colors.Lighten(t.BrightRed, statusFgLighten))
-	tc.errorBg = tc.adapt(colors.Darken(t.BrightRed, statusBgDarken), colors.Darken(t.BrightRed, statusBgDarken))
-	tc.infoFg = tc.adapt(colors.Lighten(t.BrightBlue, statusFgLighten), colors.Lighten(t.BrightBlue, statusFgLighten))
-	tc.infoBg = tc.adapt(colors.Darken(t.BrightBlue, statusBgDarken), colors.Darken(t.BrightBlue, statusBgDarken))
+	tc.successFg = tc.adapt(lipgloss.Lighten(t.BrightGreen, statusFgLighten), lipgloss.Lighten(t.BrightGreen, statusFgLighten))
+	tc.successBg = tc.adapt(lipgloss.Darken(t.BrightGreen, statusBgDarken), lipgloss.Darken(t.BrightGreen, statusBgDarken))
+	tc.warningFg = tc.adapt(lipgloss.Lighten(t.BrightYellow, statusFgLighten), lipgloss.Lighten(t.BrightYellow, statusFgLighten))
+	tc.warningBg = tc.adapt(lipgloss.Darken(t.BrightYellow, statusBgDarken), lipgloss.Darken(t.BrightYellow, statusBgDarken))
+	tc.errorFg = tc.adapt(lipgloss.Lighten(t.BrightRed, statusFgLighten), lipgloss.Lighten(t.BrightRed, statusFgLighten))
+	tc.errorBg = tc.adapt(lipgloss.Darken(t.BrightRed, statusBgDarken), lipgloss.Darken(t.BrightRed, statusBgDarken))
+	tc.infoFg = tc.adapt(lipgloss.Lighten(t.BrightBlue, statusFgLighten), lipgloss.Lighten(t.BrightBlue, statusFgLighten))
+	tc.infoBg = tc.adapt(lipgloss.Darken(t.BrightBlue, statusBgDarken), lipgloss.Darken(t.BrightBlue, statusBgDarken))
 
-	tc.scrollbarThumbFg = tc.adapt(colors.Darken(t.BrightBlue, 20), colors.Lighten(t.BrightBlue, 20))
-	tc.scrollbarTrackFg = tc.adapt(colors.Darken(t.Bg, 30), colors.Lighten(t.Bg, 30))
+	tc.scrollbarThumbFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
+	tc.scrollbarTrackFg = tc.adapt(lipgloss.Darken(t.Bg, 0.3), lipgloss.Lighten(t.Bg, 0.3))
 
 	tc.statusBarFg = tc.adapt(t.Fg, t.Fg)
-	tc.statusBarBg = tc.adapt(colors.Lighten(t.Bg, 10), colors.Darken(t.Bg, 20))
-	tc.statusBarActivePageFg = tc.adapt(colors.Lighten(t.BrightCyan, 40), colors.Lighten(t.BrightCyan, 40))
-	tc.statusBarActivePageBg = tc.adapt(colors.Darken(t.BrightCyan, 40), colors.Darken(t.BrightCyan, 40))
+	tc.statusBarBg = tc.adapt(lipgloss.Lighten(t.Bg, 0.1), lipgloss.Darken(t.Bg, 0.2))
+	tc.statusBarActivePageFg = tc.adapt(lipgloss.Lighten(t.BrightCyan, 0.4), lipgloss.Lighten(t.BrightCyan, 0.4))
+	tc.statusBarActivePageBg = tc.adapt(lipgloss.Darken(t.BrightCyan, 0.4), lipgloss.Darken(t.BrightCyan, 0.4))
 	tc.statusBarFilterTextFg = white
 	tc.statusBarFilterBg = tc.infoBg
 	tc.statusBarFilterFg = tc.infoFg
 	tc.statusBarAddrFg = white
-	tc.statusBarAddrBg = tc.adapt(colors.Darken(t.BrightBlue, 40), colors.Darken(t.BrightBlue, 40))
+	tc.statusBarAddrBg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.4), lipgloss.Darken(t.BrightBlue, 0.4))
 	tc.statusBarLogoFg = white
-	tc.statusBarLogoBg = tc.adapt(t.Purple, colors.Lighten(t.Bg, 20))
+	tc.statusBarLogoBg = tc.adapt(t.Purple, lipgloss.Lighten(t.Bg, 0.2))
 
-	tc.shortHelpKeyFg = tc.adapt(colors.Darken(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 40))
+	tc.shortHelpKeyFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.4))
 
 	tc.dialogFg = white
 	tc.dialogBorderFg = tc.adapt(t.Purple, t.Purple)
-	tc.dialogBorderGradientFromFg = tc.adapt(colors.Darken(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 20))
-	tc.dialogBorderGradientToFg = tc.adapt(colors.Darken(t.BrightBlue, 20), colors.Lighten(t.BrightBlue, 20))
+	tc.dialogBorderGradientFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
+	tc.dialogBorderGradientToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
-	tc.dialogTitleFg = tc.adapt(colors.Darken(t.BrightRed, 50), colors.Lighten(t.BrightRed, 50))
-	tc.dialogTitleFromFg = tc.adapt(colors.Darken(t.BrightPurple, 20), colors.Lighten(t.BrightPurple, 20))
-	tc.dialogTitleToFg = tc.adapt(colors.Darken(t.BrightBlue, 20), colors.Lighten(t.BrightBlue, 20))
+	tc.dialogTitleFg = tc.adapt(lipgloss.Darken(t.BrightRed, 0.5), lipgloss.Lighten(t.BrightRed, 0.5))
+	tc.dialogTitleFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
+	tc.dialogTitleToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
 	tc.pageBorderFg = tc.adapt(t.Purple, t.Purple)
-	tc.pageBorderFilterFg = tc.adapt(colors.Darken(t.BrightBlue, 30), colors.Lighten(t.BrightBlue, 30))
+	tc.pageBorderFilterFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.3), lipgloss.Lighten(t.BrightBlue, 0.3))
 
 	return tc
 }

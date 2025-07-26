@@ -11,7 +11,6 @@ import (
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
-	"github.com/charmbracelet/lipgloss/v2/colors"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -71,12 +70,12 @@ func (m *Model) setStyles() {
 		Background(styles.Theme.StatusBarFilterBg())
 
 	m.filter.Styles.Focused.Placeholder = m.filter.Styles.Focused.Placeholder.
-		Foreground(colors.Darken(styles.Theme.StatusBarFilterFg(), 20)).
-		Background(colors.Darken(styles.Theme.StatusBarFilterBg(), 10))
+		Foreground(lipgloss.Darken(styles.Theme.StatusBarFilterFg(), 0.2)).
+		Background(lipgloss.Darken(styles.Theme.StatusBarFilterBg(), 0.1))
 
 	m.filter.Styles.Focused.Text = m.filter.Styles.Focused.Text.
 		Foreground(styles.Theme.StatusBarFilterTextFg()).
-		Background(colors.Darken(styles.Theme.StatusBarFilterBg(), 10))
+		Background(lipgloss.Darken(styles.Theme.StatusBarFilterBg(), 0.1))
 }
 
 func (m *Model) Init() tea.Cmd {

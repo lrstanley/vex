@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss/v2"
-	"github.com/charmbracelet/lipgloss/v2/colors"
 )
 
 // TODO: all of this logic is kinda a mess, but it solves the issue for now.
@@ -91,7 +90,7 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 	var topLeftCornerGradient, topRightCornerGradient, bottomLeftCornerGradient, bottomRightCornerGradient color.Color
 
 	if fg == nil {
-		gradient := colors.BlendLinear1D(
+		gradient := lipgloss.BlendLinear1D(
 			height+width, // half of total number of border chars.
 			Theme.DialogBorderGradientFromFg(),
 			Theme.DialogBorderGradientToFg(),

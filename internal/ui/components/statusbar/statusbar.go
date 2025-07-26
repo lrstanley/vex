@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
-	"github.com/charmbracelet/lipgloss/v2/colors"
 	vapi "github.com/hashicorp/vault/api"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/shorthelp"
@@ -71,10 +70,10 @@ func (m *Model) setStyles() {
 		Foreground(styles.Theme.ShortHelpKeyFg()).
 		Background(styles.Theme.StatusBarBg())
 	helpStyles.Desc = helpStyles.Desc.
-		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30)).
+		Foreground(lipgloss.Darken(styles.Theme.StatusBarFg(), 0.3)).
 		Background(styles.Theme.StatusBarBg())
 	helpStyles.Separator = helpStyles.Separator.
-		Foreground(colors.Darken(styles.Theme.StatusBarFg(), 30)).
+		Foreground(lipgloss.Darken(styles.Theme.StatusBarFg(), 0.3)).
 		Background(styles.Theme.StatusBarBg())
 	m.helpEl.SetStyles(helpStyles)
 

@@ -2,7 +2,7 @@ module github.com/lrstanley/vex
 
 go 1.24.4
 
-replace github.com/charmbracelet/lipgloss/v2 => github.com/lrstanley/lipgloss/v2 v2.0.0-beta.4
+replace github.com/charmbracelet/lipgloss/v2 => github.com/lrstanley/lipgloss/v2 v2.0.0-beta.5
 
 require (
 	github.com/alecthomas/chroma/v2 v2.19.0
