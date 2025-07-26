@@ -12,7 +12,6 @@ import (
 
 type Debouncer struct {
 	uuid          uuid
-	Duration      time.Duration
 	LastTimestamp int64
 }
 
@@ -24,14 +23,14 @@ func (d *Debouncer) Is(msg DebounceMsg) bool {
 	return msg.UUID == d.uuid.String() && msg.Timestamp == d.LastTimestamp
 }
 
-func (d *Debouncer) Send() tea.Cmd {
-	if d.Duration == 0 {
-		d.Duration = 150 * time.Millisecond
+func (d *Debouncer) Send(dur time.Duration) tea.Cmd {
+	if dur == 0 {
+		dur = 150 * time.Millisecond
 	}
 	d.InputsUpdated()
 	id := d.LastTimestamp
 
-	return MsgAfterDuration(DebounceMsg{UUID: d.uuid.String(), Timestamp: id}, d.Duration)
+	return MsgAfterDuration(DebounceMsg{UUID: d.uuid.String(), Timestamp: id}, dur)
 }
 
 type DebounceMsg struct {

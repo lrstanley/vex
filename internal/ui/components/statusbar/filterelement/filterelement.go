@@ -6,6 +6,7 @@ package filterelement
 
 import (
 	"slices"
+	"time"
 
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/textinput"
@@ -16,8 +17,9 @@ import (
 )
 
 const (
-	filterMaxWidth = 35
-	filterPrefix   = "filter: "
+	filterMaxWidth   = 35
+	filterPrefix     = "filter: "
+	debounceInterval = 150 * time.Millisecond
 )
 
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
@@ -151,12 +153,12 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		default:
 			var cmd tea.Cmd
 			m.filter, cmd = m.filter.Update(msg)
-			cmds = append(cmds, cmd, m.debounce.Send())
+			cmds = append(cmds, cmd, m.debounce.Send(debounceInterval))
 		}
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		var cmd tea.Cmd
 		m.filter, cmd = m.filter.Update(msg)
-		cmds = append(cmds, cmd, m.debounce.Send())
+		cmds = append(cmds, cmd, m.debounce.Send(debounceInterval))
 	case types.DebounceMsg:
 		if m.debounce.Is(msg) {
 			// Update the filter state for the current page.
