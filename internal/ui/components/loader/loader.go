@@ -2,9 +2,10 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package template
+package loader
 
 import (
+	"github.com/charmbracelet/bubbles/v2/spinner"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
@@ -16,21 +17,20 @@ var _ types.Component = (*Model)(nil) // Ensure we implement the component inter
 type Model struct {
 	types.ComponentModel
 
-	// Core state.
-	app types.AppState
-
-	// UI state.
-	foo string
-
 	// Styles.
 	baseStyle lipgloss.Style
+
+	// Child components.
+	spinner spinner.Model
 }
 
-func New(app types.AppState) *Model {
+func New() *Model {
 	m := &Model{
 		ComponentModel: types.ComponentModel{},
-		app:            app,
+		spinner:        spinner.New(),
 	}
+
+	m.spinner.Spinner = spinner.MiniDot
 
 	m.setStyles()
 	return m
@@ -39,30 +39,51 @@ func New(app types.AppState) *Model {
 func (m *Model) setStyles() {
 	m.baseStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.Fg()).
-		Background(styles.Theme.Bg())
+		Padding(0, 1).
+		Align(lipgloss.Center)
+
+	m.spinner.Style = lipgloss.NewStyle().
+		Foreground(styles.Theme.Fg())
 }
 
 func (m *Model) Init() tea.Cmd {
-	return nil
+	return m.Active()
 }
 
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.Height = msg.Height
-		m.Width = msg.Width
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
+	case spinner.TickMsg:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		cmds = append(cmds, cmd)
 	}
 
 	return tea.Batch(cmds...)
+}
+
+func (m *Model) SetHeight(height int) {
+	m.Height = height
+}
+
+func (m *Model) SetWidth(width int) {
+	m.Width = width
+}
+
+func (m *Model) Active() tea.Cmd {
+	return m.spinner.Tick
 }
 
 func (m *Model) View() string {
 	if m.Height == 0 || m.Width == 0 {
 		return ""
 	}
-	return m.foo
+	return m.baseStyle.
+		Width(m.Width).
+		Height(m.Height).
+		Align(lipgloss.Center, lipgloss.Center).
+		Render(m.spinner.View() + m.baseStyle.Render("loading..."))
 }
