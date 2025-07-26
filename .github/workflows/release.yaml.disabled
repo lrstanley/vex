@@ -16,3 +16,4 @@ jobs:
     secrets: inherit
     with:
       scan: false
+      dockerfile: .github/Dockerfile
