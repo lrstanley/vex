@@ -5,6 +5,7 @@
 package types
 
 import (
+	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
@@ -13,6 +14,8 @@ type AppState interface {
 	Dialog() DialogState
 	Task() TaskState
 	Client() Client
+	ShortHelp(focused FocusID, skip ...string) []key.Binding
+	FullHelp(focused FocusID, skip ...string) [][]key.Binding
 }
 
 type FocusID string

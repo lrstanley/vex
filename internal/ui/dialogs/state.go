@@ -157,11 +157,11 @@ func (s *state) Get() types.Dialog {
 	return dialog
 }
 
-func (s *state) GetWithSkip(uuid string) types.Dialog {
+func (s *state) GetWithSkip(ids ...string) types.Dialog {
 	dialogs := s.dialogs.Values()
 	slices.Reverse(dialogs)
 	for _, dialog := range dialogs {
-		if dialog.UUID() != uuid {
+		if !slices.Contains(ids, dialog.UUID()) {
 			return dialog
 		}
 	}

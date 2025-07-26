@@ -5,6 +5,7 @@
 package ui
 
 import (
+	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/lrstanley/vex/internal/types"
 )
 
@@ -31,4 +32,77 @@ func (a *appState) Task() types.TaskState {
 
 func (a *appState) Client() types.Client {
 	return a.client
+}
+
+func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Binding {
+	keys := a.page.Get().ShortHelp()
+
+	if focused == types.FocusDialog {
+		if dialog := a.dialog.GetWithSkip(skip...); dialog != nil {
+			keys = append(dialog.ShortHelp(), keys...)
+		}
+	}
+
+	var prepended []key.Binding
+
+	if a.page.Get().GetSupportFiltering() && !types.KeyBindingContains(keys, types.KeyFilter) {
+		prepended = append(prepended, types.KeyFilter)
+	}
+
+	if !types.KeyBindingContains(keys, types.KeyCommander) {
+		prepended = append(prepended, types.KeyCommander)
+	}
+
+	if !types.KeyBindingContains(keys, types.KeyHelp) {
+		prepended = append(prepended, types.KeyHelp)
+	}
+
+	if !types.KeyBindingContains(keys, types.KeyQuit) {
+		keys = append(keys, types.KeyQuit)
+	}
+
+	return append(prepended, keys...)
+}
+
+func (a *appState) FullHelp(focused types.FocusID, skip ...string) [][]key.Binding {
+	keys := a.page.Get().FullHelp()
+
+	if focused == types.FocusDialog {
+		if dialog := a.dialog.GetWithSkip(skip...); dialog != nil {
+			keys = append(dialog.FullHelp(), keys...)
+		}
+	}
+
+	var prepend, appended []key.Binding
+
+	if a.page.HasParent() && !types.KeyBindingContainsFull(keys, types.KeyCancel) {
+		prepend = append(prepend, types.KeyCancel)
+	}
+
+	if a.page.Get().GetRefreshInterval() > 0 && !types.KeyBindingContainsFull(keys, types.KeyRefresh) {
+		prepend = append(prepend, types.KeyRefresh)
+	}
+
+	if a.page.Get().GetSupportFiltering() && !types.KeyBindingContainsFull(keys, types.KeyFilter) {
+		appended = append(appended, types.KeyFilter)
+	}
+
+	if !types.KeyBindingContainsFull(keys, types.KeyCommander) {
+		appended = append(appended, types.KeyCommander)
+	}
+
+	if !types.KeyBindingContainsFull(keys, types.KeyHelp) {
+		appended = append(appended, types.KeyHelp)
+	}
+
+	if !types.KeyBindingContainsFull(keys, types.KeyQuit) {
+		appended = append(appended, types.KeyQuit)
+	}
+
+	if len(keys) == 0 {
+		keys = [][]key.Binding{{}}
+	}
+	keys[len(keys)-1] = append(keys[len(keys)-1], appended...)
+
+	return append([][]key.Binding{prepend}, keys...)
 }

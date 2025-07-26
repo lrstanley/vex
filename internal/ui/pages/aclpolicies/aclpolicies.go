@@ -38,8 +38,6 @@ func New(app types.AppState) *Model {
 		PageModel: &types.PageModel{
 			Commands:         Commands,
 			SupportFiltering: true,
-			ShortKeyBinds:    []key.Binding{types.KeyQuit},
-			FullKeyBinds:     [][]key.Binding{{types.KeyRefresh, types.KeyQuit}},
 		},
 		app: app,
 	}

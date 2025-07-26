@@ -34,8 +34,6 @@ func New(app types.AppState) *Model {
 		PageModel: &types.PageModel{
 			Commands:         Commands,
 			SupportFiltering: false,
-			ShortKeyBinds:    []key.Binding{types.KeyCancel, types.KeyQuit},
-			FullKeyBinds:     [][]key.Binding{{types.KeyCancel, types.KeyRefresh, types.KeyQuit}},
 		},
 		app: app,
 	}

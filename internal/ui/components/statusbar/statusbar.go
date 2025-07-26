@@ -132,18 +132,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) updateKeyBinds() {
-	kb := []key.Binding{types.KeyCommander}
-
-	if m.app.Page().Get().GetSupportFiltering() {
-		kb = append(kb, types.KeyFilter)
-	}
-
-	kb = append(kb, types.KeyHelp)
-
-	m.helpEl.SetKeyBinds(append(
-		kb,
-		m.app.Page().Get().ShortHelp()...,
-	)...)
+	m.helpEl.SetKeyBinds(m.app.ShortHelp(types.FocusPage)...)
 }
 
 func (m *Model) View() string {

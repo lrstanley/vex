@@ -27,7 +27,7 @@ type DialogState interface {
 
 	// GetWithSkip returns the currently active dialog, skipping the given dialog ID
 	// if it's at the top of the stack.
-	GetWithSkip(uuid string) Dialog
+	GetWithSkip(ids ...string) Dialog
 
 	// GetLayers returns the layers for the dialog state.
 	GetLayers() []*lipgloss.Layer

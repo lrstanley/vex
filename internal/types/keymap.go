@@ -5,6 +5,8 @@
 package types
 
 import (
+	"slices"
+
 	"github.com/charmbracelet/bubbles/v2/key"
 )
 
@@ -53,4 +55,27 @@ var (
 type KeyBindingGroup struct {
 	Title    string
 	Bindings [][]key.Binding
+}
+
+func KeyBindingContains(keys []key.Binding, against key.Binding) bool {
+	in := against.Keys()
+	var s []string
+	for _, k := range keys {
+		s = k.Keys()
+		for _, v := range s {
+			if slices.Contains(in, v) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func KeyBindingContainsFull(keys [][]key.Binding, against key.Binding) bool {
+	for _, k := range keys {
+		if KeyBindingContains(k, against) {
+			return true
+		}
+	}
+	return false
 }

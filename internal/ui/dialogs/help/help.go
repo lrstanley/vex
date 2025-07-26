@@ -108,69 +108,29 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 func (m *Model) generateHelp() {
 	var buf strings.Builder
 
-	var groups []types.KeyBindingGroup
-
-	if dialog := m.app.Dialog().GetWithSkip(m.UUID()); dialog != nil {
-		groups = append(groups, types.KeyBindingGroup{
-			Title:    "Dialog: " + dialog.GetTitle(),
-			Bindings: dialog.FullHelp(),
-		})
-	} else {
-		kb := [][]key.Binding{{types.KeyCommander}}
-
-		if m.app.Page().Get().GetSupportFiltering() {
-			kb[0] = append(kb[0], types.KeyFilter)
-		}
-
-		kb[0] = append(kb[0], types.KeyHelp)
-
-		pkb := m.app.Page().Get().FullHelp()
-		for i := range pkb {
-			if i == 0 {
-				kb[0] = append(kb[0], pkb[i]...)
-			} else {
-				kb = append(kb, pkb[i])
-			}
-		}
-
-		groups = append(groups, types.KeyBindingGroup{
-			Title:    "View: " + m.app.Page().Get().GetTitle(),
-			Bindings: kb,
-		})
-	}
+	keys := m.app.FullHelp(types.FocusDialog, m.UUID())
 
 	var maxKeyWidth int
-	for _, group := range groups {
-		for _, b := range group.Bindings {
-			for _, binding := range b {
-				maxKeyWidth = max(maxKeyWidth, len(binding.Help().Key))
-			}
+	for _, b := range keys {
+		for _, binding := range b {
+			maxKeyWidth = max(maxKeyWidth, len(binding.Help().Key))
 		}
 	}
 
-	for _, group := range groups {
-		for _, bindings := range group.Bindings {
-			if buf.Len() > 0 {
-				buf.WriteString("\n")
-			}
+	for _, bindings := range keys {
+		if buf.Len() > 0 {
+			buf.WriteString("\n")
+		}
 
-			buf.WriteString(lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()).
-				Render(
-					m.titleStyle.Render(group.Title),
-				) + "\n",
+		for _, binding := range bindings {
+			buf.WriteString(
+				m.keyStyle.Width(maxKeyWidth+4).Render(
+					m.keyStyle.Render("<")+
+						m.keyInnerStyle.Render(binding.Help().Key)+
+						m.keyStyle.Render(">"),
+				) +
+					m.descStyle.Render(binding.Help().Desc) + "\n",
 			)
-
-			for _, binding := range bindings {
-				buf.WriteString(
-					m.keyStyle.Width(maxKeyWidth+4).Render(
-						m.keyStyle.Render("<")+
-							m.keyInnerStyle.Render(binding.Help().Key)+
-							m.keyStyle.Render(">"),
-					) +
-						m.descStyle.Render(binding.Help().Desc) + "\n",
-				)
-			}
 		}
 	}
 	m.viewport.SetContent(strings.TrimSuffix(buf.String(), "\n"))
