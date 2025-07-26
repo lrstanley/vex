@@ -11,16 +11,17 @@ import (
 )
 
 type Debouncer struct {
-	Duration time.Duration
-	ID       int64
+	uuid          uuid
+	Duration      time.Duration
+	LastTimestamp int64
 }
 
 func (d *Debouncer) InputsUpdated() {
-	d.ID = time.Now().UnixNano()
+	d.LastTimestamp = time.Now().UnixNano()
 }
 
 func (d *Debouncer) Is(msg DebounceMsg) bool {
-	return msg.ID == d.ID
+	return msg.UUID == d.uuid.String() && msg.Timestamp == d.LastTimestamp
 }
 
 func (d *Debouncer) Send() tea.Cmd {
@@ -28,11 +29,12 @@ func (d *Debouncer) Send() tea.Cmd {
 		d.Duration = 150 * time.Millisecond
 	}
 	d.InputsUpdated()
-	id := d.ID
+	id := d.LastTimestamp
 
-	return MsgAfterDuration(DebounceMsg{ID: id}, d.Duration)
+	return MsgAfterDuration(DebounceMsg{UUID: d.uuid.String(), Timestamp: id}, d.Duration)
 }
 
 type DebounceMsg struct {
-	ID int64
+	UUID      string
+	Timestamp int64
 }
