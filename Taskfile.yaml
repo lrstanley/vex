@@ -36,6 +36,14 @@ tasks:
       - task: vault:down
       - cd _hack/vault-cluster && docker compose rm --force --stop --volumes
       - sudo rm -rf _hack/vault-cluster/data _hack/vault-cluster/init
+  vault:ensure-running:
+    desc: ensure vault cluster @ $VAULT_ADDR is running
+    cmds:
+      - |
+        if ! curl -s -f {{.VAULT_ADDR}}/v1/sys/health | grep -q '\"sealed\":false'; then
+          echo "vault is not running at {{.VAULT_ADDR}}"
+          exit 1
+        fi
   license:
     desc: generate license headers
     cmds:
@@ -84,7 +92,7 @@ tasks:
           {{.PACKAGE}} -- --logging.level=debug {{.CLI_ARGS}}
   debug:
     desc: run in debug mode
-    deps: [prepare]
+    deps: [prepare, vault:ensure-running]
     aliases: [dev, run]
     interactive: true
     cmds:
@@ -95,7 +103,7 @@ tasks:
           {{.CLI_ARGS}}
   debug:basic:
     desc: run in debug mode
-    deps: [prepare]
+    deps: [prepare, vault:ensure-running]
     interactive: true
     cmds:
       - |
@@ -132,3 +140,15 @@ tasks:
     aliases: [format]
     cmds:
       - gofumpt -w .
+  tape:
+    desc: record demo GIFs
+    deps: [build, vault:ensure-running]
+    aliases: [demo]
+    cmds:
+      - mkdir -p tmp/
+      - go run github.com/charmbracelet/vhs@latest demo.tape
+      - task: clean
+  tape:upload:
+    desc: upload demo GIF to s3
+    cmds:
+      - aws s3 cp tmp/demo.gif s3://lrstanley-cdn/github/vex/demo.gif
