@@ -102,6 +102,7 @@ func (m Model) Init() tea.Cmd {
 			m.app.Dialog().Init(),
 			m.statusbar.Init(),
 		),
+		types.FocusChange(types.FocusPage),
 	)
 }
 
