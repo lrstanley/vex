@@ -5,7 +5,8 @@
 package aclpolicies
 
 import (
-	"github.com/charmbracelet/bubbles/v2/key"
+	"time"
+
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/datatable"
@@ -38,6 +39,7 @@ func New(app types.AppState) *Model {
 		PageModel: &types.PageModel{
 			Commands:         Commands,
 			SupportFiltering: true,
+			RefreshInterval:  30 * time.Second,
 		},
 		app: app,
 	}
@@ -48,29 +50,27 @@ func New(app types.AppState) *Model {
 		SelectFn: func(value string) tea.Cmd {
 			return m.app.Client().GetACLPolicy(m.UUID(), value)
 		},
-		RowFn: func(value string) []string {
-			return []string{value}
-		},
+		RowFn: func(value string) []string { return []string{value} },
 	})
 
 	return m
 }
 
 func (m *Model) Init() tea.Cmd {
-	return m.table.Init()
+	return tea.Batch(
+		m.table.Init(),
+		types.DataRefresh(m.UUID()),
+	)
 }
 
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, types.KeyCancel):
-			return types.ClearAppFilter()
-		case key.Matches(msg, types.KeyQuit):
-			return tea.Quit
-		}
+	case types.PageRefocusedMsg:
+		return types.DataRefresh(m.UUID())
+	case types.DataRefreshMsg:
+		return m.table.Fetch()
 	case types.AppFilterMsg:
 		if msg.UUID != m.UUID() {
 			return nil
@@ -81,7 +81,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		if msg.UUID != m.UUID() {
 			return nil
 		}
-
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListACLPoliciesMsg:
 			if msg.Error == nil {

@@ -120,15 +120,11 @@ func (m *Model[T]) SetStyles(styles TableStyles) {
 	m.table.SetStyles(m.styles.Table)
 }
 
-func (m *Model[T]) Init() tea.Cmd {
-	return tea.Batch(
-		m.spinner.Tick,
-		m.Fetch(),
-	)
+func (m *Model[T]) Init() tea.Cmd { // TODO: check all places where this originally was called, and update to call Fetch.
+	return m.SetLoading()
 }
 
-// Fetch fetches the data from the config.FetchFn. This is automatically called
-// on Init, and can be called manually to refresh the data.
+// Fetch fetches the data from the config.FetchFn.
 func (m *Model[T]) Fetch() tea.Cmd {
 	if m.config.FetchFn == nil {
 		return nil

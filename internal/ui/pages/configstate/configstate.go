@@ -5,7 +5,8 @@
 package configstate
 
 import (
-	"github.com/charmbracelet/bubbles/v2/key"
+	"time"
+
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
@@ -34,6 +35,7 @@ func New(app types.AppState) *Model {
 		PageModel: &types.PageModel{
 			Commands:         Commands,
 			SupportFiltering: false,
+			RefreshInterval:  30 * time.Second,
 		},
 		app: app,
 	}
@@ -45,8 +47,8 @@ func New(app types.AppState) *Model {
 
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
-		m.app.Client().GetConfigState(m.UUID()),
 		m.code.Init(),
+		types.DataRefresh(m.UUID()),
 	)
 }
 
@@ -57,23 +59,14 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, types.KeyCancel):
-			if m.app.Page().HasParent() {
-				return types.CloseActivePage()
-			}
-			return nil
-		case key.Matches(msg, types.KeyQuit):
-			return tea.Quit
-		case key.Matches(msg, types.KeyRefresh):
-			return m.app.Client().GetConfigState(m.UUID())
-		}
+	case types.PageRefocusedMsg:
+		return types.DataRefresh(m.UUID())
+	case types.DataRefreshMsg:
+		return m.app.Client().GetConfigState(m.UUID())
 	case types.ClientMsg:
 		if msg.UUID != m.UUID() {
 			return nil
 		}
-
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientConfigStateMsg:
 			if msg.Error == nil {

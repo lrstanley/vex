@@ -7,6 +7,7 @@ package pages
 import (
 	"sync/atomic"
 
+	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
@@ -76,57 +77,87 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 	case styles.ThemeUpdatedMsg:
 		s.setStyles()
 		all = true
-	case types.PageMsg:
-		switch msg := msg.Msg.(type) {
-		case types.OpenPageMsg:
-			var cmds []tea.Cmd
-			if msg.Root {
-				for page := range s.pages.IterValues() {
-					cmds = append(cmds, page.Close())
-				}
-				s.pages.Set([]types.Page{msg.Page})
-			} else {
-				if s.isPageFocused.Load() && s.pages.Len() > 0 {
-					cmds = append(cmds, s.pages.Peek().Update(types.CmdMsg(types.PageMsg{Msg: types.PageBlurredMsg{}})))
-				}
-				s.pages.Push(msg.Page)
+	case types.OpenPageMsg:
+		var cmds []tea.Cmd
+		if msg.Root {
+			for page := range s.pages.IterValues() {
+				cmds = append(cmds, page.Close())
 			}
-
-			return tea.Batch(append(
-				cmds,
-				msg.Page.Init(),
-				msg.Page.Update(tea.WindowSizeMsg{
-					Height: s.windowHeight - PageVPadding,
-					Width:  s.windowWidth - PageHPadding,
-				}),
-				types.FocusChange(types.FocusPage),
-			)...)
-		case types.CloseActivePageMsg:
-			if s.pages.Len() <= 1 {
-				return nil
+			s.pages.Set([]types.Page{msg.Page})
+		} else {
+			if s.isPageFocused.Load() && s.pages.Len() > 0 {
+				cmds = append(cmds, s.pages.Peek().Update(types.CmdMsg(types.PageBlurredMsg{})))
 			}
-			page, ok := s.pages.Pop()
-			if !ok {
-				return nil
-			}
-			return tea.Batch(
-				page.Close(),
-				types.FocusChange(types.FocusPage),
-			)
-		case types.AppFocusChangedMsg:
-			all = true
-			if msg.ID == types.FocusPage {
-				s.isPageFocused.Store(true)
-				cmds = append(cmds, s.pages.Peek().Update(types.PageMsg{Msg: types.PageFocusedMsg{}}))
-			} else {
-				s.isPageFocused.Store(false)
-				cmds = append(cmds, s.pages.Peek().Update(types.PageMsg{Msg: types.PageBlurredMsg{}}))
-			}
+			s.pages.Push(msg.Page)
 		}
+
+		return tea.Batch(append(
+			cmds,
+			msg.Page.Init(),
+			msg.Page.Update(tea.WindowSizeMsg{
+				Height: s.windowHeight - PageVPadding,
+				Width:  s.windowWidth - PageHPadding,
+			}),
+			types.FocusChange(types.FocusPage),
+		)...)
+	case types.CloseActivePageMsg:
+		if s.pages.Len() <= 1 {
+			return nil
+		}
+		page, ok := s.pages.Pop()
+		if !ok {
+			return nil
+		}
+		return tea.Batch(
+			page.Close(),
+			types.FocusChange(types.FocusPage),
+		)
+	case types.AppFocusChangedMsg:
+		if msg.ID == types.FocusPage {
+			s.isPageFocused.Store(true)
+			cmds = append(cmds, s.pages.Peek().Update(types.PageRefocusedMsg{}))
+		} else {
+			s.isPageFocused.Store(false)
+			cmds = append(cmds, s.pages.Peek().Update(types.PageBlurredMsg{}))
+		}
+		all = true
 	case types.AppFilterMsg:
 		s.filter = msg.Text
 		active = true
-	case tea.KeyMsg, tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
+	case tea.KeyMsg:
+		if !s.Get().HasInputFocus() && s.isPageFocused.Load() {
+			switch {
+			case key.Matches(msg, types.KeyCancel):
+				switch {
+				case s.Get().GetSupportFiltering() && s.filter != "":
+					return types.ClearAppFilter()
+				case s.HasParent():
+					return types.CloseActivePage()
+				}
+			case key.Matches(msg, types.KeyRefresh):
+				return types.DataRefresh(s.Get().UUID())
+			case key.Matches(msg, types.KeyQuit):
+				return tea.Quit
+			}
+		}
+		active = true
+	case types.DebounceMsg:
+		p := s.Get()
+		if p.GetRefreshDebouncer().Is(msg) {
+			return types.DataRefresh(p.UUID())
+		}
+		active = true
+	case types.DataRefreshMsg:
+		p := s.Get()
+		if p.UUID() != msg.UUID {
+			return nil
+		}
+		cmds = append(cmds, p.Update(msg))
+		if v := p.GetRefreshInterval(); v > 0 {
+			cmds = append(cmds, p.GetRefreshDebouncer().Send(v))
+		}
+		return tea.Batch(cmds...)
+	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		active = true
 	default:
 		all = true

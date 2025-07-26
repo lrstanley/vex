@@ -5,6 +5,8 @@
 package types
 
 import (
+	"time"
+
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -50,6 +52,13 @@ type Page interface {
 	// should send all keybinds to the page). This is stubbed to false by default.
 	HasInputFocus() bool
 
+	// GetRefreshInterval returns the refresh interval for the page. Refresh
+	// support only configured if interval is greater than 0.
+	GetRefreshInterval() time.Duration
+
+	// GetRefreshDebouncer returns the debouncer for the refresh page.
+	GetRefreshDebouncer() *Debouncer
+
 	// GetCommands returns the commands of the page (if one is defined).
 	GetCommands() []string
 
@@ -75,6 +84,8 @@ type PageModel struct {
 
 	Commands         []string
 	SupportFiltering bool
+	refreshDebounce  Debouncer
+	RefreshInterval  time.Duration
 	ShortKeyBinds    []key.Binding
 	FullKeyBinds     [][]key.Binding
 }
@@ -116,9 +127,12 @@ func (b *PageModel) HasInputFocus() bool {
 	return false
 }
 
-// PageMsg is a wrapper for any message relating to page state.
-type PageMsg struct {
-	Msg any
+func (b *PageModel) GetRefreshInterval() time.Duration {
+	return b.RefreshInterval
+}
+
+func (b *PageModel) GetRefreshDebouncer() *Debouncer {
+	return &b.refreshDebounce
 }
 
 type OpenPageMsg struct {
@@ -127,19 +141,17 @@ type OpenPageMsg struct {
 }
 
 func OpenPage(p Page, isRoot bool) tea.Cmd {
-	return CmdMsg(PageMsg{Msg: OpenPageMsg{Page: p, Root: isRoot}})
+	return CmdMsg(OpenPageMsg{Page: p, Root: isRoot})
 }
 
 type CloseActivePageMsg struct{}
 
 func CloseActivePage() tea.Cmd {
-	return CmdMsg(PageMsg{Msg: CloseActivePageMsg{}})
+	return CmdMsg(CloseActivePageMsg{})
 }
 
-// PageFocusedMsg is sent when the active page is focused, to the active page ONLY.
-// Should always be wrapped in a PageMsg.
-type PageFocusedMsg struct{}
+// PageRefocusedMsg is sent when the active page is refocused, to the active page ONLY.
+type PageRefocusedMsg struct{}
 
 // PageBlurredMsg is sent when the active page is blurred, to the active page ONLY.
-// Should always be wrapped in a PageMsg.
 type PageBlurredMsg struct{}
