@@ -80,6 +80,10 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 }
 
 func bodyAsAttrs(resp *http.Response) slog.Attr {
+	if resp == nil || resp.Body == nil {
+		return slog.String("body", "no body")
+	}
+
 	var buf bytes.Buffer
 	_, err := io.Copy(&buf, resp.Body)
 	if err != nil {
