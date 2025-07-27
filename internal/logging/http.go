@@ -5,6 +5,9 @@
 package logging
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"log/slog"
 	"net/http"
 	"runtime"
@@ -49,8 +52,10 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 	if err != nil {
 		r = slog.NewRecord(time.Now(), slog.LevelError, "http request failed", pcs[0])
 		r.AddAttrs(
+			slog.String("url", req.URL.String()),
 			slog.String("error", err.Error()),
 			slog.Duration("duration", duration),
+			bodyAsAttrs(resp),
 		)
 		_ = l.Handler().Handle(req.Context(), r)
 		return nil, err
@@ -58,15 +63,39 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 
 	r = slog.NewRecord(time.Now(), slog.LevelDebug, "http response", pcs[0])
 	r.AddAttrs(
+		slog.String("url", req.URL.String()),
 		slog.Int("status", resp.StatusCode),
 		slog.Duration("duration", duration),
 		slog.Int64("content-length", resp.ContentLength),
 		slog.Group("headers", headersAsAttrs(resp.Header)...),
 	)
 
+	if resp.StatusCode >= 400 {
+		r.AddAttrs(bodyAsAttrs(resp))
+	}
+
 	_ = l.Handler().Handle(req.Context(), r)
 
 	return resp, nil
+}
+
+func bodyAsAttrs(resp *http.Response) slog.Attr {
+	var buf bytes.Buffer
+	_, err := io.Copy(&buf, resp.Body)
+	if err != nil {
+		return slog.String("body", "failed to read body")
+	}
+
+	resp.Body = io.NopCloser(&buf)
+
+	if resp.Header.Get("Content-Type") == "application/json" {
+		var data any
+		if err := json.NewDecoder(&buf).Decode(&data); err != nil {
+			return slog.String("body", "failed to decode body")
+		}
+		return slog.Any("body", data)
+	}
+	return slog.String("body", buf.String())
 }
 
 func headersAsAttrs(headers http.Header) []any {
