@@ -154,6 +154,19 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			var cmd tea.Cmd
 			m.filter, cmd = m.filter.Update(msg)
 
+			// If the user presses backspace and it makes the filter empty,
+			// immediately send an empty filter state. Reduces chance of backspace
+			// causing a flood of empty filter updates.
+			if msg.String() == "backspace" && m.filter.Value() == "" {
+				if v, ok := m.filterState[m.app.Page().Get().UUID()]; ok && v != "" {
+					m.filterState[m.app.Page().Get().UUID()] = ""
+					return tea.Batch(
+						cmd,
+						m.sendFilter(),
+					)
+				}
+			}
+
 			cmds = append(cmds, cmd, m.sendFilterDebounced())
 		}
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
