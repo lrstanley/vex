@@ -32,6 +32,7 @@ type DebounceMsg struct {
 	Duration  time.Duration
 	Cmd       tea.Cmd
 	Timestamp int64
+	Reset     bool
 }
 
 // Send is a helper for sending a debounce message. It will return a [DebounceMsg]
@@ -44,6 +45,19 @@ func Send(uuid string, dur time.Duration, cmd tea.Cmd) tea.Cmd {
 			Timestamp: time.Now().UnixNano(),
 			Duration:  dur,
 			Cmd:       cmd,
+		}
+	}
+}
+
+// ResetTimer will update the state for the uuid, which is helpful when you want
+// to immediately invoke something, but still let the debouncer know it should
+// wait at least the next provided duration.
+func ResetTimer(uuid string) tea.Cmd {
+	return func() tea.Msg {
+		return DebounceMsg{
+			UUID:      uuid,
+			Timestamp: time.Now().UnixNano(),
+			Reset:     true,
 		}
 	}
 }
@@ -83,13 +97,17 @@ func (d *Service) Init() tea.Cmd {
 func (d *Service) Update(msg tea.Msg) tea.Cmd {
 	switch msg := msg.(type) {
 	case DebounceMsg:
-		if msg.Duration <= 0 {
+		if msg.Duration <= 0 && !msg.Reset {
 			msg.Duration = fallbackDuration
 		}
 
 		d.mu.Lock()
 		d.state[msg.UUID] = msg
 		d.mu.Unlock()
+
+		if msg.Reset {
+			return nil
+		}
 
 		return tea.Tick(msg.Duration, func(_ time.Time) tea.Msg {
 			return InvokeMsg{
