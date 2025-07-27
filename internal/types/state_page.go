@@ -56,9 +56,6 @@ type Page interface {
 	// support only configured if interval is greater than 0.
 	GetRefreshInterval() time.Duration
 
-	// GetRefreshDebouncer returns the debouncer for the refresh page.
-	GetRefreshDebouncer() *Debouncer
-
 	// GetCommands returns the commands of the page (if one is defined).
 	GetCommands() []string
 
@@ -84,7 +81,6 @@ type PageModel struct {
 
 	Commands         []string
 	SupportFiltering bool
-	refreshDebounce  Debouncer
 	RefreshInterval  time.Duration
 	ShortKeyBinds    []key.Binding
 	FullKeyBinds     [][]key.Binding
@@ -129,10 +125,6 @@ func (b *PageModel) HasInputFocus() bool {
 
 func (b *PageModel) GetRefreshInterval() time.Duration {
 	return b.RefreshInterval
-}
-
-func (b *PageModel) GetRefreshDebouncer() *Debouncer {
-	return &b.refreshDebounce
 }
 
 type OpenPageMsg struct {

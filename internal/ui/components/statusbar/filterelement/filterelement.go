@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -31,7 +32,6 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	debounce     types.Debouncer
 	inputWidth   int
 	previousUUID string
 	filterState  map[string]string // page uuid -> filter value.
@@ -153,22 +153,25 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		default:
 			var cmd tea.Cmd
 			m.filter, cmd = m.filter.Update(msg)
-			cmds = append(cmds, cmd, m.debounce.Send(debounceInterval))
+
+			cmds = append(cmds, cmd, m.sendFilterDebounced())
 		}
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		var cmd tea.Cmd
 		m.filter, cmd = m.filter.Update(msg)
-		cmds = append(cmds, cmd, m.debounce.Send(debounceInterval))
-	case types.DebounceMsg:
-		if m.debounce.Is(msg) {
-			// Update the filter state for the current page.
-			currentUUID := m.app.Page().Get().UUID()
-			m.filterState[currentUUID] = m.filter.Value()
-			cmds = append(cmds, m.sendFilter())
-		}
+		cmds = append(cmds, cmd, m.sendFilterDebounced())
 	}
 
 	return tea.Batch(cmds...)
+}
+
+func (m *Model) sendFilterDebounced() tea.Cmd {
+	m.filterState[m.app.Page().Get().UUID()] = m.filter.Value()
+	return debouncer.Send(
+		m.UUID(),
+		debounceInterval,
+		m.sendFilter(),
+	)
 }
 
 func (m *Model) sendFilter() tea.Cmd {

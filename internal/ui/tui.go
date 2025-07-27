@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/tasks"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar"
@@ -60,7 +61,8 @@ func pageInitializer(app types.AppState) []commander.PageRef {
 
 type Model struct {
 	// Core state, clients, etc.
-	app types.AppState
+	app       types.AppState
+	debouncer *debouncer.Service
 
 	// UI state.
 	height        int
@@ -83,7 +85,8 @@ func New(client types.Client) *Model {
 	app.page = pages.NewState(mounts.New(app))
 
 	return &Model{
-		app: app,
+		app:       app,
+		debouncer: debouncer.New(),
 		cmdConfig: commander.Config{
 			App:   app,
 			Pages: pageInitializer(app),
@@ -95,6 +98,7 @@ func New(client types.Client) *Model {
 
 func (m Model) Init() tea.Cmd {
 	return tea.Sequence(
+		m.debouncer.Init(),
 		styles.Theme.Init(),
 		m.app.Page().Init(),
 		tea.Batch(
@@ -174,6 +178,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case types.StatusMsg:
 		cmds = append(cmds, m.statusbar.Update(msg))
 		return m, tea.Batch(cmds...)
+	case debouncer.InvokeMsg, debouncer.DebounceMsg:
+		return m, m.debouncer.Update(msg)
 	}
 
 	return m, tea.Batch(append(

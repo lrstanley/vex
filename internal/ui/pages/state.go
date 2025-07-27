@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -142,12 +143,6 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 			}
 		}
 		active = true
-	case types.DebounceMsg:
-		p := s.Get()
-		if p.GetRefreshDebouncer().Is(msg) {
-			return types.RefreshData(p.UUID())
-		}
-		active = true
 	case types.RefreshDataMsg:
 		p := s.Get()
 		if p.UUID() != msg.UUID {
@@ -155,7 +150,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		}
 		cmds = append(cmds, p.Update(msg))
 		if v := p.GetRefreshInterval(); v > 0 {
-			cmds = append(cmds, p.GetRefreshDebouncer().Send(v))
+			cmds = append(cmds, debouncer.Send(msg.UUID, v, types.CmdMsg(msg)))
 		}
 		return tea.Batch(cmds...)
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
