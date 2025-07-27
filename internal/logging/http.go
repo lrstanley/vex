@@ -5,12 +5,12 @@
 package logging
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
 	"log/slog"
 	"net/http"
+	"net/http/httputil"
+	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -32,6 +32,8 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 		return rt.RoundTripper.RoundTrip(req)
 	}
 
+	trace, _ := strconv.ParseBool(os.Getenv("HTTP_TRACE"))
+
 	var pcs [1]uintptr
 	_ = runtime.Callers(6, pcs[:]) // Skip this, and all of the net/http/client functions.
 
@@ -44,6 +46,13 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 		slog.Int64("content-length", req.ContentLength),
 	)
 
+	if trace {
+		b, err := httputil.DumpRequest(req, true)
+		if err == nil {
+			r.AddAttrs(slog.String("request", string(b)))
+		}
+	}
+
 	_ = l.Handler().Handle(req.Context(), r)
 
 	started := time.Now()
@@ -55,8 +64,15 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 			slog.String("url", req.URL.String()),
 			slog.String("error", err.Error()),
 			slog.Duration("duration", duration),
-			bodyAsAttrs(resp),
 		)
+
+		if resp != nil && trace {
+			b, err := httputil.DumpResponse(resp, true)
+			if err == nil {
+				r.AddAttrs(slog.String("response", string(b)))
+			}
+		}
+
 		_ = l.Handler().Handle(req.Context(), r)
 		return nil, err
 	}
@@ -71,35 +87,17 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 	)
 
 	if resp.StatusCode >= 400 {
-		r.AddAttrs(bodyAsAttrs(resp))
+		if resp != nil && trace {
+			b, err := httputil.DumpResponse(resp, true)
+			if err == nil {
+				r.AddAttrs(slog.String("response", string(b)))
+			}
+		}
 	}
 
 	_ = l.Handler().Handle(req.Context(), r)
 
 	return resp, nil
-}
-
-func bodyAsAttrs(resp *http.Response) slog.Attr {
-	if resp == nil || resp.Body == nil {
-		return slog.String("body", "no body")
-	}
-
-	var buf bytes.Buffer
-	_, err := io.Copy(&buf, resp.Body)
-	if err != nil {
-		return slog.String("body", "failed to read body")
-	}
-
-	resp.Body = io.NopCloser(&buf)
-
-	if resp.Header.Get("Content-Type") == "application/json" {
-		var data any
-		if err := json.NewDecoder(&buf).Decode(&data); err != nil {
-			return slog.String("body", "failed to decode body")
-		}
-		return slog.Any("body", data)
-	}
-	return slog.String("body", buf.String())
 }
 
 func headersAsAttrs(headers http.Header) []any {
