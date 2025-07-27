@@ -5,7 +5,7 @@
 package secrets
 
 import (
-	"strings"
+	"fmt"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -14,9 +14,17 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
+type Data struct {
+	Mount        *types.Mount
+	Path         string
+	FullPath     string
+	Capabilities types.ClientCapabilities
+	Incomplete   bool
+}
+
 var (
 	Commands    = []string{"secrets", "secret"}
-	dataColumns = []string{"Mount", "Key"}
+	dataColumns = []string{"Full Path", "Mount Type", "Permissions"}
 )
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
@@ -29,37 +37,32 @@ type Model struct {
 
 	// UI state.
 	filter string
-	mount  *types.Mount
-	path   string
+	data   *types.ClientListAllSecretsRecursiveMsg
 
 	// Child components.
-	table *datatable.Model[*types.SecretListRef]
+	table *datatable.Model[*Data]
 }
 
-func New(app types.AppState, mount *types.Mount, path string) *Model {
+func New(app types.AppState) *Model {
 	m := &Model{
 		PageModel: &types.PageModel{
 			Commands:         Commands,
 			SupportFiltering: true,
-			RefreshInterval:  30 * time.Second,
+			RefreshInterval:  60 * time.Second,
 		},
-		app:   app,
-		mount: mount,
-		path:  path,
+		app: app,
 	}
 
-	m.table = datatable.New(app, datatable.Config[*types.SecretListRef]{
+	m.table = datatable.New(app, datatable.Config[*Data]{
 		FetchFn: func() tea.Cmd {
-			return app.Client().ListSecrets(m.UUID(), m.mount, m.path)
+			return app.Client().ListAllSecretsRecursive(m.UUID())
 		},
-		SelectFn: func(value *types.SecretListRef) tea.Cmd {
-			if !strings.HasSuffix(value.Path, "/") {
-				return nil
-			}
-			return types.OpenPage(New(app, value.Mount, value.Path), false)
+		SelectFn: func(value *Data) tea.Cmd {
+			// TODO
+			return nil
 		},
-		RowFn: func(value *types.SecretListRef) []string {
-			return []string{value.Mount.Path, value.Path}
+		RowFn: func(value *Data) []string {
+			return []string{value.FullPath, value.Mount.Type, value.Capabilities.String()}
 		},
 	})
 
@@ -92,14 +95,25 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 		switch vmsg := msg.Msg.(type) {
-		case types.ClientListSecretsMsg:
-			cmds = append(cmds, m.table.SetLoading())
-			if msg.Error == nil {
-				m.table.SetData(
-					dataColumns,
-					vmsg.Values,
-				)
+		case types.ClientListAllSecretsRecursiveMsg:
+			m.data = &vmsg
+			var data []*Data
+
+			for ref := range vmsg.Tree.IterRefs() {
+				if !ref.IsSecret() {
+					continue
+				}
+
+				data = append(data, &Data{
+					Mount:        ref.Mount,
+					Path:         ref.Path,
+					FullPath:     ref.GetFullPath(),
+					Capabilities: ref.Capabilities,
+					Incomplete:   ref.Incomplete,
+				})
 			}
+
+			m.table.SetData(dataColumns, data)
 		}
 	}
 
@@ -115,4 +129,11 @@ func (m *Model) View() string {
 
 func (m *Model) TopMiddleBorder() string {
 	return styles.Pluralize(m.table.DataLen(), "secret", "secrets")
+}
+
+func (m *Model) TopRightBorder() string {
+	if m.data == nil {
+		return ""
+	}
+	return fmt.Sprintf("requests: %d/%d", m.data.Requests, m.data.MaxRequests)
 }

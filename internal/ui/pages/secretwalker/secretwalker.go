@@ -2,24 +2,19 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package mounts
+package secretwalker
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/datatable"
-	"github.com/lrstanley/vex/internal/ui/pages/secretwalker"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-var (
-	Commands    = []string{"mounts", "mount"}
-	dataColumns = []string{"Path", "Type", "Description", "Accessor", "Deprecated", "Plugin Version"}
-)
+var dataColumns = []string{"Mount", "Key"}
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
@@ -31,29 +26,37 @@ type Model struct {
 
 	// UI state.
 	filter string
+	mount  *types.Mount
+	path   string
 
 	// Child components.
-	table *datatable.Model[*types.Mount]
+	table *datatable.Model[*types.SecretListRef]
 }
 
-func New(app types.AppState) *Model {
+func New(app types.AppState, mount *types.Mount, path string) *Model {
 	m := &Model{
 		PageModel: &types.PageModel{
-			Commands:         Commands,
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
 		},
-		app: app,
+		app:   app,
+		mount: mount,
+		path:  path,
 	}
 
-	m.table = datatable.New(app, datatable.Config[*types.Mount]{
+	m.table = datatable.New(app, datatable.Config[*types.SecretListRef]{
 		FetchFn: func() tea.Cmd {
-			return app.Client().ListMounts(m.UUID(), "kv")
+			return app.Client().ListSecrets(m.UUID(), m.mount, m.path)
 		},
-		SelectFn: func(value *types.Mount) tea.Cmd {
-			return types.OpenPage(secretwalker.New(app, value, ""), false)
+		SelectFn: func(value *types.SecretListRef) tea.Cmd {
+			if !strings.HasSuffix(value.Path, "/") {
+				return nil
+			}
+			return types.OpenPage(New(app, value.Mount, value.Path), false)
 		},
-		RowFn: m.rowFn,
+		RowFn: func(value *types.SecretListRef) []string {
+			return []string{value.Mount.Path, value.Path}
+		},
 	})
 
 	return m
@@ -84,47 +87,19 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		if msg.UUID != m.UUID() {
 			return nil
 		}
-
 		switch vmsg := msg.Msg.(type) {
-		case types.ClientListMountsMsg:
+		case types.ClientListSecretsMsg:
 			cmds = append(cmds, m.table.SetLoading())
 			if msg.Error == nil {
 				m.table.SetData(
 					dataColumns,
-					vmsg.Mounts,
+					vmsg.Values,
 				)
 			}
 		}
 	}
 
 	return tea.Batch(append(cmds, m.table.Update(msg))...)
-}
-
-func (m *Model) rowFn(value *types.Mount) []string {
-	var opts []string
-
-	for k, v := range value.Options {
-		var name string
-		switch k {
-		case "version":
-			name = "ver"
-		}
-		opts = append(opts, fmt.Sprintf("%s=%s", name, v))
-	}
-
-	sopts := strings.Join(opts, ",")
-	if len(sopts) > 0 {
-		sopts = " (" + sopts + ")"
-	}
-
-	return []string{
-		value.Path,
-		styles.Trunc(value.Type+sopts, 15),
-		styles.Trunc(value.Description, 40),
-		value.Accessor,
-		value.DeprecationStatus,
-		value.RunningVersion,
-	}
 }
 
 func (m *Model) View() string {
@@ -135,5 +110,5 @@ func (m *Model) View() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	return styles.Pluralize(m.table.DataLen(), "mount", "mounts")
+	return styles.Pluralize(m.table.DataLen(), "secret", "secrets")
 }

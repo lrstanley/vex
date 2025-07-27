@@ -10,7 +10,7 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 )
 
-func secretToList(basePath string, secret *vapi.Secret) []string {
+func secretToList(secret *vapi.Secret) []string {
 	if secret == nil || secret.Data == nil {
 		return nil
 	}
@@ -21,7 +21,7 @@ func secretToList(basePath string, secret *vapi.Secret) []string {
 		if vv, ok := v.([]any); ok {
 			for _, v := range vv {
 				if vv, ok := v.(string); ok {
-					keys = append(keys, basePath+vv)
+					keys = append(keys, vv)
 				}
 			}
 		}

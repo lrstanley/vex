@@ -5,11 +5,9 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -40,31 +38,16 @@ func (c *client) GetHealth() tea.Cmd {
 func (c *client) GetConfigState(uuid string) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientConfigStateMsg, error) {
 		// No Go client method for this.
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimSuffix(c.api.Address(), "/")+"/v1/sys/config/state/sanitized", http.NoBody)
+		data, err := request[json.RawMessage](
+			c,
+			http.MethodGet,
+			"/v1/sys/config/state/sanitized",
+			nil,
+			nil,
+		)
 		if err != nil {
-			return nil, fmt.Errorf("get config state: %w", err)
+			return nil, err
 		}
-
-		req.Header = c.api.Headers()
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return nil, fmt.Errorf("get config state: %w", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("get config state: %s", resp.Status)
-		}
-
-		var data json.RawMessage
-		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-			return nil, fmt.Errorf("get config state: %w", err)
-		}
-
 		return &types.ClientConfigStateMsg{Data: data}, nil
 	})
 }

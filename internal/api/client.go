@@ -6,6 +6,7 @@ package api
 
 import (
 	"fmt"
+	"net/http"
 	"sync/atomic"
 	"time"
 
@@ -20,30 +21,38 @@ const HealthCheckInterval = 5 * time.Second
 var _ types.Client = &client{} // Ensure client implements types.Client.
 
 type client struct {
-	api *vapi.Client
+	api  *vapi.Client
+	http *http.Client
 
 	firstHealthChecked atomic.Bool
 	health             types.AtomicExpires[vapi.HealthResponse]
 }
 
 func NewClient() (types.Client, error) {
+	c := &client{}
+
 	cfg := vapi.DefaultConfig()
 	cfg.MaxRetries = 5
+	cfg.DisableRedirects = false
 	cfg.Timeout = 5 * time.Second
-	cfg.HttpClient.Transport = &logging.HTTPRoundTripper{
+	cfg.HttpClient.Transport = NewConcurrentLimiter(10, &logging.HTTPRoundTripper{
 		RoundTripper: cfg.HttpClient.Transport,
-	}
+	})
 
 	if cfg.Error != nil {
 		return nil, fmt.Errorf("failed to create vault client: %w", cfg.Error)
 	}
+
+	c.http = cfg.HttpClient
+	c.http.CheckRedirect = nil
 
 	vc, err := vapi.NewClient(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return &client{api: vc}, nil
+	c.api = vc
+	return c, nil
 }
 
 func (c *client) Init() tea.Cmd {
