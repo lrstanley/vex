@@ -5,6 +5,8 @@
 package datatable
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/table"
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -24,11 +26,12 @@ type TableStyles struct {
 
 // Config contains the configuration for the table component.
 type Config[T any] struct {
-	NoResultsMsg string
-	FilterFunc   func(filter string, values []T) []T
-	SelectFn     func(value T) tea.Cmd
-	RowFn        func(value T) []string
-	FetchFn      func() tea.Cmd
+	NoResultsMsg       string
+	NoResultsFilterMsg string
+	FilterFunc         func(filter string, values []T) []T
+	SelectFn           func(value T) tea.Cmd
+	RowFn              func(value T) []string
+	FetchFn            func() tea.Cmd
 }
 
 var _ types.Component = (*Model[any])(nil) // Ensure we implement the component interface.
@@ -69,6 +72,9 @@ func New[T any](app types.AppState, config Config[T]) *Model[T] {
 
 	if m.config.NoResultsMsg == "" {
 		m.config.NoResultsMsg = "no results found"
+	}
+	if m.config.NoResultsFilterMsg == "" {
+		m.config.NoResultsFilterMsg = "no results found for %q"
 	}
 
 	if m.config.FilterFunc == nil {
@@ -340,10 +346,14 @@ func (m *Model[T]) View() string {
 	switch {
 	case m.loading:
 		out = append(out, m.loader.View())
-	case len(m.filtered) == 0:
+	case len(m.data) == 0:
 		out = append(out, m.styles.NoResults.
 			Width(m.Width).
 			Render(m.config.NoResultsMsg))
+	case len(m.filtered) == 0 && m.filter != "":
+		out = append(out, m.styles.NoResults.
+			Width(m.Width).
+			Render(fmt.Sprintf(m.config.NoResultsFilterMsg, m.filter)))
 	default:
 		out = append(out, m.styles.Base.
 			MaxHeight(m.Height).
