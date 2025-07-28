@@ -89,9 +89,9 @@ func (o *OrderedMap[K, V]) Pop() (K, V) {
 	o.mu.RUnlock()
 
 	o.mu.Lock()
-	defer o.mu.Unlock()
 	key := o.keys[len(o.keys)-1]
 	val := o.store[key]
+	o.mu.Unlock()
 	o.Delete(key)
 	return key, val
 }
