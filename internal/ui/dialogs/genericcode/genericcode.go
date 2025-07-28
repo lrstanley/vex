@@ -14,18 +14,16 @@ import (
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
 )
 
-var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
+var _ types.Dialog = (*Model)(nil) // Ensure we implement the dialog interface.
 
 type Model struct {
-	*types.PageModel
+	*types.DialogModel
 
 	// Core state.
 	app types.AppState
 
 	// UI state.
-	height int
-	width  int
-	title  string
+	title string
 
 	// Child components.
 	code *viewport.Model
@@ -33,11 +31,11 @@ type Model struct {
 
 func New(app types.AppState, title, content, language string) *Model {
 	m := &Model{
-		PageModel: &types.PageModel{
-			Commands:         []string{},
-			SupportFiltering: false,
-			ShortKeyBinds:    []key.Binding{types.KeyCancel, types.KeyQuit},
-			FullKeyBinds:     [][]key.Binding{{types.KeyCancel, types.KeyQuit}},
+		DialogModel: &types.DialogModel{
+			Size:            types.DialogSizeLarge,
+			DisableChildren: true,
+			ShortKeyBinds:   []key.Binding{types.KeyCancel, types.KeyQuit},
+			FullKeyBinds:    [][]key.Binding{{types.KeyCancel, types.KeyQuit}},
 		},
 		app:   app,
 		title: title,
@@ -50,17 +48,19 @@ func New(app types.AppState, title, content, language string) *Model {
 }
 
 func NewJSON(app types.AppState, title string, data any) *Model {
-	json, err := json.MarshalIndent(data, "", "  ")
+	json, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return New(app, title, fmt.Sprintf("error: %v", err), "text")
 	}
 	return New(app, title, string(json), "json")
 }
 
+func (m *Model) GetTitle() string {
+	return m.title
+}
+
 func (m *Model) Init() tea.Cmd {
-	return tea.Batch(
-		m.code.Init(),
-	)
+	return m.code.Init()
 }
 
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
@@ -68,17 +68,20 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
+		m.Height, m.Width = msg.Height, msg.Width
+
+		// If the viewport is smaller than the dialog height, resize the dialog
+		// even smaller.
+		m.Height = min(m.code.TotalLineCount(), m.Height)
+		m.code.SetHeight(m.Height)
+		m.code.SetWidth(m.Width)
+		return nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyDetails):
-			return types.CloseActivePage()
+			return types.CloseDialog(m)
 		case key.Matches(msg, types.KeyCancel):
-			if m.app.Page().HasParent() {
-				return types.CloseActivePage()
-			}
-			return nil
+			return types.CloseDialog(m)
 		case key.Matches(msg, types.KeyQuit):
 			return tea.Quit
 		}
@@ -89,12 +92,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) View() string {
-	if m.width == 0 || m.height == 0 {
+	if m.Width == 0 || m.Height == 0 {
 		return ""
 	}
 	return m.code.View()
-}
-
-func (m *Model) GetTitle() string {
-	return m.title
 }

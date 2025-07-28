@@ -42,6 +42,10 @@ var (
 		key.WithKeys("ctrl+r"),
 		key.WithHelp("ctrl+r", "refresh"),
 	)
+	KeyDetails = key.NewBinding(
+		key.WithKeys("d"),
+		key.WithHelp("d", "get details about resource"),
+	)
 	KeyHelp = key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "help"),

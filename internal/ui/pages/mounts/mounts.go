@@ -9,9 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
 	"github.com/lrstanley/vex/internal/ui/pages/secretwalker"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -42,6 +44,7 @@ func New(app types.AppState) *Model {
 			Commands:         Commands,
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
+			FullKeyBinds:     [][]key.Binding{{types.KeyDetails}},
 		},
 		app: app,
 	}
@@ -96,6 +99,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 					dataColumns,
 					vmsg.Mounts,
 				)
+			}
+		}
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, types.KeyDetails):
+			if v, ok := m.table.GetSelectedData(); ok {
+				return types.OpenDialog(genericcode.NewJSON(m.app, fmt.Sprintf("Mount Details: %q", v.Path), v))
 			}
 		}
 	}
