@@ -48,11 +48,11 @@ func New(app types.AppState, title, content, language string) *Model {
 }
 
 func NewJSON(app types.AppState, title string, data any) *Model {
-	json, err := json.MarshalIndent(data, "", "    ")
+	b, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return New(app, title, fmt.Sprintf("error: %v", err), "text")
 	}
-	return New(app, title, string(json), "json")
+	return New(app, title, string(b), "json")
 }
 
 func (m *Model) GetTitle() string {

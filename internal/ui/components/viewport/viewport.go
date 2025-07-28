@@ -13,6 +13,7 @@ import (
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
+	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/viewport"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -31,6 +32,7 @@ type Model struct {
 	// UI state.
 	code         string // Code content. Stored so we can re-render styled code on theme change.
 	language     string // Code language. Stored so we can re-render styled code on theme change.
+	content      string // Non-code focused content. Stored so we can copy it.
 	hasScrollbar bool   // Whether to show a scrollbar.
 
 	// Components.
@@ -72,7 +74,10 @@ func (m *Model) VisibleLineCount() int {
 }
 
 func (m *Model) GetContent() string {
-	return m.viewport.GetContent()
+	if m.code != "" {
+		return m.code
+	}
+	return m.content
 }
 
 func (m *Model) SetContent(content string) {
@@ -161,6 +166,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			m.renderCode()
 		}
 		return nil
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, types.KeyCopy):
+			return types.SetClipboard(m.GetContent())
+		}
 	}
 
 	var cmd tea.Cmd

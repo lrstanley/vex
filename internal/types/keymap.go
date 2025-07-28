@@ -46,6 +46,10 @@ var (
 		key.WithKeys("d"),
 		key.WithHelp("d", "get details about resource"),
 	)
+	KeyCopy = key.NewBinding(
+		key.WithKeys("c"),
+		key.WithHelp("c", "copy content"),
+	)
 	KeyHelp = key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "help"),

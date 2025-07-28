@@ -5,6 +5,8 @@
 package types
 
 import (
+	"time"
+
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
@@ -62,4 +64,11 @@ type AppFilterClearedMsg struct{}
 
 func ClearAppFilter() tea.Cmd {
 	return CmdMsg(AppFilterClearedMsg{})
+}
+
+func SetClipboard(content string) tea.Cmd {
+	return tea.Batch(
+		tea.SetClipboard(content),
+		SendStatus("copied to clipboard", Info, 1*time.Second),
+	)
 }
