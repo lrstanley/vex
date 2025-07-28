@@ -287,9 +287,13 @@ func (m *Model[T]) SetIndex(i int) {
 // SetFilter sets the filter string and updates the table. Setting to an empty
 // string will render all rows.
 func (m *Model[T]) SetFilter(filter string) {
-	m.filter = filter
+	if m.filter != filter {
+		m.filter = filter
+		m.table.GotoTop()
+	} else {
+		m.filter = filter
+	}
 	m.updateTable()
-	m.table.GotoTop()
 }
 
 // SetData sets the data for the table.
