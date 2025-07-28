@@ -113,6 +113,10 @@ func (m *Model) View() string {
 	return m.table.View()
 }
 
+func (m *Model) GetTitle() string {
+	return "Secrets: " + m.mount.Path + m.path
+}
+
 func (m *Model) TopMiddleBorder() string {
 	return styles.Pluralize(m.table.DataLen(), "secret", "secrets")
 }
