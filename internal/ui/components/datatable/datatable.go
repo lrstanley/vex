@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/v2/key"
+	"github.com/charmbracelet/bubbles/v2/spinner"
 	"github.com/charmbracelet/bubbles/v2/table"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -176,6 +177,11 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 				}
 			}
 		}
+	case spinner.TickMsg:
+		if m.loader.SpinnerID() != msg.ID || !m.loading {
+			return nil
+		}
+		return m.loader.Update(msg)
 	}
 
 	m.table, cmd = m.table.Update(msg)

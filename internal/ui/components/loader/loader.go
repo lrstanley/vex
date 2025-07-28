@@ -57,12 +57,19 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 	case spinner.TickMsg:
+		if m.spinner.ID() != msg.ID {
+			return nil
+		}
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
 	return tea.Batch(cmds...)
+}
+
+func (m *Model) SpinnerID() int {
+	return m.spinner.ID()
 }
 
 func (m *Model) SetHeight(height int) {

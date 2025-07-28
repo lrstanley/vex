@@ -110,10 +110,12 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		s.pageLoading.Store(false)
 		return nil
 	case spinner.TickMsg:
-		if s.pageLoading.Load() {
+		if s.pageLoading.Load() && s.loader.SpinnerID() == msg.ID {
 			return s.loader.Update(msg)
 		}
-		active = true
+		if s.loader.SpinnerID() != msg.ID {
+			active = true
+		}
 	case types.OpenPageMsg:
 		var cmds []tea.Cmd
 

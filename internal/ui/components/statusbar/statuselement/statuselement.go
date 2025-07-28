@@ -77,6 +77,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 	case spinner.TickMsg:
+		if m.spinner.ID() != msg.ID {
+			return nil
+		}
+
 		if m.status == nil && len(m.operations) == 0 {
 			return nil
 		}
