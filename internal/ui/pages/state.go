@@ -8,10 +8,12 @@ import (
 	"sync/atomic"
 
 	"github.com/charmbracelet/bubbles/v2/key"
+	"github.com/charmbracelet/bubbles/v2/spinner"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/vex/internal/ui/components/loader"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -29,16 +31,22 @@ type state struct {
 	windowWidth   int
 	filter        string
 	pages         types.AtomicSlice[types.Page]
+	pageLoading   atomic.Bool
 
 	filterStyle      lipgloss.Style
 	filterIconStyle  lipgloss.Style
 	separatorStyle   lipgloss.Style
 	refreshStyle     lipgloss.Style
 	refreshIconStyle lipgloss.Style
+
+	// Child components.
+	loader *loader.Model
 }
 
 func NewState(initial types.Page) types.PageState {
-	t := &state{}
+	t := &state{
+		loader: loader.New(),
+	}
 	t.pages.Push(initial)
 	t.setStyles()
 	return t
@@ -80,6 +88,8 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		s.windowHeight = msg.Height
 		s.windowWidth = msg.Width
+		s.loader.SetHeight(s.windowHeight - PageVPadding)
+		s.loader.SetWidth(s.windowWidth - PageHPadding)
 
 		for page := range s.pages.IterValues() {
 			cmds = append(cmds, page.Update(tea.WindowSizeMsg{
@@ -91,9 +101,24 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		return tea.Batch(cmds...)
 	case styles.ThemeUpdatedMsg:
 		s.setStyles()
+		cmds = append(cmds, s.loader.Update(msg))
 		all = true
+	case types.PageLoadingMsg:
+		s.pageLoading.Store(true)
+		return s.loader.Active()
+	case types.PageLoadedMsg:
+		s.pageLoading.Store(false)
+		return nil
+	case spinner.TickMsg:
+		if s.pageLoading.Load() {
+			return s.loader.Update(msg)
+		}
+		active = true
 	case types.OpenPageMsg:
 		var cmds []tea.Cmd
+
+		s.pageLoading.Store(false)
+
 		if msg.Root {
 			for page := range s.pages.IterValues() {
 				cmds = append(cmds, page.Close())
@@ -119,10 +144,14 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		if s.pages.Len() <= 1 {
 			return nil
 		}
+
+		s.pageLoading.Store(false)
+
 		page, ok := s.pages.Pop()
 		if !ok {
 			return nil
 		}
+
 		return tea.Batch(
 			page.Close(),
 			types.FocusChange(types.FocusPage),
@@ -200,8 +229,16 @@ func (s *state) View() string {
 		embeddedText[styles.BottomRightBorder] += s.refreshIconStyle.String() + s.refreshStyle.Render("refresh: "+p.GetRefreshInterval().String())
 	}
 
+	var out string
+
+	if s.pageLoading.Load() {
+		out = s.loader.View()
+	} else {
+		out = p.View()
+	}
+
 	return styles.Border(
-		p.View(),
+		out,
 		styles.Theme.PageBorderFg(),
 		p,
 		embeddedText,

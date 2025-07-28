@@ -62,13 +62,17 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case types.PageVisibleMsg:
 		return types.RefreshData(m.UUID())
 	case types.RefreshDataMsg:
-		return m.app.Client().GetConfigState(m.UUID())
+		return tea.Batch(
+			types.PageLoading(),
+			m.app.Client().GetConfigState(m.UUID()),
+		)
 	case types.ClientMsg:
 		if msg.UUID != m.UUID() {
 			return nil
 		}
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientConfigStateMsg:
+			cmds = append(cmds, types.PageLoaded())
 			if msg.Error == nil {
 				if vmsg.Data == nil {
 					m.code.SetCode("No data available", "text")

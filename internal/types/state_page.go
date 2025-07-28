@@ -159,3 +159,17 @@ type PageRefocusedMsg struct{}
 // PageBlurredMsg is sent when the active page is blurred, to the active page ONLY. Sent
 // when things like a dialog is opened in front of the page.
 type PageBlurredMsg struct{}
+
+// PageLoadingMsg is sent from the active page when the page is loading.
+type PageLoadingMsg struct{}
+
+// PageLoadedMsg is sent from the active page when the page has finished loading.
+type PageLoadedMsg struct{}
+
+func PageLoading() tea.Cmd {
+	return CmdMsg(PageLoadingMsg{})
+}
+
+func PageLoaded() tea.Cmd {
+	return CmdMsg(PageLoadedMsg{})
+}

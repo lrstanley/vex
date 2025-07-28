@@ -76,7 +76,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case types.PageVisibleMsg:
 		return types.RefreshData(m.UUID())
 	case types.RefreshDataMsg:
-		return m.table.Fetch(true)
+		return tea.Batch(
+			types.PageLoading(),
+			m.table.Fetch(false),
+		)
 	case types.AppFilterMsg:
 		if msg.UUID != m.UUID() {
 			return nil
@@ -89,8 +92,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListSecretsMsg:
-			cmds = append(cmds, m.table.SetLoading())
 			if msg.Error == nil {
+				cmds = append(cmds, types.PageLoaded())
+
 				m.table.SetData(
 					dataColumns,
 					vmsg.Values,
