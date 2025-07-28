@@ -10,7 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/datatable"
-	"github.com/lrstanley/vex/internal/ui/frames/codeframe"
+	"github.com/lrstanley/vex/internal/ui/pages/genericcode"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -93,7 +93,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		case types.ClientGetACLPolicyMsg:
 			if msg.Error == nil {
 				title := "ACL Policy: " + vmsg.Name
-				cmds = append(cmds, types.OpenPage(codeframe.New(m.app, title, vmsg.Content, "hcl"), false))
+				cmds = append(cmds, types.OpenPage(genericcode.New(m.app, title, vmsg.Content, "hcl"), false))
 			}
 		}
 	}
