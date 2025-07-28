@@ -30,8 +30,11 @@ type state struct {
 	filter        string
 	pages         types.AtomicSlice[types.Page]
 
-	filterStyle     lipgloss.Style
-	filterIconStyle lipgloss.Style
+	filterStyle      lipgloss.Style
+	filterIconStyle  lipgloss.Style
+	separatorStyle   lipgloss.Style
+	refreshStyle     lipgloss.Style
+	refreshIconStyle lipgloss.Style
 }
 
 func NewState(initial types.Page) types.PageState {
@@ -43,10 +46,21 @@ func NewState(initial types.Page) types.PageState {
 
 func (s *state) setStyles() {
 	s.filterStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.PageBorderFilterFg()).
-		PaddingLeft(1)
-	s.filterIconStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.PageBorderFilterFg())
+	s.filterIconStyle = lipgloss.NewStyle().
+		Foreground(styles.Theme.PageBorderFilterFg()).
+		PaddingRight(1).
+		SetString(styles.IconFilter)
+	s.separatorStyle = lipgloss.NewStyle().
+		Foreground(styles.Theme.Fg()).
+		Padding(0, 1).
+		SetString(styles.IconSeparator)
+	s.refreshStyle = lipgloss.NewStyle().
+		Foreground(styles.Theme.PageBorderFilterFg())
+	s.refreshIconStyle = lipgloss.NewStyle().
+		Foreground(styles.Theme.PageBorderFilterFg()).
+		PaddingRight(1).
+		SetString(styles.IconRefresh)
 }
 
 func (s *state) Init() tea.Cmd {
@@ -174,8 +188,16 @@ func (s *state) View() string {
 	p := s.pages.Peek()
 
 	embeddedText := make(map[styles.BorderPosition]string)
+
 	if p.GetSupportFiltering() && s.filter != "" {
-		embeddedText[styles.BottomRightBorder] = s.filterIconStyle.Render(styles.IconFilter) + s.filterIconStyle.Render("filter: "+s.filter)
+		embeddedText[styles.BottomRightBorder] = s.filterIconStyle.String() + s.filterStyle.Render("filter: "+styles.Trunc(s.filter, 20))
+	}
+
+	if p.GetRefreshInterval() > 0 {
+		if embeddedText[styles.BottomRightBorder] != "" {
+			embeddedText[styles.BottomRightBorder] += s.separatorStyle.String()
+		}
+		embeddedText[styles.BottomRightBorder] += s.refreshIconStyle.String() + s.refreshStyle.Render("refresh: "+p.GetRefreshInterval().String())
 	}
 
 	return styles.Border(
