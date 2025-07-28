@@ -32,10 +32,7 @@ type Model struct {
 func New(app types.AppState, title, content, language string) *Model {
 	m := &Model{
 		DialogModel: &types.DialogModel{
-			Size:            types.DialogSizeLarge,
-			DisableChildren: true,
-			ShortKeyBinds:   []key.Binding{types.KeyCancel, types.KeyQuit},
-			FullKeyBinds:    [][]key.Binding{{types.KeyCancel, types.KeyQuit}},
+			Size: types.DialogSizeLarge,
 		},
 		app:   app,
 		title: title,
@@ -79,11 +76,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyDetails):
-			return types.CloseDialog(m)
-		case key.Matches(msg, types.KeyCancel):
-			return types.CloseDialog(m)
-		case key.Matches(msg, types.KeyQuit):
-			return types.AppQuit()
+			return types.CloseActiveDialog()
 		}
 	}
 

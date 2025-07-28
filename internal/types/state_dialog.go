@@ -156,11 +156,9 @@ func OpenDialog(d Dialog) tea.Cmd {
 	return CmdMsg(DialogMsg{Msg: OpenDialogMsg{Dialog: d}})
 }
 
-// CloseDialogMsg is a message that is sent to close a dialog.
-type CloseDialogMsg struct {
-	Dialog Dialog
-}
+// CloseActiveDialogMsg is a message that is sent to close the active dialog.
+type CloseActiveDialogMsg struct{}
 
-func CloseDialog(d Dialog) tea.Cmd {
-	return CmdMsg(DialogMsg{Msg: CloseDialogMsg{Dialog: d}})
+func CloseActiveDialog() tea.Cmd {
+	return CmdMsg(DialogMsg{Msg: CloseActiveDialogMsg{}})
 }

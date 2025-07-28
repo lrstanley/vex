@@ -37,20 +37,22 @@ func (a *appState) Client() types.Client {
 func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Binding {
 	keys := a.page.Get().ShortHelp()
 
-	if focused == types.FocusDialog {
-		if dialog := a.dialog.GetWithSkip(skip...); dialog != nil {
-			keys = append(dialog.ShortHelp(), keys...)
-		}
-	}
-
 	var prepended []key.Binding
 
-	if a.page.Get().GetSupportFiltering() && !types.KeyBindingContains(keys, types.KeyFilter) {
-		prepended = append(prepended, types.KeyFilter)
-	}
+	switch focused {
+	case types.FocusDialog:
+		dialog := a.dialog.GetWithSkip(skip...)
+		if dialog != nil {
+			keys = append(dialog.ShortHelp(), keys...)
+		}
+	case types.FocusPage:
+		if a.page.Get().GetSupportFiltering() && !types.KeyBindingContains(keys, types.KeyFilter) {
+			prepended = append(prepended, types.KeyFilter)
+		}
 
-	if !types.KeyBindingContains(keys, types.KeyCommander) {
-		prepended = append(prepended, types.KeyCommander)
+		if !types.KeyBindingContains(keys, types.KeyCommander) {
+			prepended = append(prepended, types.KeyCommander)
+		}
 	}
 
 	if !types.KeyBindingContains(keys, types.KeyHelp) {
@@ -58,7 +60,7 @@ func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Bindin
 	}
 
 	if !types.KeyBindingContains(keys, types.KeyQuit) {
-		keys = append(keys, types.KeyQuit)
+		keys = append(keys, types.KeyQuit) // Add to the end.
 	}
 
 	return append(prepended, keys...)
@@ -67,28 +69,31 @@ func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Bindin
 func (a *appState) FullHelp(focused types.FocusID, skip ...string) [][]key.Binding {
 	keys := a.page.Get().FullHelp()
 
-	if focused == types.FocusDialog {
-		if dialog := a.dialog.GetWithSkip(skip...); dialog != nil {
-			keys = append(dialog.FullHelp(), keys...)
-		}
-	}
-
 	var prepend, appended []key.Binding
 
-	if a.page.HasParent() && !types.KeyBindingContainsFull(keys, types.KeyCancel) {
+	switch focused {
+	case types.FocusDialog:
+		dialog := a.dialog.GetWithSkip(skip...)
+		if dialog != nil {
+			keys = append(dialog.FullHelp(), keys...)
+		}
 		prepend = append(prepend, types.KeyCancel)
-	}
+	case types.FocusPage:
+		if a.page.HasParent() && !types.KeyBindingContainsFull(keys, types.KeyCancel) {
+			prepend = append(prepend, types.KeyCancel)
+		}
 
-	if a.page.Get().GetRefreshInterval() > 0 && !types.KeyBindingContainsFull(keys, types.KeyRefresh) {
-		prepend = append(prepend, types.KeyRefresh)
-	}
+		if a.page.Get().GetRefreshInterval() > 0 && !types.KeyBindingContainsFull(keys, types.KeyRefresh) {
+			prepend = append(prepend, types.KeyRefresh)
+		}
 
-	if a.page.Get().GetSupportFiltering() && !types.KeyBindingContainsFull(keys, types.KeyFilter) {
-		appended = append(appended, types.KeyFilter)
-	}
+		if a.page.Get().GetSupportFiltering() && !types.KeyBindingContainsFull(keys, types.KeyFilter) {
+			appended = append(appended, types.KeyFilter)
+		}
 
-	if !types.KeyBindingContainsFull(keys, types.KeyCommander) {
-		appended = append(appended, types.KeyCommander)
+		if !types.KeyBindingContainsFull(keys, types.KeyCommander) {
+			appended = append(appended, types.KeyCommander)
+		}
 	}
 
 	if !types.KeyBindingContainsFull(keys, types.KeyHelp) {

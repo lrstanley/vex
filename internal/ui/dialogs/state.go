@@ -7,6 +7,7 @@ package dialogs
 import (
 	"slices"
 
+	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
@@ -92,18 +93,14 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 				s.sendDialogSize(msg.Dialog),
 				types.FocusChange(types.FocusDialog),
 			)
-		case types.CloseDialogMsg:
+		case types.CloseActiveDialogMsg:
 			if s.Len() == 0 {
 				return nil
 			}
 
-			var dialog types.Dialog
-
-			if msg.Dialog != nil {
-				dialog = msg.Dialog
-				s.dialogs.Delete(dialog.UUID())
-			} else {
-				_, dialog = s.dialogs.Pop()
+			_, dialog := s.dialogs.Pop()
+			if dialog == nil {
+				return nil
 			}
 
 			if s.dialogs.Len() == 0 {
@@ -115,7 +112,17 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 
 			return dialog.Close()
 		}
-	case tea.KeyMsg, tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
+	case tea.KeyMsg:
+		if s.Len() > 0 && !s.Get().HasInputFocus() {
+			switch {
+			case key.Matches(msg, types.KeyCancel):
+				return types.CloseActiveDialog()
+			case key.Matches(msg, types.KeyQuit):
+				return types.AppQuit()
+			}
+		}
+		active = true
+	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		active = true
 	default:
 		all = true
@@ -176,14 +183,27 @@ func (s *state) UUID() string {
 	return id
 }
 
-func (s *state) GetLayers() (layers []*lipgloss.Layer) {
-	for _, dialog := range s.dialogs.Values() {
+func (s *state) GetLayers() []*lipgloss.Layer {
+	dialogs := s.dialogs.Values()
+	if len(dialogs) == 0 {
+		return nil
+	}
+
+	layers := make([]*lipgloss.Layer, 0, len(dialogs))
+	var view string
+
+	for _, dialog := range dialogs {
+		view = dialog.View()
+		if view == "" {
+			continue
+		}
 		dx, dy := s.calcDialogPosition(
 			s.windowHeight,
 			s.windowWidth,
 			dialog.GetHeight(),
 			dialog.GetWidth(),
 		)
+
 		layers = append(
 			layers,
 			lipgloss.NewLayer(
@@ -198,7 +218,7 @@ func (s *state) GetLayers() (layers []*lipgloss.Layer) {
 							styles.Theme.DialogTitleFromFg(),
 							styles.Theme.DialogTitleToFg(),
 						)),
-						dialog.View(),
+						view,
 					),
 					nil,
 					dialog,

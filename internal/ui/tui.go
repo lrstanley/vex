@@ -141,6 +141,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.BackgroundColorMsg:
 		return m, styles.Theme.Update(msg)
 	case tea.KeyMsg:
+		// TODO: temporary bindings, will eventually be handled by the config package.
 		switch {
 		case msg.String() == "[":
 			return m, styles.Theme.PreviousTint()
@@ -150,6 +151,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch m.focused {
 		case types.FocusDialog:
+			// If active dialog isn't the help dialog, and the help key is pressed,
+			// open the help dialog.
+			if v := m.app.Dialog().Get(); v != nil && !v.HasInputFocus() {
+				if _, ok := v.(*help.Model); !ok && key.Matches(msg, types.KeyHelp) {
+					return m, types.OpenDialog(help.New(m.app))
+				}
+			}
 			return m, m.app.Dialog().Update(msg)
 		case types.FocusPage:
 			if !m.app.Page().Get().HasInputFocus() {
@@ -162,7 +170,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, types.OpenDialog(help.New(m.app))
 				}
 			}
-
 			return m, m.app.Page().Update(msg)
 		case types.FocusStatusBar:
 			return m, m.statusbar.Update(msg)
@@ -225,13 +232,8 @@ func (m *Model) View() string {
 			),
 		)
 
-	layers := []*lipgloss.Layer{
-		lipgloss.NewLayer(s),
-	}
-
-	if m.app.Dialog().Len() > 0 {
-		layers = append(layers, m.app.Dialog().GetLayers()...)
-	}
-
-	return lipgloss.NewCanvas(layers...).Render()
+	return lipgloss.NewCanvas(append(
+		[]*lipgloss.Layer{lipgloss.NewLayer(s)},
+		m.app.Dialog().GetLayers()...,
+	)...).Render()
 }

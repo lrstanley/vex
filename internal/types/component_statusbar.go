@@ -48,7 +48,10 @@ func SendStatus(text string, status Status, duration time.Duration) tea.Cmd {
 	}
 
 	if duration > 0 {
-		cmds = append(cmds, CmdAfterDuration(ClearStatusText(id), duration))
+		cmds = append(cmds, CmdAfterDuration(
+			CmdMsg(StatusMsg{Msg: ClearStatusTextMsg{ID: id}}),
+			duration,
+		))
 	}
 
 	return tea.Batch(cmds...)
@@ -58,11 +61,6 @@ func SendStatus(text string, status Status, duration time.Duration) tea.Cmd {
 // wrapped in a StatusMsg.
 type ClearStatusTextMsg struct {
 	ID int64
-}
-
-// ClearStatusText is a helper function to clear a status text message.
-func ClearStatusText(id int64) tea.Cmd {
-	return CmdMsg(StatusMsg{Msg: ClearStatusTextMsg{ID: id}})
 }
 
 // StatusOperationMsg is a message to add an operation to the statusbar. Should

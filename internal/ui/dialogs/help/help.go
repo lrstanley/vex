@@ -38,8 +38,6 @@ func New(app types.AppState) *Model {
 		DialogModel: &types.DialogModel{
 			Size:            types.DialogSizeSmall,
 			DisableChildren: true,
-			ShortKeyBinds:   []key.Binding{types.KeyCancel, types.KeyQuit},
-			FullKeyBinds:    [][]key.Binding{{types.KeyCancel, types.KeyQuit}},
 		},
 		app:      app,
 		viewport: viewport.New(app),
@@ -92,10 +90,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.generateHelp()
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, types.KeyCancel), key.Matches(msg, types.KeyHelp):
-			return types.CloseDialog(m)
-		case key.Matches(msg, types.KeyQuit):
-			return types.AppQuit()
+		case key.Matches(msg, types.KeyHelp):
+			return types.CloseActiveDialog()
 		}
 	}
 
@@ -108,7 +104,12 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 func (m *Model) generateHelp() {
 	var buf strings.Builder
 
-	keys := m.app.FullHelp(types.FocusDialog, m.UUID())
+	helpFocus := types.FocusPage
+	if m.app.Dialog().Len() > 1 {
+		helpFocus = types.FocusDialog
+	}
+
+	keys := m.app.FullHelp(helpFocus, m.UUID())
 
 	var maxKeyWidth int
 	for _, b := range keys {

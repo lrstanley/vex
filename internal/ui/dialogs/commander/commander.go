@@ -8,7 +8,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
@@ -97,8 +96,6 @@ func New(app types.AppState, config Config) *Model {
 		DialogModel: &types.DialogModel{
 			Size:            types.DialogSizeSmall,
 			DisableChildren: true,
-			ShortKeyBinds:   []key.Binding{types.KeyCancel, types.KeyQuit},
-			FullKeyBinds:    [][]key.Binding{{types.KeyCancel, types.KeyQuit}},
 		},
 		app:    app,
 		config: config,
@@ -121,7 +118,7 @@ func New(app types.AppState, config Config) *Model {
 			}
 
 			return tea.Sequence(
-				types.CloseDialog(m),
+				types.CloseActiveDialog(),
 				types.OpenPage(ref.New(), true),
 			)
 		},
@@ -141,10 +138,6 @@ func (m *Model) GetTitle() string {
 	return "Commands"
 }
 
-func (m *Model) HasInputFocus() bool {
-	return true
-}
-
 func (m *Model) Init() tea.Cmd {
 	return m.selector.Init()
 }
@@ -160,19 +153,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		return tea.Batch(cmds...)
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
-	case tea.KeyMsg:
-		switch {
-		case key.Matches(msg, types.KeyCommander):
-			if m.selector.Value() == "" {
-				return types.CloseDialog(m)
-			}
-		case key.Matches(msg, types.KeyCancel):
-			if m.selector.Value() == "" {
-				return types.CloseDialog(m)
-			}
-		case key.Matches(msg, types.KeyQuit):
-			return types.AppQuit()
-		}
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		cmds = append(cmds, m.selector.Update(msg))
 		return tea.Batch(cmds...)

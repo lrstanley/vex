@@ -167,8 +167,9 @@ func (a *AtomicSlice[T]) Iter() iter.Seq2[int, T] {
 }
 
 func (a *AtomicSlice[T]) IterValues() iter.Seq[T] {
+	values := a.Get()
 	return func(yield func(T) bool) {
-		for _, v := range a.Get() {
+		for _, v := range values {
 			if !yield(v) {
 				return
 			}
