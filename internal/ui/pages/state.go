@@ -182,7 +182,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 			case key.Matches(msg, types.KeyRefresh):
 				return types.RefreshData(s.Get().UUID())
 			case key.Matches(msg, types.KeyQuit):
-				return tea.Quit
+				return types.AppQuit()
 			}
 		}
 		active = true

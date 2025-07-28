@@ -171,7 +171,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 				return types.CloseDialog(m)
 			}
 		case key.Matches(msg, types.KeyQuit):
-			return tea.Quit
+			return types.AppQuit()
 		}
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		cmds = append(cmds, m.selector.Update(msg))

@@ -18,6 +18,14 @@ type AppState interface {
 	FullHelp(focused FocusID, skip ...string) [][]key.Binding
 }
 
+type AppQuitMsg struct{}
+
+// AppQuit is sent when the user wants to quit the application. Don't use [tea.Quit],
+// as different state may need to be cleaned up before quitting.
+func AppQuit() tea.Cmd {
+	return CmdMsg(AppQuitMsg{})
+}
+
 type FocusID string
 
 const (

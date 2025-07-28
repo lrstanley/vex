@@ -80,7 +80,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			}
 			return nil
 		case key.Matches(msg, types.KeyQuit):
-			return tea.Quit
+			return types.AppQuit()
 		}
 	}
 

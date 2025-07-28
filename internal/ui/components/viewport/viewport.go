@@ -71,6 +71,10 @@ func (m *Model) VisibleLineCount() int {
 	return m.viewport.VisibleLineCount()
 }
 
+func (m *Model) GetContent() string {
+	return m.viewport.GetContent()
+}
+
 func (m *Model) SetContent(content string) {
 	m.code = ""
 	m.language = ""

@@ -129,9 +129,7 @@ func (m *Model) View() string {
 			Render(styles.Trunc(m.status.Text, maxWidth))
 	default:
 		return m.activePageStyle.Render(
-			styles.Trunc(m.app.Page().Get().GetTitle(),
-				maxWidth,
-			),
+			styles.Trunc(m.app.Page().Get().GetTitle(), maxWidth),
 		)
 	}
 }

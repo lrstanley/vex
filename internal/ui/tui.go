@@ -11,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/config"
 	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/tasks"
 	"github.com/lrstanley/vex/internal/types"
@@ -105,6 +106,7 @@ func (m Model) Init() tea.Cmd {
 			m.app.Client().Init(),
 			m.app.Dialog().Init(),
 			m.statusbar.Init(),
+			tea.SetWindowTitle(config.AppTitle("")),
 		),
 		types.FocusChange(types.FocusPage),
 	)
@@ -116,6 +118,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case types.AppQuitMsg:
+		return m, tea.Sequence(
+			tea.SetWindowTitle(""),
+			tea.Quit,
+		)
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
@@ -172,6 +179,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case types.AppFocusChangedMsg:
 		m.previousFocus = m.focused
 		m.focused = msg.ID
+
+		switch {
+		case m.focused == types.FocusDialog && m.app.Dialog().Len() > 0:
+			if m.app.Dialog().Len() > 0 {
+				cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Dialog().Get().GetTitle())))
+			}
+		case m.focused == types.FocusPage:
+			cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Page().Get().GetTitle())))
+		default:
+			cmds = append(cmds, tea.SetWindowTitle(config.AppTitle("")))
+		}
 	case types.AppRequestPreviousFocusMsg:
 		m.focused = m.previousFocus
 		return m, types.FocusChange(m.focused)

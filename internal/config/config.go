@@ -16,6 +16,13 @@ const (
 	AppVersion = "0.1.0"
 )
 
+func AppTitle(subtitle string) string {
+	if subtitle == "" {
+		return fmt.Sprintf("%s: %s", AppName, AppVersion)
+	}
+	return fmt.Sprintf("%s: %s", AppName, subtitle)
+}
+
 // InitConfigPath ensures that the config path exists.
 func InitConfigPath() {
 	if err := os.MkdirAll(GetConfigPath(), 0o700); err != nil {

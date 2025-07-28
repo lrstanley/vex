@@ -72,7 +72,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, types.KeyCloseDialog):
 			return types.CloseDialog(m)
 		case key.Matches(msg, types.KeyQuit):
-			return tea.Quit
+			return types.AppQuit()
 		}
 	}
 

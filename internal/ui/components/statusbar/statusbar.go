@@ -113,7 +113,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.updateKeyBinds()
 	case tea.KeyMsg:
 		if key.Matches(msg, types.KeyQuit) {
-			return tea.Quit
+			return types.AppQuit()
 		}
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		if m.isFiltering {
