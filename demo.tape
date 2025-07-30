@@ -12,7 +12,7 @@ Set Padding 20
 Set MarginFill "#674EFF"
 Set BorderRadius 10
 Set Framerate 20
-Set TypingSpeed 200ms
+Set TypingSpeed 170ms
 Env PS1 "$ "
 
 Type "./vex"
@@ -32,19 +32,38 @@ Sleep 500ms
 Type "kv-v1-1"
 Enter
 Sleep 1s
+Type "d" # open details dialog
+Sleep 2s
+Type "d" # close details dialog
+Sleep 1s
 Enter # select mount
 
 # filter for "this/"
 Sleep 1s
 Type "/"
-Sleep 500ms
+Sleep 250ms
 Type "this"
 Enter # dive
-Sleep 1s
+Sleep 700ms
 Enter # dive
-Sleep 1s
+Sleep 700ms
 Enter # dive
+Sleep 700ms
+Enter # dive
+Sleep 700ms
+
+# switch to secrets view
+Type ":"
+Sleep 500ms
+Type "secr"
+Sleep 500ms
+Enter
+
+# filter for "this/"
 Sleep 1s
+Type "/"
+Sleep 250ms
+Type "this"
 Enter # dive
 Sleep 1s
 
