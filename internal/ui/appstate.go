@@ -69,7 +69,7 @@ func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Bindin
 func (a *appState) FullHelp(focused types.FocusID, skip ...string) [][]key.Binding {
 	keys := a.page.Get().FullHelp()
 
-	var prepend, appended []key.Binding
+	var prepended, appended []key.Binding
 
 	switch focused {
 	case types.FocusDialog:
@@ -77,14 +77,14 @@ func (a *appState) FullHelp(focused types.FocusID, skip ...string) [][]key.Bindi
 		if dialog != nil {
 			keys = append(dialog.FullHelp(), keys...)
 		}
-		prepend = append(prepend, types.KeyCancel)
+		prepended = append(prepended, types.KeyCancel)
 	case types.FocusPage:
 		if a.page.HasParent() && !types.KeyBindingContainsFull(keys, types.KeyCancel) {
-			prepend = append(prepend, types.KeyCancel)
+			prepended = append(prepended, types.KeyCancel)
 		}
 
 		if a.page.Get().GetRefreshInterval() > 0 && !types.KeyBindingContainsFull(keys, types.KeyRefresh) {
-			prepend = append(prepend, types.KeyRefresh)
+			prepended = append(prepended, types.KeyRefresh)
 		}
 
 		if a.page.Get().GetSupportFiltering() && !types.KeyBindingContainsFull(keys, types.KeyFilter) {
@@ -107,7 +107,8 @@ func (a *appState) FullHelp(focused types.FocusID, skip ...string) [][]key.Bindi
 	if len(keys) == 0 {
 		keys = [][]key.Binding{{}}
 	}
-	keys[len(keys)-1] = append(keys[len(keys)-1], appended...)
 
-	return append([][]key.Binding{prepend}, keys...)
+	keys[len(keys)-1] = append(keys[len(keys)-1], prepended...)
+
+	return append(keys, appended)
 }
