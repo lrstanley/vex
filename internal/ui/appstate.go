@@ -41,7 +41,7 @@ func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Bindin
 
 	switch focused {
 	case types.FocusDialog:
-		dialog := a.dialog.GetWithSkip(skip...)
+		dialog := a.dialog.Get(skip...)
 		if dialog != nil {
 			keys = append(dialog.ShortHelp(), keys...)
 		}
@@ -73,7 +73,7 @@ func (a *appState) FullHelp(focused types.FocusID, skip ...string) [][]key.Bindi
 
 	switch focused {
 	case types.FocusDialog:
-		dialog := a.dialog.GetWithSkip(skip...)
+		dialog := a.dialog.Get(skip...)
 		if dialog != nil {
 			keys = append(dialog.FullHelp(), keys...)
 		}

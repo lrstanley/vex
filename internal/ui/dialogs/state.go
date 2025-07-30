@@ -156,19 +156,19 @@ func (s *state) Len() int {
 	return s.dialogs.Len()
 }
 
-func (s *state) Get() types.Dialog {
+func (s *state) Get(skipIDs ...string) types.Dialog {
 	if s.Len() == 0 {
 		return nil
 	}
-	_, dialog := s.dialogs.Peek()
-	return dialog
-}
+	if len(skipIDs) == 0 {
+		_, dialog := s.dialogs.Peek()
+		return dialog
+	}
 
-func (s *state) GetWithSkip(ids ...string) types.Dialog {
 	dialogs := s.dialogs.Values()
 	slices.Reverse(dialogs)
 	for _, dialog := range dialogs {
-		if !slices.Contains(ids, dialog.UUID()) {
+		if !slices.Contains(skipIDs, dialog.UUID()) {
 			return dialog
 		}
 	}

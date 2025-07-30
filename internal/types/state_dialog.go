@@ -22,12 +22,9 @@ type DialogState interface {
 	// Len returns the number of dialogs in the dialog state.
 	Len() int
 
-	// Get returns the currently active dialog.
-	Get() Dialog
-
-	// GetWithSkip returns the currently active dialog, skipping the given dialog ID
-	// if it's at the top of the stack.
-	GetWithSkip(ids ...string) Dialog
+	// Get returns the currently active dialog. If skipIDs are provided, the dialog
+	// will be returned if it is not in the skipIDs list.
+	Get(skipIDs ...string) Dialog
 
 	// GetLayers returns the layers for the dialog state.
 	GetLayers() []*lipgloss.Layer
