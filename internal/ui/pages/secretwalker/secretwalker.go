@@ -90,16 +90,14 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		if msg.UUID != m.UUID() {
 			return nil
 		}
+		if msg.Error != nil {
+			return types.PageErrors(msg.Error)
+		}
+
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListSecretsMsg:
-			if msg.Error == nil {
-				cmds = append(cmds, types.PageLoaded())
-
-				m.table.SetData(
-					dataColumns,
-					vmsg.Values,
-				)
-			}
+			cmds = append(cmds, types.PageClearState())
+			m.table.SetData(dataColumns, vmsg.Values)
 		}
 	}
 

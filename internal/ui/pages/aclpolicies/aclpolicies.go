@@ -84,17 +84,17 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		if msg.UUID != m.UUID() {
 			return nil
 		}
+		if msg.Error != nil {
+			return types.PageErrors(msg.Error)
+		}
+
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListACLPoliciesMsg:
-			if msg.Error == nil {
-				cmds = append(cmds, types.PageLoaded())
-				m.table.SetData(dataColumns, vmsg.Policies)
-			}
+			cmds = append(cmds, types.PageClearState())
+			m.table.SetData(dataColumns, vmsg.Policies)
 		case types.ClientGetACLPolicyMsg:
-			if msg.Error == nil {
-				title := "ACL Policy: " + vmsg.Name
-				cmds = append(cmds, types.OpenPage(genericcode.New(m.app, title, vmsg.Content, "hcl"), false))
-			}
+			title := "ACL Policy: " + vmsg.Name
+			cmds = append(cmds, types.OpenPage(genericcode.New(m.app, title, vmsg.Content, "hcl"), false))
 		}
 	}
 

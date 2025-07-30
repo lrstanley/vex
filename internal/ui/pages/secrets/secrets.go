@@ -97,9 +97,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		if msg.UUID != m.UUID() {
 			return nil
 		}
+		if msg.Error != nil {
+			return types.PageErrors(msg.Error)
+		}
+
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListAllSecretsRecursiveMsg:
-			cmds = append(cmds, types.PageLoaded())
+			cmds = append(cmds, types.PageClearState())
 
 			m.data = &vmsg
 			var data []*Data

@@ -7,7 +7,6 @@ package viewport
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/alecthomas/chroma/v2"
@@ -95,17 +94,13 @@ func (m *Model) SetCode(code, language string) {
 	m.renderCode()
 }
 
-func (m *Model) SetJSON(obj any) {
+func (m *Model) SetJSON(obj any) error {
 	out, err := json.MarshalIndent(obj, "", "    ")
 	if err != nil {
-		m.SetError(fmt.Errorf("Error parsing JSON: %v", err))
-		return
+		return err
 	}
 	m.SetCode(string(out), "json")
-}
-
-func (m *Model) SetError(err error) {
-	m.SetCode(fmt.Sprintf("Error: %v", err), "text")
+	return nil
 }
 
 func (m *Model) renderCode() {

@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/vex/internal/ui/components/errorview"
 	"github.com/lrstanley/vex/internal/ui/components/loader"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -26,12 +27,14 @@ var _ types.PageState = &state{} // Ensure state implements types.PageState.
 
 type state struct {
 	// Various temporary states.
-	isPageFocused atomic.Bool
-	windowHeight  int
-	windowWidth   int
-	filter        string
-	pages         types.AtomicSlice[types.Page]
-	pageLoading   atomic.Bool
+	windowHeight int
+	windowWidth  int
+	pages        types.AtomicSlice[types.Page]
+
+	filter  string
+	focused atomic.Bool
+	loading atomic.Bool
+	errored atomic.Bool
 
 	filterStyle      lipgloss.Style
 	filterIconStyle  lipgloss.Style
@@ -40,12 +43,14 @@ type state struct {
 	refreshIconStyle lipgloss.Style
 
 	// Child components.
-	loader *loader.Model
+	loader    *loader.Model
+	errorview *errorview.Model
 }
 
 func NewState(initial types.Page) types.PageState {
 	t := &state{
-		loader: loader.New(),
+		loader:    loader.New(),
+		errorview: errorview.New(),
 	}
 	t.pages.Push(initial)
 	t.setStyles()
@@ -72,7 +77,10 @@ func (s *state) setStyles() {
 }
 
 func (s *state) Init() tea.Cmd {
-	var cmds []tea.Cmd
+	cmds := []tea.Cmd{
+		s.loader.Init(),
+		s.errorview.Init(),
+	}
 	for page := range s.pages.IterValues() {
 		cmds = append(cmds, page.Init())
 	}
@@ -88,29 +96,45 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		s.windowHeight = msg.Height
 		s.windowWidth = msg.Width
-		s.loader.SetHeight(s.windowHeight - PageVPadding)
-		s.loader.SetWidth(s.windowWidth - PageHPadding)
+		innerHeight := s.windowHeight - PageVPadding
+		innerWidth := s.windowWidth - PageHPadding
+
+		s.loader.SetHeight(innerHeight)
+		s.loader.SetWidth(innerWidth)
+		s.errorview.SetWidth(innerWidth)
+		s.errorview.SetHeight(innerHeight)
 
 		for page := range s.pages.IterValues() {
 			cmds = append(cmds, page.Update(tea.WindowSizeMsg{
-				Height: s.windowHeight - PageVPadding,
-				Width:  s.windowWidth - PageHPadding,
+				Height: innerHeight,
+				Width:  innerWidth,
 			}))
 		}
 
 		return tea.Batch(cmds...)
 	case styles.ThemeUpdatedMsg:
 		s.setStyles()
-		cmds = append(cmds, s.loader.Update(msg))
+		cmds = append(
+			cmds,
+			s.loader.Update(msg),
+			s.errorview.Update(msg),
+		)
 		all = true
 	case types.PageLoadingMsg:
-		s.pageLoading.Store(true)
+		s.loading.Store(true)
+		s.errored.Store(false)
 		return s.loader.Active()
-	case types.PageLoadedMsg:
-		s.pageLoading.Store(false)
+	case types.PageErrorsMsg:
+		s.errorview.SetErrors(msg.Errors...)
+		s.errored.Store(true)
+		s.loading.Store(false)
+		return nil
+	case types.PageClearStateMsg:
+		s.loading.Store(false)
+		s.errored.Store(false)
 		return nil
 	case spinner.TickMsg:
-		if s.pageLoading.Load() && s.loader.SpinnerID() == msg.ID {
+		if s.loading.Load() && s.loader.SpinnerID() == msg.ID {
 			return s.loader.Update(msg)
 		}
 		if s.loader.SpinnerID() != msg.ID {
@@ -119,7 +143,8 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 	case types.OpenPageMsg:
 		var cmds []tea.Cmd
 
-		s.pageLoading.Store(false)
+		s.loading.Store(false)
+		s.errored.Store(false)
 
 		if msg.Root {
 			for page := range s.pages.IterValues() {
@@ -127,7 +152,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 			}
 			s.pages.Set([]types.Page{msg.Page})
 		} else {
-			if s.isPageFocused.Load() && s.pages.Len() > 0 {
+			if s.focused.Load() && s.pages.Len() > 0 {
 				cmds = append(cmds, s.pages.Peek().Update(types.CmdMsg(types.PageHiddenMsg{})))
 			}
 			s.pages.Push(msg.Page)
@@ -147,7 +172,8 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 
-		s.pageLoading.Store(false)
+		s.errored.Store(false)
+		s.loading.Store(false)
 
 		page, ok := s.pages.Pop()
 		if !ok {
@@ -161,10 +187,10 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		)
 	case types.AppFocusChangedMsg:
 		if msg.ID == types.FocusPage {
-			s.isPageFocused.Store(true)
+			s.focused.Store(true)
 			cmds = append(cmds, s.pages.Peek().Update(types.PageRefocusedMsg{}))
 		} else {
-			s.isPageFocused.Store(false)
+			s.focused.Store(false)
 			cmds = append(cmds, s.pages.Peek().Update(types.PageBlurredMsg{}))
 		}
 		all = true
@@ -172,7 +198,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 		s.filter = msg.Text
 		active = true
 	case tea.KeyMsg:
-		if !s.Get().HasInputFocus() && s.isPageFocused.Load() {
+		if !s.Get().HasInputFocus() && s.focused.Load() {
 			switch {
 			case key.Matches(msg, types.KeyCancel):
 				switch {
@@ -233,9 +259,12 @@ func (s *state) View() string {
 
 	var out string
 
-	if s.pageLoading.Load() {
+	switch {
+	case s.loading.Load():
 		out = s.loader.View()
-	} else {
+	case s.errored.Load():
+		out = s.errorview.View()
+	default:
 		out = p.View()
 	}
 
@@ -267,9 +296,9 @@ func (s *state) HasParent() bool {
 }
 
 func (s *state) IsStateFocused() bool {
-	return s.isPageFocused.Load()
+	return s.focused.Load()
 }
 
 func (s *state) IsFocused(uuid string) bool {
-	return s.isPageFocused.Load() && s.pages.Peek().UUID() == uuid
+	return s.focused.Load() && s.pages.Peek().UUID() == uuid
 }

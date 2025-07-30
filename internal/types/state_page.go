@@ -163,13 +163,24 @@ type PageBlurredMsg struct{}
 // PageLoadingMsg is sent from the active page when the page is loading.
 type PageLoadingMsg struct{}
 
-// PageLoadedMsg is sent from the active page when the page has finished loading.
-type PageLoadedMsg struct{}
-
 func PageLoading() tea.Cmd {
 	return CmdMsg(PageLoadingMsg{})
 }
 
-func PageLoaded() tea.Cmd {
-	return CmdMsg(PageLoadedMsg{})
+// PageClearStateMsg is sent from the active page when the page wants to clear
+// any temporary state (loading, errors, etc).
+type PageClearStateMsg struct{}
+
+func PageClearState() tea.Cmd {
+	return CmdMsg(PageClearStateMsg{})
+}
+
+// PageErrorsMsg is sent from the active page when the page has errors.
+type PageErrorsMsg struct {
+	Errors []error
+}
+
+// PageErrors bubbles up errors from the current page to page state to render.
+func PageErrors(errors ...error) tea.Cmd {
+	return CmdMsg(PageErrorsMsg{Errors: errors})
 }

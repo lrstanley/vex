@@ -112,6 +112,14 @@ tasks:
           --logging.level=debug \
           --enable-pprof \
           {{.CLI_ARGS}}
+  debug:unset:
+    desc: unset env vars
+    cmds:
+      - |
+        VAULT_ADDR=http://localhost:8200 VAULT_TOKEN=some-invalid-token go run {{.PACKAGE}} \
+          --logging.level=debug \
+          --enable-pprof \
+          {{.CLI_ARGS}}
   build:
     desc: build the application
     deps: [prepare]

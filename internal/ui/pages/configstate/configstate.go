@@ -33,9 +33,8 @@ type Model struct {
 func New(app types.AppState) *Model {
 	m := &Model{
 		PageModel: &types.PageModel{
-			Commands:         Commands,
-			SupportFiltering: false,
-			RefreshInterval:  30 * time.Second,
+			Commands:        Commands,
+			RefreshInterval: 1 * time.Minute,
 		},
 		app: app,
 	}
@@ -70,17 +69,15 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		if msg.UUID != m.UUID() {
 			return nil
 		}
+		if msg.Error != nil {
+			return types.PageErrors(msg.Error)
+		}
+
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientConfigStateMsg:
-			cmds = append(cmds, types.PageLoaded())
-			if msg.Error == nil {
-				if vmsg.Data == nil {
-					m.code.SetCode("No data available", "text")
-				} else {
-					m.code.SetJSON(vmsg.Data)
-				}
-			} else {
-				m.code.SetError(msg.Error)
+			cmds = append(cmds, types.PageClearState())
+			if err := m.code.SetJSON(vmsg.Data); err != nil {
+				return types.PageErrors(err)
 			}
 		}
 	}
