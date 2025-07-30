@@ -21,6 +21,8 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
+// TODO: scrollbar incorrect when soft wrapping: https://github.com/charmbracelet/bubbles/issues/819
+
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
 
 type Model struct {
