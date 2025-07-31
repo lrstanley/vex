@@ -2,39 +2,46 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package ui
+package state
 
 import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/lrstanley/vex/internal/types"
 )
 
-var _ types.AppState = &appState{} // Ensure that appState implements the AppState interface.
+var _ types.AppState = &AppState{} // Ensure that appState implements the AppState interface.
 
-type appState struct {
+type AppState struct {
 	page   types.PageState
 	dialog types.DialogState
-	task   types.TaskState
 	client types.Client
 }
 
-func (a *appState) Page() types.PageState {
+func (a *AppState) SetPage(page types.PageState) {
+	a.page = page
+}
+
+func (a *AppState) Page() types.PageState {
 	return a.page
 }
 
-func (a *appState) Dialog() types.DialogState {
+func (a *AppState) SetDialog(dialog types.DialogState) {
+	a.dialog = dialog
+}
+
+func (a *AppState) Dialog() types.DialogState {
 	return a.dialog
 }
 
-func (a *appState) Task() types.TaskState {
-	return a.task
+func (a *AppState) SetClient(client types.Client) {
+	a.client = client
 }
 
-func (a *appState) Client() types.Client {
+func (a *AppState) Client() types.Client {
 	return a.client
 }
 
-func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Binding {
+func (a *AppState) ShortHelp(focused types.FocusID, skip ...string) []key.Binding {
 	keys := a.page.Get().ShortHelp()
 
 	var prepended []key.Binding
@@ -66,7 +73,7 @@ func (a *appState) ShortHelp(focused types.FocusID, skip ...string) []key.Bindin
 	return append(prepended, keys...)
 }
 
-func (a *appState) FullHelp(focused types.FocusID, skip ...string) [][]key.Binding {
+func (a *AppState) FullHelp(focused types.FocusID, skip ...string) [][]key.Binding {
 	keys := a.page.Get().FullHelp()
 
 	var prepended, appended []key.Binding

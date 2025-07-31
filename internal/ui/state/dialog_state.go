@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package dialogs
+package state
 
 import (
 	"slices"
@@ -19,9 +19,9 @@ const (
 	DialogWinVPadding = 2
 )
 
-var _ types.DialogState = &state{}
+var _ types.DialogState = &dialogState{}
 
-type state struct {
+type dialogState struct {
 	// Core state.
 	windowHeight int
 	windowWidth  int
@@ -32,15 +32,15 @@ type state struct {
 	// dialogStyle lipgloss.Style
 }
 
-func NewState() types.DialogState {
-	s := &state{
+func NewDialogState() types.DialogState {
+	s := &dialogState{
 		dialogs: types.NewOrderedMap[string, types.Dialog](),
 	}
 	s.initStyles()
 	return s
 }
 
-func (s *state) initStyles() {
+func (s *dialogState) initStyles() {
 	s.titleStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.DialogFg()).
 		Padding(0, 1).
@@ -51,11 +51,11 @@ func (s *state) initStyles() {
 	// 	BorderForeground(styles.Theme.DialogBorderFg())
 }
 
-func (s *state) Init() tea.Cmd {
+func (s *dialogState) Init() tea.Cmd {
 	return nil
 }
 
-func (s *state) Update(msg tea.Msg) tea.Cmd {
+func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	var active, all bool
@@ -139,7 +139,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (s *state) sendDialogSize(dialog types.Dialog) tea.Cmd {
+func (s *dialogState) sendDialogSize(dialog types.Dialog) tea.Cmd {
 	h, w := s.calcDialogSize(
 		s.windowHeight,
 		s.windowWidth,
@@ -152,11 +152,11 @@ func (s *state) sendDialogSize(dialog types.Dialog) tea.Cmd {
 	})
 }
 
-func (s *state) Len() int {
+func (s *dialogState) Len() int {
 	return s.dialogs.Len()
 }
 
-func (s *state) Get(skipIDs ...string) types.Dialog {
+func (s *dialogState) Get(skipIDs ...string) types.Dialog {
 	if s.Len() == 0 {
 		return nil
 	}
@@ -175,7 +175,7 @@ func (s *state) Get(skipIDs ...string) types.Dialog {
 	return nil
 }
 
-func (s *state) UUID() string {
+func (s *dialogState) UUID() string {
 	if s.Len() == 0 {
 		return ""
 	}
@@ -183,7 +183,7 @@ func (s *state) UUID() string {
 	return id
 }
 
-func (s *state) GetLayers() []*lipgloss.Layer {
+func (s *dialogState) GetLayers() []*lipgloss.Layer {
 	dialogs := s.dialogs.Values()
 	if len(dialogs) == 0 {
 		return nil
@@ -228,4 +228,40 @@ func (s *state) GetLayers() []*lipgloss.Layer {
 		)
 	}
 	return layers
+}
+
+func (s *dialogState) calcDialogSize(wh, ww int, size types.DialogSize) (height, width int) {
+	if size == "" {
+		size = types.DialogSizeMedium
+	}
+
+	switch size {
+	case types.DialogSizeSmall:
+		height = min(wh-DialogWinVPadding, 10)
+		width = min(ww-DialogWinHPadding, 50)
+	case types.DialogSizeMedium:
+		height = min(wh-DialogWinVPadding, 18)
+		width = min(ww-DialogWinHPadding, 70)
+	case types.DialogSizeLarge:
+		height = min(wh-DialogWinVPadding, 25)
+		width = min(ww-DialogWinHPadding, 90)
+	case types.DialogSizeFull:
+		height = wh - DialogWinVPadding
+		width = ww - DialogWinHPadding
+	case types.DialogSizeCustom:
+		height = wh
+		width = ww
+	}
+
+	return height - s.titleStyle.GetHeight() - s.titleStyle.GetVerticalFrameSize(), width
+}
+
+func (s *dialogState) calcDialogPosition(wh, ww int, height, width int) (x, y int) {
+	height += 2 + s.titleStyle.GetHeight() + s.titleStyle.GetVerticalFrameSize() // + s.dialogStyle.GetVerticalFrameSize() -- +2 for x.Borderize()
+	width += 2                                                                   // s.dialogStyle.GetHorizontalFrameSize() -- +2 for x.Borderize()
+
+	if wh == 0 || ww == 0 || height == 0 || width == 0 || height > wh || width > ww {
+		return 0, 0
+	}
+	return (ww - width) / 2, (wh - height) / 2
 }

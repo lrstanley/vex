@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package pages
+package state
 
 import (
 	"sync/atomic"
@@ -23,9 +23,9 @@ const (
 	PageVPadding = 2
 )
 
-var _ types.PageState = &state{} // Ensure state implements types.PageState.
+var _ types.PageState = &pageState{} // Ensure state implements types.PageState.
 
-type state struct {
+type pageState struct {
 	// Various temporary states.
 	windowHeight int
 	windowWidth  int
@@ -47,8 +47,8 @@ type state struct {
 	errorview *errorview.Model
 }
 
-func NewState(initial types.Page) types.PageState {
-	t := &state{
+func NewPageState(initial types.Page) types.PageState {
+	t := &pageState{
 		loader:    loader.New(),
 		errorview: errorview.New(),
 	}
@@ -57,7 +57,7 @@ func NewState(initial types.Page) types.PageState {
 	return t
 }
 
-func (s *state) setStyles() {
+func (s *pageState) setStyles() {
 	s.filterStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.PageBorderFilterFg())
 	s.filterIconStyle = lipgloss.NewStyle().
@@ -76,7 +76,7 @@ func (s *state) setStyles() {
 		SetString(styles.IconRefresh)
 }
 
-func (s *state) Init() tea.Cmd {
+func (s *pageState) Init() tea.Cmd {
 	cmds := []tea.Cmd{
 		s.loader.Init(),
 		s.errorview.Init(),
@@ -87,7 +87,7 @@ func (s *state) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (s *state) Update(msg tea.Msg) tea.Cmd {
+func (s *pageState) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	var active, all bool
@@ -241,7 +241,7 @@ func (s *state) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (s *state) View() string {
+func (s *pageState) View() string {
 	p := s.pages.Peek()
 
 	embeddedText := make(map[styles.BorderPosition]string)
@@ -276,29 +276,29 @@ func (s *state) View() string {
 	)
 }
 
-func (s *state) All() (pages []types.Page) {
+func (s *pageState) All() (pages []types.Page) {
 	return s.pages.Get()
 }
 
-func (s *state) UUIDs() (uuids []string) {
+func (s *pageState) UUIDs() (uuids []string) {
 	for _, page := range s.pages.Get() {
 		uuids = append(uuids, page.UUID())
 	}
 	return uuids
 }
 
-func (s *state) Get() types.Page {
+func (s *pageState) Get() types.Page {
 	return s.pages.Peek()
 }
 
-func (s *state) HasParent() bool {
+func (s *pageState) HasParent() bool {
 	return s.pages.Len() > 1
 }
 
-func (s *state) IsStateFocused() bool {
+func (s *pageState) IsStateFocused() bool {
 	return s.focused.Load()
 }
 
-func (s *state) IsFocused(uuid string) bool {
+func (s *pageState) IsFocused(uuid string) bool {
 	return s.focused.Load() && s.pages.Peek().UUID() == uuid
 }

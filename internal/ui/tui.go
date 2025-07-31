@@ -13,17 +13,15 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/config"
 	"github.com/lrstanley/vex/internal/debouncer"
-	"github.com/lrstanley/vex/internal/tasks"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar"
-	"github.com/lrstanley/vex/internal/ui/dialogs"
 	"github.com/lrstanley/vex/internal/ui/dialogs/commander"
 	"github.com/lrstanley/vex/internal/ui/dialogs/help"
-	"github.com/lrstanley/vex/internal/ui/pages"
 	"github.com/lrstanley/vex/internal/ui/pages/aclpolicies"
 	"github.com/lrstanley/vex/internal/ui/pages/configstate"
 	"github.com/lrstanley/vex/internal/ui/pages/mounts"
 	"github.com/lrstanley/vex/internal/ui/pages/secrets"
+	"github.com/lrstanley/vex/internal/ui/state"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -77,13 +75,10 @@ type Model struct {
 }
 
 func New(client types.Client) *Model {
-	app := &appState{
-		client: client,
-		dialog: dialogs.NewState(),
-		task:   tasks.NewState(),
-	}
-
-	app.page = pages.NewState(mounts.New(app))
+	app := &state.AppState{}
+	app.SetClient(client)
+	app.SetDialog(state.NewDialogState())
+	app.SetPage(state.NewPageState(mounts.New(app)))
 
 	return &Model{
 		app:       app,

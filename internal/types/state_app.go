@@ -14,7 +14,6 @@ import (
 type AppState interface {
 	Page() PageState
 	Dialog() DialogState
-	Task() TaskState
 	Client() Client
 	ShortHelp(focused FocusID, skip ...string) []key.Binding
 	FullHelp(focused FocusID, skip ...string) [][]key.Binding
