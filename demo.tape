@@ -11,46 +11,45 @@ Set Margin 35
 Set Padding 20
 Set MarginFill "#674EFF"
 Set BorderRadius 10
-Set Framerate 20
-Set TypingSpeed 170ms
+Set Framerate 15
+Set TypingSpeed 120ms
 Env PS1 "$ "
 
 Type "./vex"
 Sleep 500ms
 Enter
-Sleep 2s
+Sleep 1s
 
 # help dialog
 Type "?"
-Sleep 2s
-Type "?"
 Sleep 1s
+Type "?"
 
 # filter for "kv-v1-1"
 Type "/"
 Sleep 500ms
 Type "kv-v1-1"
 Enter
-Sleep 1s
+Sleep 500ms
 Type "d" # open details dialog
-Sleep 2s
-Type "d" # close details dialog
 Sleep 1s
+Type "d" # close details dialog
+Sleep 500ms
 Enter # select mount
 
 # filter for "this/"
-Sleep 1s
+Sleep 500ms
 Type "/"
 Sleep 250ms
 Type "this"
 Enter # dive
-Sleep 700ms
+Sleep 500ms
 Enter # dive
-Sleep 700ms
+Sleep 500ms
 Enter # dive
-Sleep 700ms
+Sleep 500ms
 Enter # dive
-Sleep 700ms
+Sleep 500ms
 
 # switch to secrets view
 Type ":"
@@ -60,18 +59,18 @@ Sleep 500ms
 Enter
 
 # filter for "this/"
-Sleep 1s
+Sleep 500ms
 Type "/"
 Sleep 250ms
 Type "this"
 Enter # dive
-Sleep 1s
+Sleep 500ms
 
 # switch to aclpolicies view
 Type ":"
 Sleep 500ms
 Type "acl"
-Sleep 1s
+Sleep 500ms
 Enter # switch to aclpolicies view
 
 # filter for "default"
@@ -79,16 +78,15 @@ Type "/"
 Sleep 500ms
 Type "default"
 Enter
-Sleep 1s
+Sleep 500ms
 Enter
-Down@50ms 30
-Sleep 2s
+Down@50ms 15
+Sleep 500ms
 
 # demo themes
 Type ":"
-Sleep 500ms
 Type@1ms "[[["
 Sleep 1s
-Type@2s "]]]]]"
+Type@1s "]]]]]"
 
-Sleep 2s
+Sleep 1s

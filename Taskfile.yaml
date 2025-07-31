@@ -156,5 +156,5 @@ tasks:
     cmds:
       - mkdir -p tmp/
       - go run github.com/charmbracelet/vhs@latest demo.tape
-      - gifsicle -O3 --colors 256 --lossy=30 -o tmp/demo-optimized-$(date +%Y_%m_%d).gif tmp/demo.gif
+      - gifsicle -O3 --colors 256 --lossy=30 -o tmp/demo-optimized-$(date +%Y-%m-%d-%H-%M-%S).gif tmp/demo.gif
       - task: clean
