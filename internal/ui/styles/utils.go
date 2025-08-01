@@ -29,7 +29,7 @@ func Title(input string, width int, char string, main, from, to color.Color) str
 		var out strings.Builder
 		clusters := slices.Collect(Clusters(strings.Repeat(char, remaining)))
 
-		for i, c := range lipgloss.BlendLinear1D(len(clusters), from, to) {
+		for i, c := range lipgloss.Blend1D(len(clusters), from, to) {
 			// Allow multiple characters to be rendered.
 			if remaining-i == 0 {
 				break

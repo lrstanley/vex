@@ -3,7 +3,7 @@ module github.com/lrstanley/vex
 go 1.24.4
 
 replace (
-	github.com/charmbracelet/lipgloss/v2 => github.com/lrstanley/lipgloss/v2 v2.0.0-beta.5
+	github.com/charmbracelet/lipgloss/v2 => github.com/lrstanley/lipgloss/v2 v2.0.0-beta.6
 	github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b
 )
 

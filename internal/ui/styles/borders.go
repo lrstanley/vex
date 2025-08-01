@@ -90,7 +90,7 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 	var topLeftCornerGradient, topRightCornerGradient, bottomLeftCornerGradient, bottomRightCornerGradient color.Color
 
 	if fg == nil {
-		gradient := lipgloss.BlendLinear1D(
+		gradient := lipgloss.Blend1D(
 			height+width, // half of total number of border chars.
 			Theme.DialogBorderGradientFromFg(),
 			Theme.DialogBorderGradientToFg(),
