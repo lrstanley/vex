@@ -7,12 +7,12 @@ package testui
 import (
 	"bytes"
 	"io"
+	"strings"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/lipgloss/v2"
-	"github.com/charmbracelet/x/exp/golden"
 	"github.com/charmbracelet/x/exp/teatest/v2"
 )
 
@@ -34,7 +34,7 @@ func (m *TestModel) View(t testing.TB) string {
 
 func (m *TestModel) ExpectViewSnapshot(t testing.TB) {
 	t.Helper()
-	RequireEqual(t, m.View(t), m.profile)
+	ExpectSnapshotProfile(t, m.View(t), m.profile)
 }
 
 func (m *TestModel) WaitFor(t testing.TB, condition func(bts []byte) bool, opts ...teatest.WaitForOption) {
@@ -52,6 +52,16 @@ func (m *TestModel) ExpectContains(t testing.TB, substr ...string) {
 		}
 		return true
 	})
+}
+
+func (m *TestModel) ExpectViewContains(t testing.TB, substr ...string) {
+	t.Helper()
+	view := m.View(t)
+	for _, v := range substr {
+		if !strings.Contains(view, v) {
+			t.Fatalf("expected view to contain %q, got %q", v, view)
+		}
+	}
 }
 
 func (m *TestModel) ExpectViewDimensions(t testing.TB, width, height int) {
@@ -150,22 +160,4 @@ func WaitForContains(t testing.TB, r io.Reader, substr ...string) {
 		}
 		return true
 	})
-}
-
-func RequireEqual[T []byte | string](tb testing.TB, out T, profile colorprofile.Profile) {
-	tb.Helper()
-
-	buf := &bytes.Buffer{}
-
-	w := &colorprofile.Writer{
-		Forward: buf,
-		Profile: profile,
-	}
-
-	_, err := w.Write([]byte(out))
-	if err != nil {
-		tb.Fatalf("failed to write view: %v", err)
-	}
-
-	golden.RequireEqual(tb, buf.Bytes())
 }
