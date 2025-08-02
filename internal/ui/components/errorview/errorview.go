@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	MaxWidth = 60
+	MaxWidth         = 60
+	NotShownTemplate = styles.IconDanger + " %d error(s) not shown (screen size)"
 )
 
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
@@ -96,7 +97,7 @@ func (m *Model) calculateMaxWidth() {
 			w = ww
 		}
 	}
-	m.maxWidth = min(MaxWidth, w)
+	m.maxWidth = min(MaxWidth, max(len(NotShownTemplate), w))
 }
 
 func (m *Model) View() string {
@@ -127,7 +128,7 @@ func (m *Model) View() string {
 				out,
 				m.errorStyle.
 					Width(m.maxWidth).
-					Render(styles.IconDanger+" "+fmt.Sprintf("%d error(s) not shown (screen size)", len(m.errors)-i)),
+					Render(fmt.Sprintf(NotShownTemplate, len(m.errors)-i)),
 			)
 			break
 		} else {
