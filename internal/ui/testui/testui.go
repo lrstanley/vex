@@ -35,8 +35,16 @@ func (m *TestModel) View(t testing.TB) string {
 	return m.model.View()
 }
 
-// ExpectViewSnapshot takes a snapshot of the view of the model.
+// ExpectViewSnapshot takes a snapshot of the view of the model. This method strips
+// all ANSI escape codes.
 func (m *TestModel) ExpectViewSnapshot(t testing.TB) {
+	t.Helper()
+	ExpectSnapshotNonANSI(t, m.View(t))
+}
+
+// ExpectViewSnapshotProfile takes a snapshot of the view of the model. This
+// method uses the color profile of the model.
+func (m *TestModel) ExpectViewSnapshotProfile(t testing.TB) {
 	t.Helper()
 	ExpectSnapshotProfile(t, m.View(t), m.profile)
 }

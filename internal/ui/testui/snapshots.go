@@ -44,9 +44,22 @@ func ExpectSnapshotProfile(tb testing.TB, out string, profile colorprofile.Profi
 func ExpectSnapshot(tb testing.TB, out string) {
 	tb.Helper()
 
+	out = stripSpinner(out)
+
+	SnapConfig.MatchSnapshot(tb, out)
+}
+
+func ExpectSnapshotNonANSI(tb testing.TB, out string) {
+	tb.Helper()
+
+	out = stripSpinner(out)
+
+	SnapConfig.MatchSnapshot(tb, Strip(out))
+}
+
+func stripSpinner(out string) string {
 	for _, s := range spinner.MiniDot.Frames {
 		out = strings.ReplaceAll(out, s, "<spinner>")
 	}
-
-	SnapConfig.MatchSnapshot(tb, out)
+	return out
 }

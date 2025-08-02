@@ -214,6 +214,8 @@ func (m *Model) View() string {
 				m.viewport.TotalLineCount(),
 				m.viewport.VisibleLineCount(),
 				m.viewport.YOffset,
+				styles.IconScrollbar,
+				styles.IconScrollbar,
 			),
 		)
 	}

@@ -1,12 +1,12 @@
 
-[TestNew/0-width-height - 1]
-[m [m[mmock-page[m[m [m[m                                 [m[m[m [m[m[m:[m[m [m[mcmds[m[m • [m[m?[m[m [m[mhelp[m[m • [m[mctrl+c[m[m [m[mquit[m[m[m [m[m[m [m[1mvex[m[m [m
----
-
 [TestNew/basic-statusbar - 1]
-[m [m[mmock-page[m[m [m[m                                 [m[m[m [m[m[m:[m[m [m[mcmds[m[m • [m[m?[m[m [m[mhelp[m[m • [m[mctrl+c[m[m [m[mquit[m[m[m [m[m[m [m[1mvex[m[m [m
+ mock-page                                   : cmds • ? help • ctrl+c quit  vex 
 ---
 
 [TestNew/small-dimensions - 1]
-[m [m[mmock-page[m[m [m[m                                 [m[m[m [m[m[m:[m[m [m[mcmds[m[m • [m[m?[m[m [m[mhelp[m[m • [m[mctrl+c[m[m [m[mquit[m[m[m [m[m[m [m[1mvex[m[m [m
+ mock-page                                   : cmds • ? help • ctrl+c quit  vex 
+---
+
+[TestNew/0-width-height - 1]
+ mock-page                                   : cmds • ? help • ctrl+c quit  vex 
 ---

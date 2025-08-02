@@ -4,34 +4,34 @@
 ---
 
 [TestNew/basic-table - 1]
-[m[m [1mName [m  [1mDescription                                                            [m [m[m
-[m[m[1m item1  description                                                             [m[m[m
-[m[m item2  description                                                             [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
-[m[m                                                                                [m[m
+ Name   Description                                                             
+ item1  description                                                             
+ item2  description                                                             
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 ---
 
 [TestNew/filtered-no-results - 1]
-[m[m                         [m[m [m[mno results for "nonexistent"[m[m [m[m                         [m[m
+                          no results for "nonexistent"                          
                                                                                 
                                                                                 
                                                                                 
@@ -58,34 +58,34 @@
 ---
 
 [TestNew/loading-state - 1]
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                 [m[m<spinner>[m [mloading...[m [m                                  [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
-[m                                                                                [m
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                 <spinner> loading...                                   
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
 ---
 
 [TestNew/no-results - 1]
-[m[m                                [m[m [m[mno items found[m[m [m[m                                [m[m
+                                 no items found                                 
                                                                                 
                                                                                 
                                                                                 
