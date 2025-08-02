@@ -9,6 +9,7 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/colorprofile"
@@ -27,21 +28,39 @@ type TestModel struct {
 	profile colorprofile.Profile
 }
 
+// View returns the view of the model. Note that for root-based models, this might not
+// use the latest version of the model, where as for non-root models, it will.
 func (m *TestModel) View(t testing.TB) string {
 	t.Helper()
 	return m.model.View()
 }
 
+// ExpectViewSnapshot takes a snapshot of the view of the model.
 func (m *TestModel) ExpectViewSnapshot(t testing.TB) {
 	t.Helper()
 	ExpectSnapshotProfile(t, m.View(t), m.profile)
 }
 
+// WaitFinished waits for the app to finish. This method only returns once the
+// program has finished running or when it times out.
+func (m *TestModel) WaitFinished(t testing.TB, opts ...teatest.FinalOpt) {
+	t.Helper()
+
+	if len(opts) == 0 {
+		opts = []teatest.FinalOpt{teatest.WithFinalTimeout(10 * time.Second)}
+	}
+	m.TestModel.WaitFinished(t, opts...)
+}
+
+// WaitFor waits for a condition to be met. This method only returns once the
+// condition is met or when it times out.
 func (m *TestModel) WaitFor(t testing.TB, condition func(bts []byte) bool, opts ...teatest.WaitForOption) {
 	t.Helper()
 	teatest.WaitFor(t, m.Output(), condition, opts...)
 }
 
+// ExpectContains waits for the output to contain ALL of the given substrings.
+// This method only returns once the condition is met or when it times out.
 func (m *TestModel) ExpectContains(t testing.TB, substr ...string) {
 	t.Helper()
 	teatest.WaitFor(t, m.Output(), func(bts []byte) bool {
@@ -54,6 +73,7 @@ func (m *TestModel) ExpectContains(t testing.TB, substr ...string) {
 	})
 }
 
+// ExpectViewContains waits for the view to contain ALL of the given substrings.
 func (m *TestModel) ExpectViewContains(t testing.TB, substr ...string) {
 	t.Helper()
 	view := m.View(t)
@@ -64,12 +84,14 @@ func (m *TestModel) ExpectViewContains(t testing.TB, substr ...string) {
 	}
 }
 
+// ExpectViewDimensions waits for the view to have the given dimensions.
 func (m *TestModel) ExpectViewDimensions(t testing.TB, width, height int) {
 	t.Helper()
 	m.ExpectViewHeight(t, height)
 	m.ExpectViewWidth(t, width)
 }
 
+// ExpectViewHeight waits for the view to have the given height.
 func (m *TestModel) ExpectViewHeight(t testing.TB, height int) {
 	t.Helper()
 	v := m.View(t)
@@ -78,6 +100,7 @@ func (m *TestModel) ExpectViewHeight(t testing.TB, height int) {
 	}
 }
 
+// ExpectViewWidth waits for the view to have the given width.
 func (m *TestModel) ExpectViewWidth(t testing.TB, width int) {
 	t.Helper()
 	v := m.View(t)
@@ -115,11 +138,14 @@ func (m *NonRootModelWrapper) View() string {
 	return m.model.View()
 }
 
+// NewNonRootModel creates a new test model for a non-root model (e.g. components,
+// pages, dialogs, etc).
 func NewNonRootModel(t testing.TB, model NonRootModel, color bool, opts ...teatest.TestOption) *TestModel {
 	t.Helper()
 	return NewRootModel(t, &NonRootModelWrapper{model: model}, color, opts...)
 }
 
+// NewRootModel creates a new test model for a root model (e.g. the main app).
 func NewRootModel(t testing.TB, model RootModel, color bool, opts ...teatest.TestOption) *TestModel {
 	t.Helper()
 
@@ -143,13 +169,18 @@ func NewRootModel(t testing.TB, model RootModel, color bool, opts ...teatest.Tes
 	}
 }
 
+// WithTermSize is a test option that sets the initial terminal size.
 var WithTermSize = teatest.WithInitialTermSize
 
+// WaitFor waits for a condition to be met. This method only returns once the
+// condition is met or when it times out.
 func WaitFor(t testing.TB, r io.Reader, condition func(bts []byte) bool, opts ...teatest.WaitForOption) {
 	t.Helper()
 	teatest.WaitFor(t, r, condition, opts...)
 }
 
+// WaitForContains waits for the output to contain ALL of the given substrings.
+// This method only returns once the condition is met or when it times out.
 func WaitForContains(t testing.TB, r io.Reader, substr ...string) {
 	t.Helper()
 	teatest.WaitFor(t, r, func(bts []byte) bool {

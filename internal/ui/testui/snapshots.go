@@ -6,9 +6,10 @@ package testui
 
 import (
 	"bytes"
-	"os"
+	"strings"
 	"testing"
 
+	"github.com/charmbracelet/bubbles/v2/spinner"
 	"github.com/charmbracelet/colorprofile"
 	"github.com/gkampitakis/go-snaps/snaps"
 )
@@ -20,7 +21,7 @@ var SnapConfig = snaps.WithConfig(
 // ExpectSnapshotProfile is a helper function that will create snapshots for
 // visually identifying the output of a view, with a specific color profile,
 // which can be used to automatically downgrade color data.
-func ExpectSnapshotProfile[T []byte | string](tb testing.TB, out T, profile colorprofile.Profile) {
+func ExpectSnapshotProfile(tb testing.TB, out string, profile colorprofile.Profile) {
 	tb.Helper()
 
 	buf := &bytes.Buffer{}
@@ -40,13 +41,12 @@ func ExpectSnapshotProfile[T []byte | string](tb testing.TB, out T, profile colo
 
 // ExpectSnapshot is a helper function that will create snapshots for visually
 // identifying the output of a view.
-func ExpectSnapshot[T []byte | string](tb testing.TB, out T) {
+func ExpectSnapshot(tb testing.TB, out string) {
 	tb.Helper()
-	SnapConfig.MatchSnapshot(tb, out)
-}
 
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true})
-	os.Exit(v)
+	for _, s := range spinner.MiniDot.Frames {
+		out = strings.ReplaceAll(out, s, "<spinner>")
+	}
+
+	SnapConfig.MatchSnapshot(tb, out)
 }

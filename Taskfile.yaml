@@ -137,7 +137,12 @@ tasks:
     desc: run tests
     deps: [prepare]
     cmds:
-      - go test ./...
+      - go test -v -count 5 -p 5 {{ or .CLI_ARGS "./..." }}
+  test:update:
+    desc: run tests and update snapshots
+    deps: [prepare]
+    cmds:
+      - UPDATE_SNAPS=always go test -v -count 2 -p 5 {{ or .CLI_ARGS "./..." }}
   lint:
     desc: run linter
     deps: [prepare]

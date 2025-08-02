@@ -2,12 +2,10 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package errorview
+package loader
 
 import (
-	"errors"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/gkampitakis/go-snaps/snaps"
@@ -22,29 +20,13 @@ func TestMain(m *testing.M) {
 
 func TestNew(t *testing.T) {
 	t.Parallel()
-	t.Run("2 errors", func(t *testing.T) {
+	t.Run("basic-loader", func(t *testing.T) {
 		t.Parallel()
 		m := New()
 		m.SetHeight(testui.DefaultTermHeight)
 		m.SetWidth(testui.DefaultTermWidth)
 		tm := testui.NewNonRootModel(t, m, false)
-		m.SetErrors(
-			errors.New("test error 1"),
-			errors.New("test error 2"),
-		)
-		tm.ExpectViewContains(t, "2 errors", "test error 1", "test error 2")
-		tm.ExpectViewDimensions(t, m.GetWidth(), m.GetHeight())
-		tm.ExpectViewSnapshot(t)
-	})
-
-	t.Run("too-many-errors", func(t *testing.T) {
-		t.Parallel()
-		m := New()
-		m.SetHeight(testui.DefaultTermHeight)
-		m.SetWidth(testui.DefaultTermWidth)
-		tm := testui.NewNonRootModel(t, m, false)
-		m.SetErrors(errors.New(strings.Repeat("test error\n", 100)))
-		tm.ExpectViewContains(t, "1 errors", "error(s) not shown")
+		tm.ExpectViewContains(t, "loading")
 		tm.ExpectViewDimensions(t, m.GetWidth(), m.GetHeight())
 		tm.ExpectViewSnapshot(t)
 	})
@@ -55,7 +37,16 @@ func TestNew(t *testing.T) {
 		m.SetHeight(0)
 		m.SetWidth(0)
 		tm := testui.NewNonRootModel(t, m, false)
-		m.SetErrors(errors.New("test error"))
+		tm.ExpectViewSnapshot(t)
+	})
+
+	t.Run("small-dimensions", func(t *testing.T) {
+		t.Parallel()
+		m := New()
+		m.SetHeight(5)
+		m.SetWidth(20)
+		tm := testui.NewNonRootModel(t, m, false)
+		tm.ExpectViewContains(t, "loading")
 		tm.ExpectViewSnapshot(t)
 	})
 }

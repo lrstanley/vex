@@ -1,0 +1,20 @@
+
+[TestNew/0-width-height - 1]
+q quit
+---
+
+[TestNew/basic-help - 1]
+q quit • h help
+---
+
+[TestNew/disabled-keybind - 1]
+
+---
+
+[TestNew/max-width - 1]
+q quit • h help
+---
+
+[TestNew/no-keybinds - 1]
+
+---

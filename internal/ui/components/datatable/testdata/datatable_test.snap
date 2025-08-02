@@ -1,0 +1,112 @@
+
+[TestNew/0-width-height - 1]
+
+---
+
+[TestNew/basic-table - 1]
+[m[m [1mName [m  [1mDescription                                                            [m [m[m
+[m[m[1m item1  description                                                             [m[m[m
+[m[m item2  description                                                             [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+[m[m                                                                                [m[m
+---
+
+[TestNew/filtered-no-results - 1]
+[m[m                         [m[m [m[mno results for "nonexistent"[m[m [m[m                         [m[m
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+---
+
+[TestNew/loading-state - 1]
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                 [m[m<spinner>[m [mloading...[m [m                                  [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+[m                                                                                [m
+---
+
+[TestNew/no-results - 1]
+[m[m                                [m[m [m[mno items found[m[m [m[m                                [m[m
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+---

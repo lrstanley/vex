@@ -86,6 +86,18 @@ type PageModel struct {
 	FullKeyBinds     [][]key.Binding
 }
 
+func (b *PageModel) Init() tea.Cmd {
+	return nil // Stub.
+}
+
+func (b *PageModel) Update(msg tea.Msg) tea.Cmd {
+	return nil // Stub.
+}
+
+func (b *PageModel) View() string {
+	return ""
+}
+
 func (b *PageModel) UUID() string {
 	return b.uuid.String()
 }

@@ -158,12 +158,7 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.Height, m.Width = msg.Height, msg.Width
-		m.loader.SetHeight(m.Height)
-		m.loader.SetWidth(m.Width)
-		m.updateDimensions()
-		m.updateTable()
-		m.table.GotoTop()
+		m.SetDimensions(msg.Width, msg.Height)
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		m.updateTable()
@@ -191,6 +186,24 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 		cmds,
 		m.loader.Update(msg),
 	)...)
+}
+
+func (m *Model[T]) SetDimensions(width, height int) {
+	m.Width = width
+	m.Height = height
+	m.loader.SetHeight(height)
+	m.loader.SetWidth(width)
+	m.updateDimensions()
+	m.updateTable()
+	m.table.GotoTop()
+}
+
+func (m *Model[T]) SetWidth(width int) {
+	m.SetDimensions(width, m.Height)
+}
+
+func (m *Model[T]) SetHeight(height int) {
+	m.SetDimensions(m.Width, height)
 }
 
 func (m *Model[T]) updateTable() {
