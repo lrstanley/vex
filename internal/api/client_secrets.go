@@ -163,11 +163,12 @@ func (c *client) listMountSecretsRecursive(
 					Leafs: inner,
 				}
 
-				for _, leaf := range inner {
-					leaf.Parent = ref
+				ref.Leafs.SetParentOnLeafs(ref)
 
+				for _, leaf := range inner {
 					if leaf.Incomplete {
 						ref.Incomplete = true
+						break
 					}
 				}
 
@@ -204,11 +205,12 @@ func (c *client) listMountSecretsRecursive(
 			Leafs: tree,
 		}}
 
-		for i := range tree[0].Leafs {
-			tree[0].Leafs[i].Parent = tree[0]
+		tree[0].Leafs.SetParentOnLeafs(tree[0])
 
+		for i := range tree[0].Leafs {
 			if tree[0].Leafs[i].Incomplete {
 				tree[0].Incomplete = true
+				break
 			}
 		}
 	}
@@ -248,14 +250,11 @@ func (c *client) ListAllSecretsRecursive(uuid string) tea.Cmd {
 		if err != nil {
 			return nil, err
 		}
+		tree.SetParentOnLeafs(nil)
 		return &types.ClientListAllSecretsRecursiveMsg{
 			Tree:        tree,
 			Requests:    requests,
 			MaxRequests: MaxRecursiveRequests,
 		}, nil
 	})
-}
-
-func (c *client) ListMountSecretsRecursive(uuid string, mount *types.Mount, path string) tea.Cmd {
-	return nil
 }

@@ -141,14 +141,27 @@ func (c ClientSecretTree) IterRefs() iter.Seq[*ClientSecretTreeRef] {
 	}
 }
 
+// SetParentOnLeafs sets the parent on all leafs in the tree.
+func (c ClientSecretTree) SetParentOnLeafs(parent *ClientSecretTreeRef) {
+	for _, ref := range c {
+		if ref.Parent != nil {
+			continue
+		}
+		ref.Parent = parent
+		if ref.HasLeafs() {
+			ref.Leafs.SetParentOnLeafs(ref)
+		}
+	}
+}
+
 type ClientSecretTreeRef struct {
 	Parent *ClientSecretTreeRef `json:"-"`
 	Mount  *Mount               `json:"mount"`
 
-	Path         string                 `json:"path"`
-	Leafs        []*ClientSecretTreeRef `json:"leafs,omitempty"`
-	Capabilities ClientCapabilities     `json:"capabilities,omitempty"`
-	Incomplete   bool                   `json:"incomplete"`
+	Path         string             `json:"path"`
+	Leafs        ClientSecretTree   `json:"leafs,omitempty"`
+	Capabilities ClientCapabilities `json:"capabilities,omitempty"`
+	Incomplete   bool               `json:"incomplete"`
 }
 
 func (c *ClientSecretTreeRef) IsFolder() bool {
