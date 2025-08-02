@@ -9,7 +9,10 @@ import (
 	"image/color"
 	"slices"
 	"strings"
+	"sync/atomic"
+	"time"
 
+	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 )
 
@@ -48,6 +51,46 @@ type BottomMiddleBorderEmbed interface {
 
 type BottomRightBorderEmbed interface {
 	BottomRightBorder() string
+}
+
+func rotate[T any, I int | int64](arr []T, k I) {
+	n := len(arr)
+	k = I(k % I(n))
+	if k < 0 {
+		k = I(n) + k
+	}
+	slices.Reverse(arr[:k])
+	slices.Reverse(arr[k:])
+	slices.Reverse(arr)
+}
+
+var (
+	borderRotation    = atomic.Int64{}
+	borderRotationFPS = 25
+)
+
+type BorderRotationTickMsg struct {
+	Current int64
+}
+
+func BorderRotationTick(msg tea.Msg) tea.Cmd {
+	// This is purely exploratory. Current design is terrible and uses a lot of CPU,
+	// so may explore with a more optimized approach in the future.
+	//
+	//	rotate(gradient, borderRotation.Load())
+	//
+	v, ok := msg.(BorderRotationTickMsg)
+	if msg != nil && !ok {
+		return nil
+	}
+
+	if msg != nil && v.Current != borderRotation.Load() {
+		return nil
+	}
+
+	return tea.Tick(time.Second/time.Duration(borderRotationFPS), func(t time.Time) tea.Msg {
+		return BorderRotationTickMsg{Current: borderRotation.Add(-3)}
+	})
 }
 
 func Border(content string, fg color.Color, element any, embeddedText map[BorderPosition]string) string {
