@@ -1,12 +1,12 @@
 
+[TestNew/0-width-height - 1]
+ mock-page                                   : cmds • ? help • ctrl+c quit  vex 
+---
+
 [TestNew/basic-statusbar - 1]
  mock-page                                   : cmds • ? help • ctrl+c quit  vex 
 ---
 
 [TestNew/small-dimensions - 1]
- mock-page                                   : cmds • ? help • ctrl+c quit  vex 
----
-
-[TestNew/0-width-height - 1]
  mock-page                                   : cmds • ? help • ctrl+c quit  vex 
 ---
