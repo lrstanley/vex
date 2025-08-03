@@ -22,6 +22,7 @@ require (
 	github.com/charmbracelet/x/ansi v0.9.3
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250725211024-d60e1b0112b2
 	github.com/gkampitakis/go-snaps v0.5.14
+	github.com/goccy/go-yaml v1.18.0
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/joho/godotenv v1.5.1
@@ -46,7 +47,6 @@ require (
 	github.com/gkampitakis/ciinfo v0.3.3 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.1 // indirect
-	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
