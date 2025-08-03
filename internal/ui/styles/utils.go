@@ -65,7 +65,7 @@ func H(input ...string) (h int) {
 	for _, s := range input {
 		h += lipgloss.Height(s)
 	}
-	return
+	return h
 }
 
 // W returns the cell width of characters in a set of strings. ANSI sequences
@@ -78,7 +78,7 @@ func W(input ...string) (w int) {
 	for _, s := range input {
 		w += lipgloss.Width(s)
 	}
-	return
+	return w
 }
 
 // Expand returns a string of v newlines.

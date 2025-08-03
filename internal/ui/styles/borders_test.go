@@ -16,9 +16,9 @@ func TestBorder(t *testing.T) {
 	t.Parallel()
 
 	// Define test colors
-	red := color.RGBA{R: 255, G: 0, B: 0, A: 255}
-	blue := color.RGBA{R: 0, G: 0, B: 255, A: 255}
-	green := color.RGBA{R: 0, G: 255, B: 0, A: 255}
+	red := lipgloss.Color("#ff0000")
+	blue := lipgloss.Color("#0000ff")
+	green := lipgloss.Color("#00ff00")
 
 	x, y := 60, 10
 
@@ -272,7 +272,7 @@ func TestBorder(t *testing.T) {
 func TestBorderEdgeCases(t *testing.T) {
 	t.Parallel()
 
-	red := color.RGBA{R: 255, G: 0, B: 0, A: 255}
+	red := lipgloss.Color("#ff0000")
 
 	tests := []struct {
 		name        string

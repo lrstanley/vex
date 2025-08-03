@@ -14,7 +14,7 @@ import (
 
 func TestMain(m *testing.M) {
 	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true})
+	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
 	os.Exit(v)
 }
 

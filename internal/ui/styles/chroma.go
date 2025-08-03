@@ -27,6 +27,7 @@ func chromaCompat(in lipgloss.Style) string {
 	if v := in.GetForeground(); v != nil {
 		s.WriteString(toHex(v) + " ")
 	}
+	//nolint:gocritic
 	// if v := in.GetBackground(); v != nil {
 	// 	s.WriteString("bg:" + toHex(v) + " ")
 	// }
@@ -45,7 +46,7 @@ func chromaCompat(in lipgloss.Style) string {
 func (tc *ThemeConfig) generateChromaStyle() chroma.StyleEntries {
 	s := lipgloss.NewStyle()
 	t := tc.registry.Current()
-	return chroma.StyleEntries{
+	return chroma.StyleEntries{ //nolint:exhaustive
 		chroma.Other:                    chromaCompat(s.Foreground(t.Fg)),
 		chroma.Error:                    chromaCompat(s.Foreground(t.Fg)),
 		chroma.Background:               chromaCompat(s.Background(t.Bg)),
