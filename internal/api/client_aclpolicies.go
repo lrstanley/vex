@@ -25,7 +25,7 @@ func (c *client) ListACLPolicies(uuid string) tea.Cmd {
 	})
 }
 
-func (c *client) GetACLPolicy(uuid string, policyName string) tea.Cmd {
+func (c *client) GetACLPolicy(uuid, policyName string) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientGetACLPolicyMsg, error) {
 		policy, err := c.api.Sys().GetPolicy(policyName)
 		if err != nil {

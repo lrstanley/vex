@@ -14,13 +14,11 @@ func secretToList(secret *vapi.Secret) []string {
 	if secret == nil || secret.Data == nil {
 		return nil
 	}
-
 	var keys []string
-
 	if v, ok := secret.Data["keys"]; ok {
-		if vv, ok := v.([]any); ok {
+		if vv, vok := v.([]any); vok {
 			for _, v := range vv {
-				if vv, ok := v.(string); ok {
+				if vv, vvok := v.(string); vvok {
 					keys = append(keys, vv)
 				}
 			}

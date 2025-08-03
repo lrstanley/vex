@@ -43,7 +43,6 @@ func (c *client) ListSecrets(uuid string, mount *types.Mount, path string) tea.C
 // include the mount path, "metadata/" for KVv2, etc.
 func (c *client) list(mount *types.Mount, path string) (values []string, err error) {
 	prefix := strings.TrimSuffix(mount.Path, "/")
-
 	if mount.KVVersion() == 2 {
 		prefix += "/metadata"
 	}
@@ -71,9 +70,9 @@ func (c *client) listAllSecretsRecursive(maxRequests int64, withCapabilities boo
 		}
 
 		eg.Go(func() error {
-			inner, err := c.listMountSecretsRecursive(&req, maxRequests, withCapabilities, mount, "")
-			if err != nil {
-				return err
+			inner, eerr := c.listMountSecretsRecursive(&req, maxRequests, withCapabilities, mount, "")
+			if eerr != nil {
+				return eerr
 			}
 			mu.Lock()
 			tree = append(tree, inner...)
@@ -82,7 +81,8 @@ func (c *client) listAllSecretsRecursive(maxRequests int64, withCapabilities boo
 		})
 	}
 
-	if err := eg.Wait(); err != nil {
+	err = eg.Wait()
+	if err != nil {
 		return nil, req.Load(), err
 	}
 
@@ -94,7 +94,7 @@ func (c *client) listAllSecretsRecursive(maxRequests int64, withCapabilities boo
 }
 
 // listMountSecretsRecursive lists the secrets for a given mount.
-func (c *client) listMountSecretsRecursive(
+func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	req *atomic.Int64,
 	maxRequests int64,
 	withCapabilities bool,
@@ -143,7 +143,8 @@ func (c *client) listMountSecretsRecursive(
 					return nil
 				}
 
-				ipaths, err := c.list(mount, parent+path)
+				var ipaths []string
+				ipaths, err = c.list(mount, parent+path)
 				if err != nil {
 					return err
 				}
@@ -152,7 +153,8 @@ func (c *client) listMountSecretsRecursive(
 					return nil
 				}
 
-				inner, err := c.listMountSecretsRecursive(req, maxRequests, false, mount, parent+path, ipaths...)
+				var inner types.ClientSecretTree
+				inner, err = c.listMountSecretsRecursive(req, maxRequests, false, mount, parent+path, ipaths...)
 				if err != nil {
 					return err
 				}
@@ -190,7 +192,8 @@ func (c *client) listMountSecretsRecursive(
 		}
 	}
 
-	if err := eg.Wait(); err != nil {
+	err = eg.Wait()
+	if err != nil {
 		return nil, err
 	}
 
@@ -227,7 +230,8 @@ func (c *client) listMountSecretsRecursive(
 			values = append(values, ref.GetFullPath())
 		}
 
-		capabilities, err := c.getCapabilities(values...)
+		var capabilities map[string]types.ClientCapabilities
+		capabilities, err = c.getCapabilities(values...)
 		if err != nil {
 			return nil, err
 		}

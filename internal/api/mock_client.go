@@ -7,6 +7,8 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -117,21 +119,25 @@ func (m *MockClient) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *MockClient) ErrorOr(msg tea.Msg) tea.Cmd {
+func (m *MockClient) ErrorOr(uuid string, msg tea.Msg) tea.Cmd {
 	if m.ShouldError {
 		return func() tea.Msg {
 			return types.ClientMsg{
+				UUID:  uuid,
 				Error: errors.New("test error"),
 			}
 		}
 	}
 	return func() tea.Msg {
-		return msg
+		return types.ClientMsg{
+			UUID: uuid,
+			Msg:  msg,
+		}
 	}
 }
 
 func (m *MockClient) GetHealth() tea.Cmd {
-	return m.ErrorOr(types.ClientConfigMsg{
+	return m.ErrorOr("", types.ClientConfigMsg{
 		Address: "http://localhost:8200",
 		Health: &vapi.HealthResponse{
 			Initialized: true,
@@ -145,13 +151,13 @@ func (m *MockClient) GetHealth() tea.Cmd {
 }
 
 func (m *MockClient) ListACLPolicies(uuid string) tea.Cmd {
-	return m.ErrorOr(types.ClientListACLPoliciesMsg{
+	return m.ErrorOr(uuid, types.ClientListACLPoliciesMsg{
 		Policies: mockPolicyList,
 	})
 }
 
-func (m *MockClient) GetACLPolicy(uuid string, policyName string) tea.Cmd {
-	return m.ErrorOr(types.ClientGetACLPolicyMsg{
+func (m *MockClient) GetACLPolicy(uuid, policyName string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientGetACLPolicyMsg{
 		Name:    policyName,
 		Content: mockPolicy,
 	})
@@ -190,21 +196,21 @@ func (m *MockClient) GetConfigState(uuid string) tea.Cmd {
 	if err != nil {
 		panic(err)
 	}
-	return m.ErrorOr(types.ClientConfigStateMsg{Data: out})
+	return m.ErrorOr(uuid, types.ClientConfigStateMsg{Data: out})
 }
 
-func (m *MockClient) ListMounts(uuid string, filterTypes ...string) tea.Cmd {
-	return m.ErrorOr(types.ClientListMountsMsg{
+func (m *MockClient) ListMounts(uuid string, _ ...string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientListMountsMsg{
 		Mounts: mockMounts,
 	})
 }
 
 func (m *MockClient) ListSecrets(uuid string, mount *types.Mount, path string) tea.Cmd {
-	return m.ErrorOr(types.ClientListSecretsMsg{
+	return m.ErrorOr(uuid, types.ClientListSecretsMsg{
 		Values: []*types.SecretListRef{
-			{Path: "kv-v1-1/foo/", Mount: mockMounts[0]},
-			{Path: "kv-v2-1/bar", Mount: mockMounts[1]},
-			{Path: "kv-v2-1/baz", Mount: mockMounts[1]},
+			{Path: fmt.Sprintf("%s%s/foo/", mount.Path, path), Mount: mount},
+			{Path: fmt.Sprintf("%s%s/bar", mount.Path, path), Mount: mount},
+			{Path: fmt.Sprintf("%s%s/baz", mount.Path, path), Mount: mount},
 		},
 	})
 }
@@ -223,7 +229,7 @@ func (m *MockClient) ListAllSecretsRecursive(uuid string) tea.Cmd {
 		},
 	}
 	tree.SetParentOnLeafs(nil)
-	return m.ErrorOr(types.ClientListAllSecretsRecursiveMsg{
+	return m.ErrorOr(uuid, types.ClientListAllSecretsRecursiveMsg{
 		Tree:        tree,
 		Requests:    10,
 		MaxRequests: MaxRecursiveRequests,

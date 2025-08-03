@@ -41,7 +41,8 @@ func (c *client) listMounts(ui bool) (mounts []*types.Mount, err error) {
 	var mountList map[string]*api.MountOutput
 
 	if ui {
-		data, err := request[*wrappedResponse[map[string]map[string]*api.MountOutput]](
+		var data *wrappedResponse[map[string]map[string]*api.MountOutput]
+		data, err = request[*wrappedResponse[map[string]map[string]*api.MountOutput]](
 			c,
 			http.MethodGet,
 			"/v1/sys/internal/ui/mounts",

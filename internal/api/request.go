@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/vault/api"
@@ -55,7 +54,8 @@ func request[T any](c *client, method, path string, params map[string]any, data 
 
 	if data != nil {
 		var buf bytes.Buffer
-		if err := json.NewEncoder(&buf).Encode(data); err != nil {
+		err = json.NewEncoder(&buf).Encode(data)
+		if err != nil {
 			return v, err
 		}
 		body = &buf
@@ -88,13 +88,15 @@ func request[T any](c *client, method, path string, params map[string]any, data 
 
 	if resp.StatusCode >= 400 {
 		var errors api.ErrorResponse
-		if err := json.NewDecoder(resp.Body).Decode(&errors); err == nil && len(errors.Errors) > 0 {
+		err = json.NewDecoder(resp.Body).Decode(&errors)
+		if err == nil && len(errors.Errors) > 0 {
 			return v, fmt.Errorf("request failed: %s", strings.Join(errors.Errors, ", "))
 		}
 		return v, fmt.Errorf("request failed: %s", resp.Status)
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&v); err != nil {
+	err = json.NewDecoder(resp.Body).Decode(&v)
+	if err != nil {
 		return v, fmt.Errorf("request failed: %w", err)
 	}
 
@@ -109,8 +111,6 @@ type ConcurrentLimiter struct {
 	Transport http.RoundTripper
 	// Semaphore to limit concurrent requests.
 	semaphore chan struct{}
-	// Mutex to protect concurrent access to the semaphore.
-	mu sync.RWMutex
 }
 
 // NewConcurrentLimiter creates a new ConcurrentLimiter with the specified maximum
