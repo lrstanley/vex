@@ -12,8 +12,6 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-const maxWidth = 60
-
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
 
 type Model struct {
@@ -123,17 +121,17 @@ func (m *Model) View() string {
 	case len(m.operations) > 0:
 		op := m.operations[len(m.operations)-1]
 		return m.spinner.View() + m.operationStyle.
-			Render(styles.Trunc(op.Text, maxWidth))
+			Render(op.Text)
 	case m.status != nil:
 		fg, bg := styles.Theme.ByStatus(m.status.Status)
 
 		return m.spinner.View() + m.statusStyle.
 			Foreground(fg).
 			Background(bg).
-			Render(styles.Trunc(m.status.Text, maxWidth))
+			Render(m.status.Text)
 	default:
 		return m.activePageStyle.Render(
-			styles.Trunc(m.app.Page().Get().GetTitle(), maxWidth),
+			m.app.Page().Get().GetTitle(),
 		)
 	}
 }
