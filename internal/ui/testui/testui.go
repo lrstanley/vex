@@ -7,6 +7,7 @@ package testui
 import (
 	"bytes"
 	"io"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -26,6 +27,49 @@ type TestModel struct {
 	*teatest.TestModel
 	model   tea.ViewModel
 	profile colorprofile.Profile
+}
+
+// Messages returns the messages that have been sent to the model, which only works
+// when the model is a non-root model.
+func (m *TestModel) Messages(t testing.TB) []tea.Msg {
+	t.Helper()
+	if wrapper, ok := m.model.(*NonRootModelWrapper); ok {
+		return wrapper.Messages()
+	}
+	return nil
+}
+
+// FilterMessages filters the messages that have been sent to the model based of the
+// provided type of sameType, which only works when the model is a non-root model.
+func (m *TestModel) FilterMessages(t testing.TB, sameType any) (filtered []tea.Msg) {
+	t.Helper()
+	if wrapper, ok := m.model.(*NonRootModelWrapper); ok {
+		for _, msg := range wrapper.Messages() {
+			if reflect.TypeOf(msg) == reflect.TypeOf(sameType) {
+				filtered = append(filtered, msg)
+			}
+		}
+	}
+	return filtered
+}
+
+// WaitForFilterMessages waits for the model to send a message of the same type as
+// sameType, which only works when the model is a non-root model. If the message is
+// not found within 2 seconds, it will fail the test.
+func (m *TestModel) WaitForFilterMessages(t testing.TB, sameType any) (filtered []tea.Msg) {
+	t.Helper()
+
+	timeout := time.Now().Add(2 * time.Second)
+
+	for {
+		if v := m.FilterMessages(t, sameType); len(v) > 0 {
+			return v
+		}
+		if time.Now().After(timeout) {
+			t.Fatalf("expected at least one message of type %T, got none", sameType)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 }
 
 // View returns the view of the model. Note that for root-based models, this might not
@@ -81,6 +125,19 @@ func (m *TestModel) ExpectContains(t testing.TB, substr ...string) {
 	})
 }
 
+// ExpectNotContains waits for the output to not contain ANY of the given substrings.
+func (m *TestModel) ExpectNotContains(t testing.TB, substr ...string) {
+	t.Helper()
+	teatest.WaitFor(t, m.Output(), func(bts []byte) bool {
+		for _, substr := range substr {
+			if bytes.Contains(bts, []byte(substr)) {
+				return false
+			}
+		}
+		return true
+	})
+}
+
 // ExpectViewContains waits for the view to contain ALL of the given substrings.
 func (m *TestModel) ExpectViewContains(t testing.TB, substr ...string) {
 	t.Helper()
@@ -88,6 +145,17 @@ func (m *TestModel) ExpectViewContains(t testing.TB, substr ...string) {
 	for _, v := range substr {
 		if !strings.Contains(view, v) {
 			t.Fatalf("expected view to contain %q, got %q", v, view)
+		}
+	}
+}
+
+// ExpectViewNotContains waits for the view to not contain ANY of the given substrings.
+func (m *TestModel) ExpectViewNotContains(t testing.TB, substr ...string) {
+	t.Helper()
+	view := m.View(t)
+	for _, v := range substr {
+		if strings.Contains(view, v) {
+			t.Fatalf("expected view to not contain %q, got %q", v, view)
 		}
 	}
 }
@@ -129,7 +197,8 @@ type NonRootModel interface {
 }
 
 type NonRootModelWrapper struct {
-	model NonRootModel
+	model    NonRootModel
+	messages []tea.Msg
 }
 
 var _ RootModel = (*NonRootModelWrapper)(nil)
@@ -139,11 +208,16 @@ func (m *NonRootModelWrapper) Init() tea.Cmd {
 }
 
 func (m *NonRootModelWrapper) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	m.messages = append(m.messages, msg)
 	return m, m.model.Update(msg)
 }
 
 func (m *NonRootModelWrapper) View() string {
 	return m.model.View()
+}
+
+func (m *NonRootModelWrapper) Messages() []tea.Msg {
+	return m.messages
 }
 
 // NewNonRootModel creates a new test model for a non-root model (e.g. components,
@@ -194,6 +268,20 @@ func WaitForContains(t testing.TB, r io.Reader, substr ...string) {
 	teatest.WaitFor(t, r, func(bts []byte) bool {
 		for _, substr := range substr {
 			if !bytes.Contains(bts, []byte(substr)) {
+				return false
+			}
+		}
+		return true
+	})
+}
+
+// WaitNotContains waits for the output to not contain ANY of the given substrings.
+// This method only returns once the condition is met or when it times out.
+func WaitNotContains(t testing.TB, r io.Reader, substr ...string) {
+	t.Helper()
+	teatest.WaitFor(t, r, func(bts []byte) bool {
+		for _, substr := range substr {
+			if bytes.Contains(bts, []byte(substr)) {
 				return false
 			}
 		}

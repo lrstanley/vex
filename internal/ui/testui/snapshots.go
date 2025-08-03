@@ -31,7 +31,7 @@ func ExpectSnapshotProfile(tb testing.TB, out string, profile colorprofile.Profi
 		Profile: profile,
 	}
 
-	_, err := w.Write([]byte(out))
+	_, err := w.WriteString(out)
 	if err != nil {
 		tb.Fatalf("failed to write view: %v", err)
 	}
