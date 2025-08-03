@@ -55,9 +55,9 @@ type BottomRightBorderEmbed interface {
 
 func rotate[T any, I int | int64](arr []T, k I) {
 	n := len(arr)
-	k = I(k % I(n))
+	k %= I(n)
 	if k < 0 {
-		k = I(n) + k
+		k += I(n)
 	}
 	slices.Reverse(arr[:k])
 	slices.Reverse(arr[k:])
@@ -88,12 +88,60 @@ func BorderRotationTick(msg tea.Msg) tea.Cmd {
 		return nil
 	}
 
-	return tea.Tick(time.Second/time.Duration(borderRotationFPS), func(t time.Time) tea.Msg {
+	return tea.Tick(time.Second/time.Duration(borderRotationFPS), func(_ time.Time) tea.Msg {
 		return BorderRotationTickMsg{Current: borderRotation.Add(-3)}
 	})
 }
 
-func Border(content string, fg color.Color, element any, embeddedText map[BorderPosition]string) string {
+func BorderFromElement(element any) (text map[BorderPosition]string) {
+	if element == nil {
+		text = make(map[BorderPosition]string)
+		return text
+	}
+
+	if v, ok := element.(map[BorderPosition]string); ok {
+		return v
+	}
+
+	text = make(map[BorderPosition]string)
+
+	defaultEmbedStyle := lipgloss.NewStyle().Foreground(Theme.Fg())
+
+	if v, ok := element.(TopLeftBorderEmbed); ok {
+		if vv := v.TopLeftBorder(); vv != "" {
+			text[TopLeftBorder] = defaultEmbedStyle.Render(vv)
+		}
+	}
+	if v, ok := element.(TopMiddleBorderEmbed); ok {
+		if vv := v.TopMiddleBorder(); vv != "" {
+			text[TopMiddleBorder] = defaultEmbedStyle.Render(vv)
+		}
+	}
+	if v, ok := element.(TopRightBorderEmbed); ok {
+		if vv := v.TopRightBorder(); vv != "" {
+			text[TopRightBorder] = defaultEmbedStyle.Render(vv)
+		}
+	}
+	if v, ok := element.(BottomLeftBorderEmbed); ok {
+		if vv := v.BottomLeftBorder(); vv != "" {
+			text[BottomLeftBorder] = defaultEmbedStyle.Render(vv)
+		}
+	}
+	if v, ok := element.(BottomMiddleBorderEmbed); ok {
+		if vv := v.BottomMiddleBorder(); vv != "" {
+			text[BottomMiddleBorder] = defaultEmbedStyle.Render(vv)
+		}
+	}
+	if v, ok := element.(BottomRightBorderEmbed); ok {
+		if vv := v.BottomRightBorder(); vv != "" {
+			text[BottomRightBorder] = defaultEmbedStyle.Render(vv)
+		}
+	}
+
+	return text
+}
+
+func Border(content string, fg color.Color, element any) string { // nolint:funlen
 	height := lipgloss.Height(content)
 	width := lipgloss.Width(content)
 
@@ -101,32 +149,9 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 		return ""
 	}
 
-	if embeddedText == nil {
-		embeddedText = make(map[BorderPosition]string)
-	}
+	embeddedText := BorderFromElement(element)
 
-	defaultEmbedStyle := lipgloss.NewStyle().Foreground(Theme.Fg())
-
-	if v, ok := element.(TopLeftBorderEmbed); ok {
-		embeddedText[TopLeftBorder] = defaultEmbedStyle.Render(v.TopLeftBorder())
-	}
-	if v, ok := element.(TopMiddleBorderEmbed); ok {
-		embeddedText[TopMiddleBorder] = defaultEmbedStyle.Render(v.TopMiddleBorder())
-	}
-	if v, ok := element.(TopRightBorderEmbed); ok {
-		embeddedText[TopRightBorder] = defaultEmbedStyle.Render(v.TopRightBorder())
-	}
-	if v, ok := element.(BottomLeftBorderEmbed); ok {
-		embeddedText[BottomLeftBorder] = defaultEmbedStyle.Render(v.BottomLeftBorder())
-	}
-	if v, ok := element.(BottomMiddleBorderEmbed); ok {
-		embeddedText[BottomMiddleBorder] = defaultEmbedStyle.Render(v.BottomMiddleBorder())
-	}
-	if v, ok := element.(BottomRightBorderEmbed); ok {
-		embeddedText[BottomRightBorder] = defaultEmbedStyle.Render(v.BottomRightBorder())
-	}
-
-	border := lipgloss.Border(lipgloss.RoundedBorder())
+	border := lipgloss.RoundedBorder()
 	baseStyle := lipgloss.NewStyle().Foreground(Theme.DialogTitleFg())
 
 	var topGradient, rightGradient, bottomGradient, leftGradient []color.Color
@@ -171,7 +196,7 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 
 	buildHorizontalBorder := func(
 		leftText, middleText, rightText,
-		leftCorner, inbetween, rightCorner string,
+		leftCorner, between, rightCorner string,
 		gradient []color.Color,
 		leftCornerGradient, rightCornerGradient color.Color,
 	) string {
@@ -195,7 +220,7 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 				c = fg
 			}
 			style := lipgloss.NewStyle().Foreground(c)
-			leftBorderSegment.WriteString(style.Render(inbetween))
+			leftBorderSegment.WriteString(style.Render(between))
 		}
 
 		var rightBorderSegment strings.Builder
@@ -207,7 +232,7 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 				c = fg
 			}
 			style := lipgloss.NewStyle().Foreground(c)
-			rightBorderSegment.WriteString(style.Render(inbetween))
+			rightBorderSegment.WriteString(style.Render(between))
 		}
 
 		// Build padding border segments (1 character each)
@@ -226,8 +251,8 @@ func Border(content string, fg color.Color, element any, embeddedText map[Border
 
 		leftPaddingStyle := lipgloss.NewStyle().Foreground(leftPaddingColor)
 		rightPaddingStyle := lipgloss.NewStyle().Foreground(rightPaddingColor)
-		leftPaddingBorder.WriteString(leftPaddingStyle.Render(inbetween))
-		rightPaddingBorder.WriteString(rightPaddingStyle.Render(inbetween))
+		leftPaddingBorder.WriteString(leftPaddingStyle.Render(between))
+		rightPaddingBorder.WriteString(rightPaddingStyle.Render(between))
 
 		var leftCornerStyle, rightCornerStyle lipgloss.Style
 		if fg == nil {

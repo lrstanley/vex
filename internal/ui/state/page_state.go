@@ -244,7 +244,7 @@ func (s *pageState) Update(msg tea.Msg) tea.Cmd {
 func (s *pageState) View() string {
 	p := s.pages.Peek()
 
-	embeddedText := make(map[styles.BorderPosition]string)
+	embeddedText := styles.BorderFromElement(p)
 
 	if p.GetSupportFiltering() && s.filter != "" {
 		embeddedText[styles.BottomRightBorder] = s.filterIconStyle.String() + s.filterStyle.Render("filter: "+styles.Trunc(s.filter, 20))
@@ -271,7 +271,6 @@ func (s *pageState) View() string {
 	return styles.Border(
 		out,
 		styles.Theme.PageBorderFg(),
-		p,
 		embeddedText,
 	)
 }

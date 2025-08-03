@@ -222,7 +222,6 @@ func (s *dialogState) GetLayers() []*lipgloss.Layer {
 					),
 					nil,
 					dialog,
-					nil,
 				),
 			).X(dx).Y(dy),
 		)
