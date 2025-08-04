@@ -98,7 +98,7 @@ func (tc *ThemeConfig) generateChromaStyle() chroma.StyleEntries {
 		chroma.LiteralNumberOct:         chromaCompat(s.Foreground(tc.adapt(lipgloss.Darken(t.Purple, 0.3), lipgloss.Lighten(t.Purple, 0.4)))),
 		chroma.Operator:                 chromaCompat(s.Foreground(tc.adapt(lipgloss.Darken(t.BrightPurple, 0.3), lipgloss.Lighten(t.BrightPurple, 0.2)))),
 		chroma.OperatorWord:             chromaCompat(s.Foreground(tc.adapt(lipgloss.Darken(t.BrightPurple, 0.3), lipgloss.Lighten(t.BrightPurple, 0.2)))),
-		chroma.Punctuation:              chromaCompat(s.Foreground(t.BrightWhite)),
+		chroma.Punctuation:              chromaCompat(s.Foreground(t.Fg)),
 		chroma.Comment:                  chromaCompat(s.Foreground(tc.adapt(lipgloss.Darken(t.Purple, 0.3), lipgloss.Lighten(t.Purple, 0.4))).Faint(true)),
 		chroma.CommentHashbang:          chromaCompat(s.Foreground(tc.adapt(lipgloss.Darken(t.Purple, 0.3), lipgloss.Lighten(t.Purple, 0.4))).Faint(true)),
 		chroma.CommentMultiline:         chromaCompat(s.Foreground(tc.adapt(lipgloss.Darken(t.Purple, 0.3), lipgloss.Lighten(t.Purple, 0.4))).Faint(true)),
@@ -119,6 +119,6 @@ func (tc *ThemeConfig) generateChromaStyle() chroma.StyleEntries {
 		chroma.GenericUnderline:         chromaCompat(s.Underline(true)),
 		chroma.Text:                     chromaCompat(s.Foreground(t.Fg)),
 		chroma.TextWhitespace:           chromaCompat(s.Foreground(t.Fg)),
-		chroma.TextPunctuation:          chromaCompat(s.Foreground(t.BrightWhite)),
+		chroma.TextPunctuation:          chromaCompat(s.Foreground(t.Fg)),
 	}
 }

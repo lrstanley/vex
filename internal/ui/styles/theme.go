@@ -25,6 +25,7 @@ var Theme = (&ThemeConfig{
 		tint.TintSpacedust,
 		tint.TintLabFox,
 		tint.TintTokyoNightLight,
+		tint.TintOneHalfLight,
 		// tint.DefaultTints()...,
 	),
 }).set()
