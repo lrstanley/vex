@@ -120,7 +120,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.statusBarLogoFg = white
 	tc.statusBarLogoBg = tc.adapt(t.Purple, lipgloss.Lighten(t.Bg, 0.2))
 
-	tc.shortHelpKeyFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.4))
+	tc.shortHelpKeyFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.3), lipgloss.Lighten(t.BrightPurple, 0.4))
 
 	tc.dialogFg = white
 	tc.dialogBorderFg = tc.adapt(t.Purple, t.Purple)

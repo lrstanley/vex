@@ -11,12 +11,7 @@ import (
 )
 
 var (
-	// GlobalKeyBinds = []key.Binding{
-	// 	KeyCommander,
-	// 	KeyCommandBarFilter,
-	// 	KeyHelp,
-	// 	KeyQuit,
-	// }
+	// General purpose.
 
 	KeyCommander = key.NewBinding(
 		key.WithKeys(":"),

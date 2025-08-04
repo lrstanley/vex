@@ -11,13 +11,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/vex/internal/ui/components/shorthelp"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
 const (
 	DialogHPadding      = 2 // Borders, padding, etc of the rendered dialog itself.
 	DialogVPadding      = 2 // Borders, padding, etc of the rendered dialog itself.
-	DialogWindowPadding = 2 // Padding to ensure dialog doesn't touch the window edges.
+	DialogWindowPadding = 3 // Padding to ensure dialog doesn't touch the window edges.
 )
 
 var _ types.DialogState = &dialogState{}
@@ -30,12 +31,15 @@ type dialogState struct {
 
 	// Styles.
 	titleStyle lipgloss.Style
-	// dialogStyle lipgloss.Style
+
+	// Child components.
+	shorthelp *shorthelp.Model
 }
 
 func NewDialogState() types.DialogState {
 	s := &dialogState{
-		dialogs: types.NewOrderedMap[string, types.Dialog](),
+		dialogs:   types.NewOrderedMap[string, types.Dialog](),
+		shorthelp: shorthelp.New(),
 	}
 	s.initStyles()
 	return s
@@ -44,12 +48,21 @@ func NewDialogState() types.DialogState {
 func (s *dialogState) initStyles() {
 	s.titleStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.DialogFg()).
-		Padding(0, 1).
+		Padding(0, 1, 1, 0).
 		Height(2)
 
-	// s.dialogStyle = lipgloss.NewStyle().
-	// 	Border(lipgloss.RoundedBorder()).
-	// 	BorderForeground(styles.Theme.DialogBorderFg())
+	helpStyles := shorthelp.Styles{}
+	helpStyles.Base = helpStyles.Base.
+		Foreground(styles.Theme.Fg())
+	helpStyles.Key = helpStyles.Key.
+		Foreground(styles.Theme.ShortHelpKeyFg())
+	helpStyles.Desc = helpStyles.Desc.
+		Foreground(styles.Theme.Fg()).
+		Faint(true)
+	helpStyles.Separator = helpStyles.Separator.
+		Foreground(styles.Theme.Fg()).
+		Faint(true)
+	s.shorthelp.SetStyles(helpStyles)
 }
 
 func (s *dialogState) Init() tea.Cmd {
@@ -125,6 +138,18 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 		active = true
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		active = true
+	case types.AppFocusChangedMsg:
+		dialog := s.Get(true)
+		if msg.ID != types.FocusDialog || dialog == nil {
+			s.shorthelp.SetKeyBinds()
+			return nil
+		}
+		s.shorthelp.SetKeyBinds(s.ShortHelp()...)
+		all = true
+	case styles.ThemeUpdatedMsg:
+		s.initStyles()
+		cmds = append(cmds, s.shorthelp.Update(msg))
+		all = true
 	default:
 		all = true
 	}
@@ -261,6 +286,12 @@ func (s *dialogState) GetLayers() []*lipgloss.Layer {
 			dialog.GetWidth(),
 		)
 
+		embeddedText := styles.BorderFromElement(dialog)
+
+		if s.shorthelp.NumKeyBinds() > 0 && !dialog.IsCoreDialog() {
+			embeddedText[styles.BottomMiddleBorder] = s.shorthelp.View()
+		}
+
 		layers = append(
 			layers,
 			lipgloss.NewLayer(
@@ -278,7 +309,7 @@ func (s *dialogState) GetLayers() []*lipgloss.Layer {
 						view,
 					),
 					nil,
-					dialog,
+					embeddedText,
 				),
 			).X(dx).Y(dy),
 		)

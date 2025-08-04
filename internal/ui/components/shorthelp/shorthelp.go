@@ -45,6 +45,12 @@ func New() *Model {
 	return m
 }
 
+func NewWithKeyBinds(kb ...key.Binding) *Model {
+	m := New()
+	m.SetKeyBinds(kb...)
+	return m
+}
+
 func (m *Model) setStyles() {
 	if m.styles.EllipsisChar == "" {
 		m.styles.EllipsisChar = styles.IconEllipsis
@@ -54,19 +60,23 @@ func (m *Model) setStyles() {
 		m.styles.SeparatorChars = " " + styles.IconSeparator + " "
 	}
 
-	m.styles.Desc = m.styles.Desc.Inherit(m.styles.Base)
 	m.styles.Key = m.styles.Key.Inherit(m.styles.Base)
+	m.styles.Desc = m.styles.Desc.Inherit(m.styles.Base)
 	m.styles.Separator = m.styles.Separator.Inherit(m.styles.Base)
 }
 
-func (m *Model) SetStyles(styles Styles) {
-	m.styles = styles
+func (m *Model) SetStyles(s Styles) {
+	m.styles = s
 	m.setStyles()
 }
 
 func (m *Model) SetKeyBinds(kb ...key.Binding) {
 	m.kb = kb
 	m.generateShortHelp()
+}
+
+func (m *Model) NumKeyBinds() int {
+	return len(m.kb)
 }
 
 func (m *Model) SetMaxWidth(width int) {
