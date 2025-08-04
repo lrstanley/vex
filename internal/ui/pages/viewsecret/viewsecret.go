@@ -357,3 +357,21 @@ func (m *Model) View() string {
 func (m *Model) GetTitle() string {
 	return fmt.Sprintf("Viewing Secret: %s%s", m.mount.Path, m.path)
 }
+
+func (m *Model) TopRightBorder() string {
+	var hasUnmasked bool
+	if m.isFlat && !m.forceJSON {
+		hasUnmasked = len(m.unmaskedKeys) > 0
+	} else {
+		hasUnmasked = !m.isNonFlatMasked
+	}
+
+	if hasUnmasked {
+		return lipgloss.NewStyle().
+			Foreground(styles.Theme.ErrorFg()).
+			Background(styles.Theme.ErrorBg()).
+			Padding(0, 1).
+			Render(styles.IconFlag + " unmasked secrets")
+	}
+	return ""
+}

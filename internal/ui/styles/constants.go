@@ -18,6 +18,7 @@ const (
 	IconFilledCircle     = "⏺"
 	IconFilter           = "🔍"
 	IconRefresh          = "⟳"
+	IconFlag             = "⚑"
 
 	IconCaution     = "⚠"
 	IconMaybeDanger = "⁈"
