@@ -7,7 +7,6 @@ package types
 import (
 	"time"
 
-	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
@@ -15,8 +14,6 @@ type AppState interface {
 	Page() PageState
 	Dialog() DialogState
 	Client() Client
-	ShortHelp(focused FocusID) []key.Binding
-	FullHelp(focused FocusID) [][]key.Binding
 }
 
 type AppQuitMsg struct{}

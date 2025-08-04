@@ -31,6 +31,12 @@ type PageState interface {
 	// Get returns the current active page.
 	Get() Page
 
+	// ShortHelp returns the short help for the page state.
+	ShortHelp() []key.Binding
+
+	// FullHelp returns the full help for the page state.
+	FullHelp() [][]key.Binding
+
 	// HasParent returns whether the page has a parent page.
 	HasParent() bool
 }

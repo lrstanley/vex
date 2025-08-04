@@ -108,12 +108,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 func (m *Model) generateHelp() {
 	var buf strings.Builder
 
-	helpFocus := types.FocusPage
-	if m.app.Dialog().Len() > 1 {
-		helpFocus = types.FocusDialog
-	}
+	var keys [][]key.Binding
 
-	keys := m.app.FullHelp(helpFocus)
+	if m.app.Dialog().Len(true) > 0 {
+		keys = m.app.Dialog().FullHelp()
+	} else {
+		keys = m.app.Page().FullHelp()
+	}
 
 	var maxKeyWidth int
 	for _, b := range keys {

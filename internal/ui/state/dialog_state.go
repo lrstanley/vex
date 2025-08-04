@@ -74,7 +74,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 	case types.DialogMsg:
 		switch msg := msg.Msg.(type) {
 		case types.OpenDialogMsg:
-			if s.Len() > 0 {
+			if s.dialogs.Len() > 0 {
 				_, current := s.dialogs.Peek()
 				if current.DisablesChildren() {
 					return types.FocusChange(types.FocusDialog)
@@ -95,7 +95,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 				types.FocusChange(types.FocusDialog),
 			)
 		case types.CloseActiveDialogMsg:
-			if s.Len() == 0 {
+			if s.dialogs.Len() == 0 {
 				return nil
 			}
 
@@ -114,7 +114,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 			return dialog.Close()
 		}
 	case tea.KeyMsg:
-		if s.Len() > 0 && !s.Get(false).HasInputFocus() {
+		if s.dialogs.Len() > 0 && !s.Get(false).HasInputFocus() {
 			switch {
 			case key.Matches(msg, types.KeyCancel):
 				return types.CloseActiveDialog()
@@ -133,7 +133,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 		for _, dialog := range s.dialogs.Values() {
 			cmds = append(cmds, dialog.Update(msg))
 		}
-	} else if active && s.Len() > 0 {
+	} else if active && s.dialogs.Len() > 0 {
 		cmds = append(cmds, s.Get(false).Update(msg))
 	}
 
@@ -153,12 +153,21 @@ func (s *dialogState) sendDialogSize(dialog types.Dialog) tea.Cmd {
 	})
 }
 
-func (s *dialogState) Len() int {
-	return s.dialogs.Len()
+func (s *dialogState) Len(skipCore bool) int {
+	if !skipCore {
+		return s.dialogs.Len()
+	}
+	var out int
+	for _, dialog := range s.dialogs.Values() {
+		if !dialog.IsCoreDialog() {
+			out++
+		}
+	}
+	return out
 }
 
 func (s *dialogState) Get(skipCore bool) types.Dialog {
-	if s.Len() == 0 {
+	if s.Len(skipCore) == 0 {
 		return nil
 	}
 	if !skipCore {
@@ -177,11 +186,58 @@ func (s *dialogState) Get(skipCore bool) types.Dialog {
 }
 
 func (s *dialogState) UUID() string {
-	if s.Len() == 0 {
+	if s.dialogs.Len() == 0 {
 		return ""
 	}
 	id, _ := s.dialogs.Peek()
 	return id
+}
+
+func (s *dialogState) ShortHelp() []key.Binding {
+	dialog := s.Get(true)
+	if dialog == nil {
+		return nil
+	}
+
+	var prepended []key.Binding
+	keys := dialog.ShortHelp()
+
+	if !types.KeyBindingContains(keys, types.KeyHelp) {
+		prepended = append(prepended, types.KeyHelp)
+	}
+
+	if !types.KeyBindingContains(keys, types.KeyCancel) {
+		keys = append(keys, types.KeyCancel)
+	}
+
+	return append(prepended, keys...)
+}
+
+func (s *dialogState) FullHelp() [][]key.Binding {
+	dialog := s.Get(true)
+	if dialog == nil {
+		return nil
+	}
+
+	var prepended, appended []key.Binding
+	keys := dialog.FullHelp()
+
+	prepended = append(prepended, types.KeyCancel)
+
+	if !types.KeyBindingContainsFull(keys, types.KeyHelp) {
+		appended = append(appended, types.KeyHelp)
+	}
+
+	if !types.KeyBindingContainsFull(keys, types.KeyQuit) {
+		appended = append(appended, types.KeyQuit)
+	}
+
+	if len(keys) == 0 {
+		keys = [][]key.Binding{{}}
+	}
+
+	keys[len(keys)-1] = append(keys[len(keys)-1], prepended...)
+	return append(keys, appended)
 }
 
 func (s *dialogState) GetLayers() []*lipgloss.Layer {

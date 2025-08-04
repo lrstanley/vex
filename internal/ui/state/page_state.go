@@ -87,7 +87,7 @@ func (s *pageState) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (s *pageState) Update(msg tea.Msg) tea.Cmd {
+func (s *pageState) Update(msg tea.Msg) tea.Cmd { //nolint:gocognit
 	var cmds []tea.Cmd
 
 	var active, all bool
@@ -141,8 +141,6 @@ func (s *pageState) Update(msg tea.Msg) tea.Cmd {
 			active = true
 		}
 	case types.OpenPageMsg:
-		var cmds []tea.Cmd
-
 		s.loading.Store(false)
 		s.errored.Store(false)
 
@@ -300,4 +298,65 @@ func (s *pageState) IsStateFocused() bool {
 
 func (s *pageState) IsFocused(uuid string) bool {
 	return s.focused.Load() && s.pages.Peek().UUID() == uuid
+}
+
+func (s *pageState) ShortHelp() []key.Binding {
+	var prepended []key.Binding
+	page := s.Get()
+	keys := page.ShortHelp()
+
+	if page.GetSupportFiltering() && !types.KeyBindingContains(keys, types.KeyFilter) {
+		prepended = append(prepended, types.KeyFilter)
+	}
+
+	if !types.KeyBindingContains(keys, types.KeyCommander) {
+		prepended = append(prepended, types.KeyCommander)
+	}
+
+	if !types.KeyBindingContains(keys, types.KeyHelp) {
+		prepended = append(prepended, types.KeyHelp)
+	}
+
+	if !types.KeyBindingContains(keys, types.KeyQuit) {
+		keys = append(keys, types.KeyQuit) // Add to the end.
+	}
+
+	return append(prepended, keys...)
+}
+
+func (s *pageState) FullHelp() [][]key.Binding {
+	var prepended, appended []key.Binding
+	page := s.Get()
+	keys := page.FullHelp()
+
+	if s.HasParent() && !types.KeyBindingContainsFull(keys, types.KeyCancel) {
+		prepended = append(prepended, types.KeyCancel)
+	}
+
+	if page.GetRefreshInterval() > 0 && !types.KeyBindingContainsFull(keys, types.KeyRefresh) {
+		prepended = append(prepended, types.KeyRefresh)
+	}
+
+	if page.GetSupportFiltering() && !types.KeyBindingContainsFull(keys, types.KeyFilter) {
+		appended = append(appended, types.KeyFilter)
+	}
+
+	if !types.KeyBindingContainsFull(keys, types.KeyCommander) {
+		appended = append(appended, types.KeyCommander)
+	}
+
+	if !types.KeyBindingContainsFull(keys, types.KeyHelp) {
+		appended = append(appended, types.KeyHelp)
+	}
+
+	if !types.KeyBindingContainsFull(keys, types.KeyQuit) {
+		appended = append(appended, types.KeyQuit)
+	}
+
+	if len(keys) == 0 {
+		keys = [][]key.Binding{{}}
+	}
+
+	keys[len(keys)-1] = append(keys[len(keys)-1], prepended...)
+	return append(keys, appended)
 }

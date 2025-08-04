@@ -183,8 +183,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.focused = msg.ID
 
 		switch {
-		case m.focused == types.FocusDialog && m.app.Dialog().Len() > 0:
-			if m.app.Dialog().Len() > 0 {
+		case m.focused == types.FocusDialog && m.app.Dialog().Len(false) > 0:
+			if m.app.Dialog().Len(false) > 0 {
 				cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Dialog().Get(false).GetTitle())))
 			}
 		case m.focused == types.FocusPage:

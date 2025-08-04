@@ -132,7 +132,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) updateKeyBinds() {
-	m.helpEl.SetKeyBinds(m.app.ShortHelp(types.FocusPage)...)
+	m.helpEl.SetKeyBinds(m.app.Page().ShortHelp()...)
 }
 
 func (m *Model) View() string {

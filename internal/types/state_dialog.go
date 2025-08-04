@@ -20,11 +20,17 @@ type DialogState interface {
 	Update(msg tea.Msg) tea.Cmd
 
 	// Len returns the number of dialogs in the dialog state.
-	Len() int
+	Len(skipCore bool) int
 
 	// Get returns the currently active dialog. If skipCore is true, the dialog
 	// will be returned if it is not a core dialog (e.g. help, commander, etc).
 	Get(skipCore bool) Dialog
+
+	// ShortHelp returns the short help for the dialog state.
+	ShortHelp() []key.Binding
+
+	// FullHelp returns the full help for the dialog state.
+	FullHelp() [][]key.Binding
 
 	// GetLayers returns the layers for the dialog state.
 	GetLayers() []*lipgloss.Layer
