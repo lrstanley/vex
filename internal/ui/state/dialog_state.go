@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	DialogWinHPadding = 2
-	DialogWinVPadding = 2
+	DialogHPadding      = 2 // Borders, padding, etc of the rendered dialog itself.
+	DialogVPadding      = 2 // Borders, padding, etc of the rendered dialog itself.
+	DialogWindowPadding = 2 // Padding to ensure dialog doesn't touch the window edges.
 )
 
 var _ types.DialogState = &dialogState{}
@@ -236,31 +237,35 @@ func (s *dialogState) calcDialogSize(wh, ww int, size types.DialogSize) (height,
 
 	switch size {
 	case types.DialogSizeSmall:
-		height = min(wh-DialogWinVPadding, 10)
-		width = min(ww-DialogWinHPadding, 50)
+		height = 10
+		width = 50
 	case types.DialogSizeMedium:
-		height = min(wh-DialogWinVPadding, 18)
-		width = min(ww-DialogWinHPadding, 70)
+		height = 18
+		width = 70
 	case types.DialogSizeLarge:
-		height = min(wh-DialogWinVPadding, 25)
-		width = min(ww-DialogWinHPadding, 90)
-	case types.DialogSizeFull:
-		height = wh - DialogWinVPadding
-		width = ww - DialogWinHPadding
-	case types.DialogSizeCustom:
+		height = 25
+		width = 90
+	case types.DialogSizeFull, types.DialogSizeCustom:
 		height = wh
 		width = ww
 	}
 
-	return height - s.titleStyle.GetHeight() - s.titleStyle.GetVerticalFrameSize(), width
-}
+	ch := min(height-s.titleStyle.GetHeight(), wh-s.titleStyle.GetHeight()-(DialogWindowPadding*2)-DialogVPadding)
+	cw := min(width, ww-(DialogWindowPadding*2)-DialogHPadding)
 
-func (s *dialogState) calcDialogPosition(wh, ww int, height, width int) (x, y int) {
-	height += 2 + s.titleStyle.GetHeight() + s.titleStyle.GetVerticalFrameSize() // + s.dialogStyle.GetVerticalFrameSize() -- +2 for x.Borderize()
-	width += 2                                                                   // s.dialogStyle.GetHorizontalFrameSize() -- +2 for x.Borderize()
-
-	if wh == 0 || ww == 0 || height == 0 || width == 0 || height > wh || width > ww {
+	if ch < 1 || cw < 10 {
 		return 0, 0
 	}
-	return (ww - width) / 2, (wh - height) / 2
+
+	return ch, cw
+}
+
+func (s *dialogState) calcDialogPosition(wh, ww, height, width int) (x, y int) {
+	height += 2 + s.titleStyle.GetHeight() // + s.dialogStyle.GetVerticalFrameSize() -- +2 for x.Borderize()
+	width += 2                             // s.dialogStyle.GetHorizontalFrameSize() -- +2 for x.Borderize()
+
+	if wh == 0 || ww == 0 || height == 0 || width == 0 {
+		return 0, 0
+	}
+	return max((ww-width)/2, DialogWindowPadding), max((wh-height)/2, DialogWindowPadding)
 }
