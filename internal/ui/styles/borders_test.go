@@ -10,7 +10,65 @@ import (
 
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/ui/testui"
+	"github.com/lucasb-eyer/go-colorful"
 )
+
+func expectColor(t *testing.T, shouldMatch bool, c1, c2 color.Color) {
+	t.Helper()
+	cc1, _ := colorful.MakeColor(c1)
+	r1, g1, b1, _ := c1.RGBA()
+	cc2, _ := colorful.MakeColor(c2)
+	r2, g2, b2, _ := c2.RGBA()
+
+	matches := cc1.Hex() == cc2.Hex()
+
+	if (shouldMatch && !matches) || (!shouldMatch && matches) {
+		t.Errorf(
+			"color rgb(%d,%d,%d) (%s) and rgb(%d,%d,%d) (%s) shouldMatch:%v matches:%v",
+			r1>>8, g1>>8, b1>>8, cc1.Hex(),
+			r2>>8, g2>>8, b2>>8, cc2.Hex(),
+			shouldMatch,
+			matches,
+		)
+	}
+}
+
+func TestGetBorderGradient(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		height int
+		width  int
+	}{
+		{name: "5x10", height: 5, width: 10},
+		{name: "10x5", height: 10, width: 5},
+		{name: "10x10", height: 10, width: 10},
+		{name: "10x20", height: 10, width: 20},
+		{name: "20x10", height: 20, width: 10},
+		{name: "20x90", height: 20, width: 90},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			bg := GetBorderGradient(tt.height, tt.width)
+
+			if len(bg.TopGradient)+2 != tt.width {
+				t.Errorf("top gradient length is incorrect: %d", len(bg.TopGradient))
+			}
+			if len(bg.RightGradient)+2 != tt.height {
+				t.Errorf("right gradient length is incorrect: %d", len(bg.RightGradient))
+			}
+			if len(bg.BottomGradient)+2 != tt.width {
+				t.Errorf("bottom gradient length is incorrect: %d", len(bg.BottomGradient))
+			}
+			if len(bg.LeftGradient)+2 != tt.height {
+				t.Errorf("left gradient length is incorrect: %d", len(bg.LeftGradient))
+			}
+		})
+	}
+}
 
 func TestBorder(t *testing.T) {
 	t.Parallel()

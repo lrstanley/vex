@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"io"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -209,6 +210,9 @@ func (m *NonRootModelWrapper) Init() tea.Cmd {
 
 func (m *NonRootModelWrapper) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.messages = append(m.messages, msg)
+	if len(m.messages) > 100 {
+		m.messages = slices.Clip(m.messages[1:])
+	}
 	return m, m.model.Update(msg)
 }
 
