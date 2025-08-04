@@ -1,4 +1,10 @@
 
+[TestNew/basic-text-content - 1]
+ test content                                                                   
+ line 2                                                                         
+ line 3                                                                         
+---
+
 [TestNew/empty-content - 1]
 
 ---
@@ -33,10 +39,4 @@
 
 [TestNew/zero-dimensions - 1]
 
----
-
-[TestNew/basic-text-content - 1]
- test content                                                                   
- line 2                                                                         
- line 3                                                                         
 ---

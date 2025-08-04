@@ -29,7 +29,7 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Test Title", "test content\nline 2\nline 3", "text")
 		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "test content", "line 2", "line 3")
+		tm.ExpectContains(t, "test content", "line 2", "line 3")
 		tm.ExpectViewSnapshot(t)
 	})
 
@@ -38,7 +38,7 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "JSON Test", "{\"name\": \"test\", \"value\": 123}", "json")
 		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "name", "test", "value", "123")
+		tm.ExpectContains(t, "name", "test", "value", "123")
 		tm.ExpectViewSnapshot(t)
 	})
 
@@ -47,7 +47,7 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Go Code Test", "func test() {\n    return true\n}", "go")
 		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "func", "test", "return", "true")
+		tm.ExpectContains(t, "func", "test", "return", "true")
 		tm.ExpectViewSnapshot(t)
 	})
 
@@ -72,6 +72,7 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Large Test", strings.Repeat("test content\n", 200), "text")
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(100, 15))
+		tm.ExpectContains(t, "test content")
 		tm.ExpectViewSnapshot(t)
 	})
 }
