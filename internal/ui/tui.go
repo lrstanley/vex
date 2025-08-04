@@ -25,6 +25,12 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
+// Absolute minimum window size. If below this size, we display a message.
+const (
+	MinWinHeight = 13
+	MinWinWidth  = 45
+)
+
 func pageInitializer(app types.AppState) []commander.PageRef {
 	return []commander.PageRef{
 		{
@@ -58,7 +64,7 @@ func pageInitializer(app types.AppState) []commander.PageRef {
 	}
 }
 
-type Model struct {
+type Model struct { //nolint:recvcheck
 	// Core state, clients, etc.
 	app       types.AppState
 	debouncer *debouncer.Service
@@ -212,8 +218,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	if m.width == 0 || m.height == 0 {
-		return ""
+	if m.width < MinWinWidth || m.height < MinWinHeight {
+		return lipgloss.NewStyle().
+			Align(lipgloss.Center, lipgloss.Center).
+			Height(m.height).
+			Width(m.width).
+			Render(styles.IconDanger + " window too small, resize")
 	}
 
 	s := lipgloss.NewStyle().
