@@ -11,11 +11,23 @@ import (
 	"github.com/Code-Hex/go-generics-cache/policy/lfu"
 )
 
+type Cache[K comparable, V any] struct {
+	*gc.Cache[K, V]
+}
+
 // New returns a new cache with the given capacity. If capacity is 0, the cache will
 // have no limit on the number of items it can hold. Uses LFU eviction policy.
-func New[K comparable, V any](capacity int) *gc.Cache[K, V] {
-	return gc.New(
+func New[K comparable, V any](capacity int) *Cache[K, V] {
+	cache := gc.New(
 		gc.AsLFU[K, V](lfu.WithCapacity(max(capacity, 10))),
 		gc.WithJanitorInterval[K, V](10*time.Second),
 	)
+	return &Cache[K, V]{Cache: cache}
+}
+
+// DeleteAll deletes all items from the cache.
+func (c *Cache[K, V]) DeleteAll() {
+	for _, k := range c.Keys() {
+		c.Delete(k)
+	}
 }

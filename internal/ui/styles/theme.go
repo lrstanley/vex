@@ -7,6 +7,7 @@ package styles
 import (
 	"image/color"
 	"sync"
+	"time"
 
 	"github.com/alecthomas/chroma/v2"
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -26,6 +27,15 @@ var Theme = (&ThemeConfig{
 		tint.TintLabFox,
 		tint.TintTokyoNightLight,
 		tint.TintOneHalfLight,
+		tint.TintGrape,
+		tint.TintCyberPunk2077,
+		tint.TintCyberdyne,
+		tint.TintWryan,
+		tint.TintWez,
+		tint.TintUbuntu,
+		tint.TintTomorrowNightBurns,
+		tint.TintSolarizedDarkPatched,
+		tint.TintNightCity,
 		// tint.DefaultTints()...,
 	),
 }).set()
@@ -141,6 +151,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.listItemFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.6), lipgloss.Lighten(t.BrightBlue, 0.6))
 	tc.listItemSelectedFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
+	borderGradientCache.DeleteAll()
 	return tc
 }
 
@@ -182,13 +193,19 @@ func (tc *ThemeConfig) Update(msg tea.Msg) tea.Cmd {
 func (tc *ThemeConfig) NextTint() tea.Cmd {
 	tc.registry.NextTint()
 	tc.set()
-	return tc.updateThemeCmd()
+	return tea.Batch(
+		types.SendStatus("Switched to "+tc.registry.Current().DisplayName, types.Success, 1*time.Second),
+		tc.updateThemeCmd(),
+	)
 }
 
 func (tc *ThemeConfig) PreviousTint() tea.Cmd {
 	tc.registry.PreviousTint()
 	tc.set()
-	return tc.updateThemeCmd()
+	return tea.Batch(
+		types.SendStatus("Switched to "+tc.registry.Current().DisplayName, types.Success, 1*time.Second),
+		tc.updateThemeCmd(),
+	)
 }
 
 func (tc *ThemeConfig) updateThemeCmd() tea.Cmd {
