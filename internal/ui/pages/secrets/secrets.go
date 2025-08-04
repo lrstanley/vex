@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/pages/viewsecret"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -58,8 +59,7 @@ func New(app types.AppState) *Model {
 			return app.Client().ListAllSecretsRecursive(m.UUID())
 		},
 		SelectFn: func(value *Data) tea.Cmd {
-			// TODO
-			return nil
+			return types.OpenPage(viewsecret.New(m.app, value.Mount, value.Path), false)
 		},
 		RowFn: func(value *Data) []string {
 			return []string{value.FullPath, value.Mount.Type, value.Capabilities.String()}

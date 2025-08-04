@@ -293,3 +293,21 @@ func (tc *ThemeConfig) PageBorderFilterFg() color.Color {
 	defer tc.mu.Unlock()
 	return tc.pageBorderFilterFg
 }
+
+func (tc *ThemeConfig) ListItemFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.listItemFg
+}
+
+func (tc *ThemeConfig) ListItemSelectedFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.Lock()
+	defer tc.mu.Unlock()
+	return tc.listItemSelectedFg
+}

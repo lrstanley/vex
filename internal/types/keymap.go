@@ -53,6 +53,21 @@ var (
 		key.WithKeys("ctrl+c"),
 		key.WithHelp("ctrl+c", "quit"),
 	)
+
+	// Secret related.
+
+	KeyToggleMask = key.NewBinding(
+		key.WithKeys("x"),
+		key.WithHelp("x", "toggle masking"),
+	)
+	KeyToggleMaskAll = key.NewBinding(
+		key.WithKeys("ctrl+x"),
+		key.WithHelp("ctrl+x", "toggle masking all"),
+	)
+	KeyRenderJSON = key.NewBinding(
+		key.WithKeys("z"),
+		key.WithHelp("z", "render as json"),
+	)
 )
 
 type KeyBindingGroup struct {

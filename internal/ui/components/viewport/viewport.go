@@ -212,7 +212,9 @@ func (m *Model) View() string {
 			styles.Scrollbar(
 				m.Height,
 				m.viewport.TotalLineCount(),
-				m.viewport.VisibleLineCount(),
+				// TODO: temporary fix, and still doesn't work correctly.
+				// ref: https://github.com/charmbracelet/bubbles/issues/819
+				min(m.viewport.VisibleLineCount(), m.Height),
 				m.viewport.YOffset,
 				styles.IconScrollbar,
 				styles.IconScrollbar,

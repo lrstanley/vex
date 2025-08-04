@@ -32,7 +32,9 @@ type Model struct {
 func New(app types.AppState, title, content, language string) *Model {
 	m := &Model{
 		DialogModel: &types.DialogModel{
-			Size: types.DialogSizeLarge,
+			Size:          types.DialogSizeLarge,
+			ShortKeyBinds: []key.Binding{types.KeyCopy},
+			FullKeyBinds:  [][]key.Binding{{types.KeyCopy}},
 		},
 		app:   app,
 		title: title,
@@ -69,6 +71,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 		// If the viewport is smaller than the dialog height, resize the dialog
 		// even smaller.
+		//
+		// TODO: this can cause 1 line text which is too long, to not render the correct height initially.
+		// ref: https://github.com/charmbracelet/bubbles/issues/819
 		m.Height = min(m.code.TotalLineCount(), m.Height)
 		m.code.SetHeight(m.Height)
 		m.code.SetWidth(m.Width)

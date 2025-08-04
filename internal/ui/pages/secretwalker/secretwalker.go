@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/pages/viewsecret"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -50,7 +51,7 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		},
 		SelectFn: func(value *types.SecretListRef) tea.Cmd {
 			if !strings.HasSuffix(value.Path, "/") {
-				return nil
+				return types.OpenPage(viewsecret.New(app, value.Mount, value.Path), false)
 			}
 			return types.OpenPage(New(app, value.Mount, value.Path), false)
 		},

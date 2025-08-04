@@ -73,6 +73,9 @@ type ThemeConfig struct {
 
 	pageBorderFg       color.Color `accessor:"getter"`
 	pageBorderFilterFg color.Color `accessor:"getter"`
+
+	listItemFg         color.Color `accessor:"getter"`
+	listItemSelectedFg color.Color `accessor:"getter"`
 }
 
 func (tc *ThemeConfig) adapt(light, dark color.Color) color.Color {
@@ -89,7 +92,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	t := tc.registry.Current()
 
 	tc.chroma = tc.generateChromaStyle()
-	tc.fg = tc.adapt(t.Fg, t.Fg)
+	tc.fg = t.Fg
 
 	white := tc.adapt(lipgloss.Lighten(t.White, 0.2), lipgloss.Lighten(t.White, 0.2))
 
@@ -131,8 +134,11 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.dialogTitleFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
 	tc.dialogTitleToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
-	tc.pageBorderFg = tc.adapt(t.Purple, t.Purple)
+	tc.pageBorderFg = tc.adapt(lipgloss.Darken(t.Purple, 0.2), lipgloss.Lighten(t.Purple, 0.2))
 	tc.pageBorderFilterFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.3), lipgloss.Lighten(t.BrightBlue, 0.3))
+
+	tc.listItemFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.6), lipgloss.Lighten(t.BrightBlue, 0.6))
+	tc.listItemSelectedFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
 	return tc
 }

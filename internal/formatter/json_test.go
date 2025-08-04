@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestJSONMask(t *testing.T) {
+func TestToJSONWithMask(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -98,7 +98,7 @@ func TestJSONMask(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := JSONMask(tt.input, 2)
+			result := ToJSON(tt.input, true, 2)
 			if result != tt.expected {
 				t.Errorf("JSONMask() = %v, want %v", result, tt.expected)
 			}

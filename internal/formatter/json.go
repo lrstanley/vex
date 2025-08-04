@@ -10,9 +10,17 @@ import (
 	"strings"
 )
 
-// JSONMask will convert the provided data value into JSON, with all concrete values
-// masked with asterisks.
-func JSONMask(data any, indent int) string {
+// ToJSON will convert the provided data value into JSON. If mask is true, all
+// concrete values will be masked with asterisks.
+func ToJSON(data any, mask bool, indent int) string {
+	if !mask {
+		b, err := json.MarshalIndent(data, "", strings.Repeat(" ", indent))
+		if err != nil {
+			return fmt.Sprintf("error: %v", err)
+		}
+		return string(b)
+	}
+
 	if data == nil {
 		return "null"
 	}

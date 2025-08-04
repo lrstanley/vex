@@ -4,14 +4,45 @@
 
 package formatter
 
-// IsFlatValue returns true when the map values provided is a flat value. Some examples:
-//   - string
-//   - int/float/etc
-//   - bool
-//   - nil
-func IsFlatValue(data map[string]any) bool {
+import (
+	"reflect"
+	"slices"
+)
+
+var flatTypes = []reflect.Kind{
+	reflect.Bool,
+	reflect.Int,
+	reflect.Int8,
+	reflect.Int16,
+	reflect.Int32,
+	reflect.Int64,
+	reflect.Uint,
+	reflect.Uint8,
+	reflect.Uint16,
+	reflect.Uint32,
+	reflect.Uint64,
+	reflect.Uintptr,
+	reflect.Float32,
+	reflect.Float64,
+	reflect.Complex64,
+	reflect.Complex128,
+	reflect.String,
+}
+
+// IsFlatValue returns true when the map values provided is a flat value (can be
+// rendered into a 1 dimensional list).
+func IsFlatValue[T comparable](data map[T]any) bool {
 	if len(data) == 0 {
 		return false
 	}
-	return false // TODO
+	for _, value := range data {
+		if value == nil {
+			continue
+		}
+		val := reflect.Indirect(reflect.ValueOf(value))
+		if !slices.Contains(flatTypes, val.Kind()) {
+			return false
+		}
+	}
+	return true
 }

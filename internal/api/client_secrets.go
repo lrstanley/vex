@@ -5,6 +5,8 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -259,6 +261,71 @@ func (c *client) ListAllSecretsRecursive(uuid string) tea.Cmd {
 			Tree:        tree,
 			Requests:    requests,
 			MaxRequests: MaxRecursiveRequests,
+		}, nil
+	})
+}
+
+func (c *client) GetKVv2Metadata(uuid string, mount *types.Mount, path string) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientGetKVv2MetadataMsg, error) {
+		if mount.KVVersion() != 2 {
+			return nil, fmt.Errorf("get secret metadata: %w", errors.New("mount is not a kv v2 mount"))
+		}
+		metadata, err := c.api.KVv2(mount.Path).GetMetadata(context.Background(), path)
+		if err != nil {
+			return nil, fmt.Errorf("get secret metadata: %w", err)
+		}
+		return &types.ClientGetKVv2MetadataMsg{
+			Mount:    mount,
+			Path:     path,
+			Metadata: metadata,
+		}, nil
+	})
+}
+
+func (c *client) ListKVv2Versions(uuid string, mount *types.Mount, path string) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientListKVv2VersionsMsg, error) {
+		if mount.KVVersion() != 2 {
+			return nil, fmt.Errorf("list kv v2 versions: %w", errors.New("mount is not a kv v2 mount"))
+		}
+		versions, err := c.api.KVv2(mount.Path).GetVersionsAsList(context.Background(), path)
+		if err != nil {
+			return nil, fmt.Errorf("list kv v2 versions: %w", err)
+		}
+		return &types.ClientListKVv2VersionsMsg{
+			Mount:    mount,
+			Path:     path,
+			Versions: versions,
+		}, nil
+	})
+}
+
+func (c *client) GetSecret(uuid string, mount *types.Mount, path string) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientGetSecretMsg, error) {
+		prefix := strings.TrimSuffix(mount.Path, "/")
+		if mount.KVVersion() == 2 {
+			prefix += "/data"
+		}
+
+		secret, err := c.api.Logical().Read(prefix + "/" + path)
+		if err != nil {
+			return nil, fmt.Errorf("get secret: %w", err)
+		}
+
+		var data map[string]any
+		if secret != nil && secret.Data != nil {
+			data = secret.Data
+
+			if v, ok := data["data"]; ok && mount.KVVersion() == 2 {
+				if vv, vok := v.(map[string]any); vok {
+					data = vv
+				}
+			}
+		}
+
+		return &types.ClientGetSecretMsg{
+			Mount: mount,
+			Path:  path,
+			Data:  data,
 		}, nil
 	})
 }

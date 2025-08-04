@@ -22,6 +22,8 @@ type Client interface {
 	ListMounts(uuid string, filterTypes ...string) tea.Cmd
 	ListSecrets(uuid string, mount *Mount, path string) tea.Cmd
 	ListAllSecretsRecursive(uuid string) tea.Cmd
+	GetSecret(uuid string, mount *Mount, path string) tea.Cmd
+	GetKVv2Metadata(uuid string, mount *Mount, path string) tea.Cmd
 	ListACLPolicies(uuid string) tea.Cmd
 	GetACLPolicy(uuid string, policyName string) tea.Cmd
 	GetConfigState(uuid string) tea.Cmd
@@ -72,6 +74,24 @@ type ClientListSecretsMsg struct {
 type SecretListRef struct {
 	Mount *Mount `json:"mount"`
 	Path  string `json:"path"`
+}
+
+type ClientGetSecretMsg struct {
+	Mount *Mount         `json:"mount"`
+	Path  string         `json:"path"`
+	Data  map[string]any `json:"data"`
+}
+
+type ClientGetKVv2MetadataMsg struct {
+	Mount    *Mount           `json:"mount"`
+	Path     string           `json:"path"`
+	Metadata *vapi.KVMetadata `json:"metadata"`
+}
+
+type ClientListKVv2VersionsMsg struct {
+	Mount    *Mount                   `json:"mount"`
+	Path     string                   `json:"path"`
+	Versions []vapi.KVVersionMetadata `json:"versions"`
 }
 
 type ClientListACLPoliciesMsg struct {

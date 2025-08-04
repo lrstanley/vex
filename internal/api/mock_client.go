@@ -235,3 +235,55 @@ func (m *MockClient) ListAllSecretsRecursive(uuid string) tea.Cmd {
 		MaxRequests: MaxRecursiveRequests,
 	})
 }
+
+func (m *MockClient) GetKVv2Metadata(uuid string, mount *types.Mount, path string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientGetKVv2MetadataMsg{
+		Mount: mount,
+		Path:  path,
+		Metadata: &vapi.KVMetadata{
+			CASRequired:    false,
+			CreatedTime:    time.Now().Add(-(24 * time.Hour)),
+			UpdatedTime:    time.Now().Add(-(12 * time.Hour)),
+			CurrentVersion: 2,
+			CustomMetadata: map[string]any{
+				"foo": "bar",
+			},
+			Versions: map[string]vapi.KVVersionMetadata{
+				"1": {
+					Version:     1,
+					CreatedTime: time.Now().Add(-(24 * time.Hour)),
+				},
+				"2": {
+					Version:     2,
+					CreatedTime: time.Now().Add(-(12 * time.Hour)),
+				},
+			},
+		},
+	})
+}
+
+func (m *MockClient) ListKVv2Versions(uuid string, mount *types.Mount, path string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientListKVv2VersionsMsg{
+		Mount: mount,
+		Path:  path,
+		Versions: []vapi.KVVersionMetadata{
+			{Version: 1, CreatedTime: time.Now().Add(-(24 * time.Hour))},
+			{Version: 2, CreatedTime: time.Now().Add(-(12 * time.Hour))},
+		},
+	})
+}
+
+func (m *MockClient) GetSecret(uuid string, mount *types.Mount, path string) tea.Cmd {
+	if strings.Contains(path, "json") {
+		return m.ErrorOr(uuid, types.ClientGetSecretMsg{
+			Mount: mount,
+			Path:  path,
+			Data:  map[string]any{"foo": "bar", "bar": "baz", "inner": map[string]any{"foo": "bar", "bar": "baz"}},
+		})
+	}
+	return m.ErrorOr(uuid, types.ClientGetSecretMsg{
+		Mount: mount,
+		Path:  path,
+		Data:  map[string]any{"foo": "bar", "bar": "baz"},
+	})
+}
