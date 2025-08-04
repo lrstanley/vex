@@ -113,7 +113,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 			return dialog.Close()
 		}
 	case tea.KeyMsg:
-		if s.Len() > 0 && !s.Get().HasInputFocus() {
+		if s.Len() > 0 && !s.Get(false).HasInputFocus() {
 			switch {
 			case key.Matches(msg, types.KeyCancel):
 				return types.CloseActiveDialog()
@@ -133,7 +133,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, dialog.Update(msg))
 		}
 	} else if active && s.Len() > 0 {
-		cmds = append(cmds, s.Get().Update(msg))
+		cmds = append(cmds, s.Get(false).Update(msg))
 	}
 
 	return tea.Batch(cmds...)
@@ -156,11 +156,11 @@ func (s *dialogState) Len() int {
 	return s.dialogs.Len()
 }
 
-func (s *dialogState) Get(skipIDs ...string) types.Dialog {
+func (s *dialogState) Get(skipCore bool) types.Dialog {
 	if s.Len() == 0 {
 		return nil
 	}
-	if len(skipIDs) == 0 {
+	if !skipCore {
 		_, dialog := s.dialogs.Peek()
 		return dialog
 	}
@@ -168,7 +168,7 @@ func (s *dialogState) Get(skipIDs ...string) types.Dialog {
 	dialogs := s.dialogs.Values()
 	slices.Reverse(dialogs)
 	for _, dialog := range dialogs {
-		if !slices.Contains(skipIDs, dialog.UUID()) {
+		if !dialog.IsCoreDialog() {
 			return dialog
 		}
 	}

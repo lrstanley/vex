@@ -53,9 +53,9 @@ func (c Config) GetData() (cols []string, rows [][]string) {
 			}
 		}
 		if isCurrent {
-			name = styles.IconClosedCircle + " " + string(ref.Commands[0])
+			name = styles.IconClosedCircle + " " + ref.Commands[0]
 		} else {
-			name = "  " + string(ref.Commands[0])
+			name = "  " + ref.Commands[0]
 		}
 		rows = append(rows, []string{
 			name,
@@ -136,6 +136,10 @@ func (m *Model) initStyles() {
 
 func (m *Model) GetTitle() string {
 	return "Commands"
+}
+
+func (m *Model) IsCoreDialog() bool {
+	return true
 }
 
 func (m *Model) Init() tea.Cmd {

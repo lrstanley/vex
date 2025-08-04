@@ -15,8 +15,8 @@ type AppState interface {
 	Page() PageState
 	Dialog() DialogState
 	Client() Client
-	ShortHelp(focused FocusID, skip ...string) []key.Binding
-	FullHelp(focused FocusID, skip ...string) [][]key.Binding
+	ShortHelp(focused FocusID) []key.Binding
+	FullHelp(focused FocusID) [][]key.Binding
 }
 
 type AppQuitMsg struct{}

@@ -148,7 +148,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case types.FocusDialog:
 			// If active dialog isn't the help dialog, and the help key is pressed,
 			// open the help dialog.
-			if v := m.app.Dialog().Get(); v != nil && !v.HasInputFocus() {
+			if v := m.app.Dialog().Get(false); v != nil && !v.HasInputFocus() {
 				if _, ok := v.(*help.Model); !ok && key.Matches(msg, types.KeyHelp) {
 					return m, types.OpenDialog(help.New(m.app))
 				}
@@ -185,7 +185,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case m.focused == types.FocusDialog && m.app.Dialog().Len() > 0:
 			if m.app.Dialog().Len() > 0 {
-				cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Dialog().Get().GetTitle())))
+				cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Dialog().Get(false).GetTitle())))
 			}
 		case m.focused == types.FocusPage:
 			cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Page().Get().GetTitle())))

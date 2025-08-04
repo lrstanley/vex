@@ -22,9 +22,9 @@ type DialogState interface {
 	// Len returns the number of dialogs in the dialog state.
 	Len() int
 
-	// Get returns the currently active dialog. If skipIDs are provided, the dialog
-	// will be returned if it is not in the skipIDs list.
-	Get(skipIDs ...string) Dialog
+	// Get returns the currently active dialog. If skipCore is true, the dialog
+	// will be returned if it is not a core dialog (e.g. help, commander, etc).
+	Get(skipCore bool) Dialog
 
 	// GetLayers returns the layers for the dialog state.
 	GetLayers() []*lipgloss.Layer
@@ -82,6 +82,10 @@ type Dialog interface {
 	// FullHelp returns the full help for the dialog.
 	FullHelp() [][]key.Binding
 
+	// IsCoreDialog returns whether the dialog is a core dialog, i.e. one that should
+	// by typically skipped when checking for keybinds, some propagation, etc.
+	IsCoreDialog() bool
+
 	// Close is a callback which is invoked when the dialog is closed. Defaults
 	// to a no-op but can be overridden by the dialog implementation.
 	Close() tea.Cmd
@@ -129,6 +133,10 @@ func (m *DialogModel) ShortHelp() []key.Binding {
 
 func (m *DialogModel) FullHelp() [][]key.Binding {
 	return m.FullKeyBinds
+}
+
+func (m *DialogModel) IsCoreDialog() bool {
+	return false
 }
 
 func (m *DialogModel) Close() tea.Cmd {

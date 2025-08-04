@@ -322,9 +322,7 @@ func (m *Model[T]) SetData(columns []string, values []T) {
 
 	m.columns = columns
 	m.data = make([]T, 0, len(values))
-	for _, value := range values {
-		m.data = append(m.data, value)
-	}
+	m.data = append(m.data, values...)
 	m.updateTable()
 	m.loading = false
 

@@ -41,14 +41,14 @@ func (a *AppState) Client() types.Client {
 	return a.client
 }
 
-func (a *AppState) ShortHelp(focused types.FocusID, skip ...string) []key.Binding {
+func (a *AppState) ShortHelp(focused types.FocusID) []key.Binding {
 	keys := a.page.Get().ShortHelp()
 
 	var prepended []key.Binding
 
 	switch focused {
 	case types.FocusDialog:
-		dialog := a.dialog.Get(skip...)
+		dialog := a.dialog.Get(true)
 		if dialog != nil {
 			keys = append(dialog.ShortHelp(), keys...)
 		}
@@ -73,14 +73,14 @@ func (a *AppState) ShortHelp(focused types.FocusID, skip ...string) []key.Bindin
 	return append(prepended, keys...)
 }
 
-func (a *AppState) FullHelp(focused types.FocusID, skip ...string) [][]key.Binding {
+func (a *AppState) FullHelp(focused types.FocusID) [][]key.Binding {
 	keys := a.page.Get().FullHelp()
 
 	var prepended, appended []key.Binding
 
 	switch focused {
 	case types.FocusDialog:
-		dialog := a.dialog.Get(skip...)
+		dialog := a.dialog.Get(true)
 		if dialog != nil {
 			keys = append(dialog.FullHelp(), keys...)
 		}

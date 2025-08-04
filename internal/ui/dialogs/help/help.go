@@ -68,6 +68,10 @@ func (m *Model) GetTitle() string {
 	return "Keybind Help"
 }
 
+func (m *Model) IsCoreDialog() bool {
+	return true
+}
+
 func (m *Model) Init() tea.Cmd {
 	return m.viewport.Init()
 }
@@ -109,7 +113,7 @@ func (m *Model) generateHelp() {
 		helpFocus = types.FocusDialog
 	}
 
-	keys := m.app.FullHelp(helpFocus, m.UUID())
+	keys := m.app.FullHelp(helpFocus)
 
 	var maxKeyWidth int
 	for _, b := range keys {
