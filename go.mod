@@ -14,7 +14,7 @@ replace (
 
 require (
 	github.com/Code-Hex/go-generics-cache v1.5.1
-	github.com/alecthomas/chroma/v2 v2.19.0
+	github.com/alecthomas/chroma/v2 v2.20.0
 	github.com/alecthomas/kong v1.12.0
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4
@@ -27,7 +27,8 @@ require (
 	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.3
+	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0
+	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/rivo/uniseg v0.4.7
 	golang.org/x/sync v0.16.0

@@ -12,6 +12,7 @@ import (
 	"github.com/alecthomas/chroma/v2"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/bubbletint/chromatint/v2"
 	tint "github.com/lrstanley/bubbletint/v2"
 	"github.com/lrstanley/vex/internal/types"
 )
@@ -31,11 +32,10 @@ var Theme = (&ThemeConfig{
 		tint.TintCyberPunk2077,
 		tint.TintCyberdyne,
 		tint.TintWryan,
-		tint.TintWez,
 		tint.TintUbuntu,
 		tint.TintTomorrowNightBurns,
 		tint.TintSolarizedDarkPatched,
-		tint.TintNightCity,
+		tint.TintCga,
 		// tint.DefaultTints()...,
 	),
 }).set()
@@ -102,7 +102,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 
 	t := tc.registry.Current()
 
-	tc.chroma = tc.generateChromaStyle()
+	tc.chroma = chromatint.StyleEntry(t, false)
 	tc.fg = t.Fg
 
 	white := tc.adapt(lipgloss.Lighten(t.White, 0.2), lipgloss.Lighten(t.White, 0.2))
@@ -194,7 +194,7 @@ func (tc *ThemeConfig) NextTint() tea.Cmd {
 	tc.registry.NextTint()
 	tc.set()
 	return tea.Batch(
-		types.SendStatus("Switched to "+tc.registry.Current().DisplayName, types.Success, 1*time.Second),
+		types.SendStatus("Switched to "+tc.registry.Current().ID, types.Success, 1*time.Second),
 		tc.updateThemeCmd(),
 	)
 }
@@ -203,7 +203,7 @@ func (tc *ThemeConfig) PreviousTint() tea.Cmd {
 	tc.registry.PreviousTint()
 	tc.set()
 	return tea.Batch(
-		types.SendStatus("Switched to "+tc.registry.Current().DisplayName, types.Success, 1*time.Second),
+		types.SendStatus("Switched to "+tc.registry.Current().ID, types.Success, 1*time.Second),
 		tc.updateThemeCmd(),
 	)
 }
