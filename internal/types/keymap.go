@@ -43,7 +43,7 @@ var (
 	)
 	KeyCopy = key.NewBinding(
 		key.WithKeys("c"),
-		key.WithHelp("c", "copy content"),
+		key.WithHelp("c", "copy"),
 	)
 	KeyHelp = key.NewBinding(
 		key.WithKeys("?"),

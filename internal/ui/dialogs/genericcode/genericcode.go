@@ -77,7 +77,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		return nil
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, types.KeyDetails):
+		case key.Matches(msg, types.KeyDetails) || key.Matches(msg, types.KeyToggleMask):
 			return types.CloseActiveDialog()
 		}
 	}

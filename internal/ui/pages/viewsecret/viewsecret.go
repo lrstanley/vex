@@ -49,7 +49,7 @@ func (i *item) Title() string {
 
 func (i *item) Description() string {
 	if i.IsMultiLine() {
-		return "<truncated, use 'd' to view full value>"
+		return "<press 'x' to view full value>"
 	}
 
 	if i.masked {
@@ -241,7 +241,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg.Key(), types.KeyCopy):
-			if !m.isFlat {
+			if !m.isFlat || m.forceJSON {
 				b, err := json.MarshalIndent(m.data, "", "    ")
 				if err == nil {
 					return types.SetClipboard(string(b))
@@ -255,15 +255,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			}
 		case key.Matches(msg.Key(), types.KeyToggleMask, types.KeyToggleMaskAll):
 			return m.toggleMasking(key.Matches(msg.Key(), types.KeyToggleMaskAll))
-		case key.Matches(msg.Key(), types.KeyDetails):
-			item := m.getSelectedItem()
-			if item == nil {
-				return nil
-			}
-			if !item.IsMultiLine() {
-				return nil
-			}
-			return types.OpenDialog(genericcode.New(m.app, fmt.Sprintf("Secret key value: %q", item.key), item.ValueString(), ""))
 		case key.Matches(msg.Key(), types.KeyRenderJSON):
 			m.forceJSON = !m.forceJSON
 			return m.setFromData()
@@ -313,18 +304,38 @@ func (m *Model) setFromData() tea.Cmd {
 	return m.list.SetItems(values)
 }
 
+func (m *Model) items() (out []*item) {
+	for _, v := range m.list.Items() {
+		out = append(out, v.(*item)) //nolint:errcheck
+	}
+	return out
+}
+
 func (m *Model) toggleMasking(global bool) tea.Cmd {
 	switch {
 	case m.isFlat && !m.forceJSON && global:
-		if len(m.unmaskedKeys) != len(m.data) {
-			m.unmaskedKeys = slices.Collect(maps.Keys(m.data))
+		var unmaskable []*item
+		for _, item := range m.items() {
+			if !item.IsMultiLine() {
+				unmaskable = append(unmaskable, item)
+			}
+		}
+
+		if len(m.unmaskedKeys) != len(unmaskable) {
+			m.unmaskedKeys = nil
+			for _, item := range unmaskable {
+				m.unmaskedKeys = append(m.unmaskedKeys, item.key)
+			}
 		} else {
 			m.unmaskedKeys = []string{}
 		}
 	case m.isFlat && !m.forceJSON:
-		item, ok := m.list.Items()[m.list.GlobalIndex()].(*item)
-		if !ok {
+		item := m.getSelectedItem()
+		if item == nil {
 			return nil
+		}
+		if item.IsMultiLine() {
+			return types.OpenDialog(genericcode.New(m.app, fmt.Sprintf("Secret key value: %q", item.key), item.ValueString(), ""))
 		}
 		if slices.Contains(m.unmaskedKeys, item.key) {
 			m.unmaskedKeys = slices.DeleteFunc(m.unmaskedKeys, func(k string) bool {
