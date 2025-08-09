@@ -8,6 +8,8 @@ go 1.24.4
 // )
 
 replace (
+	// TODO: https://github.com/charmbracelet/bubbles/pull/823
+	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250809051023-35ab0d6ce52c
 	github.com/charmbracelet/lipgloss/v2 => github.com/lrstanley/lipgloss/v2 v2.0.0-beta.6
 	github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b
 )
@@ -20,7 +22,7 @@ require (
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4
 	github.com/charmbracelet/colorprofile v0.3.1
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3
-	github.com/charmbracelet/x/ansi v0.9.3
+	github.com/charmbracelet/x/ansi v0.10.1
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250725211024-d60e1b0112b2
 	github.com/gkampitakis/go-snaps v0.5.14
 	github.com/goccy/go-yaml v1.18.0
@@ -39,13 +41,13 @@ require (
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20250730211830-fc3042df7c6c // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20250808135251-9dd1310a05c0 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20250725211024-d60e1b0112b2 // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20250806222409-83e3a29d542f // indirect
 	github.com/charmbracelet/x/input v0.3.7 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
-	github.com/charmbracelet/x/windows v0.2.1 // indirect
+	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/gkampitakis/ciinfo v0.3.3 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect

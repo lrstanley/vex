@@ -65,7 +65,7 @@ func New(app types.AppState, config Config) *Model {
 	} else {
 		m.input.Placeholder = "type to filter"
 	}
-	m.input.VirtualCursor = true
+	m.input.SetVirtualCursor(true)
 	m.input.ShowSuggestions = true
 	m.input.SetSuggestions(m.config.List.Suggestions())
 
@@ -86,30 +86,32 @@ func (m *Model) initStyles() {
 
 	m.styles.InputBase = m.styles.InputBase.Padding(0, 1, 1, 1)
 
-	m.styles.Input.Focused.Placeholder = m.styles.Input.Focused.Placeholder.
+	var inputStyles textinput.Styles
+
+	inputStyles.Focused.Placeholder = inputStyles.Focused.Placeholder.
 		Foreground(styles.Theme.Fg()).
 		Faint(true)
 
-	m.styles.Input.Focused.Suggestion = m.styles.Input.Focused.Suggestion.
+	inputStyles.Focused.Suggestion = inputStyles.Focused.Suggestion.
 		Foreground(styles.Theme.Fg()).
 		Faint(true)
 
-	m.styles.Input.Focused.Text = m.styles.Input.Focused.Text.
+	inputStyles.Focused.Text = inputStyles.Focused.Text.
 		Foreground(styles.Theme.Fg())
 
-	m.styles.Input.Focused.Prompt = m.styles.Input.Focused.Prompt.
+	inputStyles.Focused.Prompt = inputStyles.Focused.Prompt.
 		Foreground(styles.Theme.Fg())
 
-	m.styles.Input.Blurred.Prompt = m.styles.Input.Blurred.Prompt.
+	inputStyles.Blurred.Prompt = inputStyles.Blurred.Prompt.
 		Foreground(styles.Theme.InfoFg())
 
-	m.styles.Input.Cursor.Color = styles.Theme.Fg()
+	inputStyles.Cursor.Color = styles.Theme.Fg()
 	// TODO: bug with bubbles v2, returns cursor.BlinkMsg, then returns cursor.blinkCanceled,
 	// which we can't handle because its private. Can technically use %T and strings.Contains,
 	// but even that, the cursor stops blinking after the first blink, and disappears.
-	m.styles.Input.Cursor.Blink = false
+	inputStyles.Cursor.Blink = false
 
-	m.input.Styles = m.styles.Input
+	m.input.SetStyles(inputStyles)
 }
 
 func (m *Model) SetStyles(styles Styles) {

@@ -277,7 +277,7 @@ func (s *dialogState) GetLayers() []*lipgloss.Layer {
 	for _, dialog := range dialogs {
 		view = dialog.View()
 		if view == "" {
-			continue
+			panic("dialog view is empty")
 		}
 		dx, dy := s.calcDialogPosition(
 			s.windowHeight,

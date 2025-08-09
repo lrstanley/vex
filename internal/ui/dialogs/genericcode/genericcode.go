@@ -71,12 +71,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 		// If the viewport is smaller than the dialog height, resize the dialog
 		// even smaller.
-		//
-		// TODO: this can cause 1 line text which is too long, to not render the correct height initially.
-		// ref: https://github.com/charmbracelet/bubbles/issues/819
+		m.code.SetSize(m.Width, m.Height)
 		m.Height = min(m.code.TotalLineCount(), m.Height)
 		m.code.SetHeight(m.Height)
-		m.code.SetWidth(m.Width)
 		return nil
 	case tea.KeyMsg:
 		switch {

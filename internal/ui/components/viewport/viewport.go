@@ -20,8 +20,6 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-// TODO: scrollbar incorrect when soft wrapping: https://github.com/charmbracelet/bubbles/issues/819
-
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
 
 type Model struct {
@@ -180,11 +178,15 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 func (m *Model) SetHeight(h int) {
 	m.Height = h
 	m.ensureSize()
-	m.viewport.GotoTop()
 }
 
 func (m *Model) SetWidth(w int) {
 	m.Width = w
+	m.ensureSize()
+}
+
+func (m *Model) SetSize(w, h int) {
+	m.Width, m.Height = w, h
 	m.ensureSize()
 }
 
@@ -197,6 +199,10 @@ func (m *Model) ensureSize() {
 	} else {
 		m.hasScrollbar = false
 		m.viewport.SetWidth(m.Width)
+	}
+
+	if m.viewport.PastBottom() {
+		m.viewport.GotoBottom()
 	}
 }
 
@@ -212,10 +218,8 @@ func (m *Model) View() string {
 			styles.Scrollbar(
 				m.Height,
 				m.viewport.TotalLineCount(),
-				// TODO: temporary fix, and still doesn't work correctly.
-				// ref: https://github.com/charmbracelet/bubbles/issues/819
-				min(m.viewport.VisibleLineCount(), m.Height),
-				m.viewport.YOffset,
+				m.viewport.VisibleLineCount(),
+				m.viewport.YOffset(),
 				styles.IconScrollbar,
 				styles.IconScrollbar,
 			),

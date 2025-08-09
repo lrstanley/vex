@@ -53,7 +53,7 @@ func New(app types.AppState) *Model {
 	}
 
 	m.filter.Placeholder = "type to filter..."
-	m.filter.VirtualCursor = true
+	m.filter.SetVirtualCursor(true)
 	m.filter.Prompt = ""
 	m.setStyles()
 	m.filter.KeyMap.Paste = key.NewBinding(key.WithKeys("ctrl+v", "ctrl+shift+v"))
@@ -71,13 +71,17 @@ func (m *Model) setStyles() {
 		Foreground(styles.Theme.StatusBarFilterFg()).
 		Background(styles.Theme.StatusBarFilterBg())
 
-	m.filter.Styles.Focused.Placeholder = m.filter.Styles.Focused.Placeholder.
+	var filterStyles textinput.Styles
+
+	filterStyles.Focused.Placeholder = filterStyles.Focused.Placeholder.
 		Foreground(lipgloss.Darken(styles.Theme.StatusBarFilterFg(), 0.2)).
 		Background(lipgloss.Darken(styles.Theme.StatusBarFilterBg(), 0.1))
 
-	m.filter.Styles.Focused.Text = m.filter.Styles.Focused.Text.
+	filterStyles.Focused.Text = filterStyles.Focused.Text.
 		Foreground(styles.Theme.StatusBarFilterTextFg()).
 		Background(lipgloss.Darken(styles.Theme.StatusBarFilterBg(), 0.1))
+
+	m.filter.SetStyles(filterStyles)
 }
 
 func (m *Model) Init() tea.Cmd {
