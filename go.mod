@@ -9,7 +9,7 @@ go 1.24.4
 
 replace (
 	// TODO: https://github.com/charmbracelet/bubbles/pull/823
-	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250809051023-35ab0d6ce52c
+	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250809091447-b4884c2f81fc
 	github.com/charmbracelet/lipgloss/v2 => github.com/lrstanley/lipgloss/v2 v2.0.0-beta.6
 	github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b
 )
