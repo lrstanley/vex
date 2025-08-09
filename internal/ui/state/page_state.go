@@ -305,20 +305,16 @@ func (s *pageState) ShortHelp() []key.Binding {
 	page := s.Get()
 	keys := page.ShortHelp()
 
-	if page.GetSupportFiltering() && !types.KeyBindingContains(keys, types.KeyFilter) {
-		prepended = append(prepended, types.KeyFilter)
-	}
-
 	if !types.KeyBindingContains(keys, types.KeyCommander) {
 		prepended = append(prepended, types.KeyCommander)
 	}
 
-	if !types.KeyBindingContains(keys, types.KeyHelp) {
-		prepended = append(prepended, types.KeyHelp)
+	if page.GetSupportFiltering() && !types.KeyBindingContains(keys, types.KeyFilter) {
+		prepended = append(prepended, types.KeyFilter)
 	}
 
-	if !types.KeyBindingContains(keys, types.KeyQuit) {
-		keys = append(keys, types.KeyQuit) // Add to the end.
+	if !types.KeyBindingContains(keys, types.KeyHelp) {
+		prepended = append(prepended, types.KeyHelp)
 	}
 
 	return append(prepended, keys...)
@@ -337,12 +333,12 @@ func (s *pageState) FullHelp() [][]key.Binding {
 		prepended = append(prepended, types.KeyRefresh)
 	}
 
-	if page.GetSupportFiltering() && !types.KeyBindingContainsFull(keys, types.KeyFilter) {
-		appended = append(appended, types.KeyFilter)
-	}
-
 	if !types.KeyBindingContainsFull(keys, types.KeyCommander) {
 		appended = append(appended, types.KeyCommander)
+	}
+
+	if page.GetSupportFiltering() && !types.KeyBindingContainsFull(keys, types.KeyFilter) {
+		appended = append(appended, types.KeyFilter)
 	}
 
 	if !types.KeyBindingContainsFull(keys, types.KeyHelp) {

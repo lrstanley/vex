@@ -21,6 +21,7 @@ import (
 
 var Theme = (&ThemeConfig{
 	registry: tint.NewRegistry(
+		tint.TintCga,
 		tint.TintPencilDark,
 		tint.TintDjango,
 		tint.TintAfterglow,
@@ -35,7 +36,6 @@ var Theme = (&ThemeConfig{
 		tint.TintUbuntu,
 		tint.TintTomorrowNightBurns,
 		tint.TintSolarizedDarkPatched,
-		tint.TintCga,
 		// tint.DefaultTints()...,
 	),
 }).set()
@@ -59,10 +59,8 @@ type ThemeConfig struct {
 	scrollbarThumbFg color.Color `accessor:"getter"`
 	scrollbarTrackFg color.Color `accessor:"getter"`
 
-	statusBarBg           color.Color `accessor:"getter"`
-	statusBarFg           color.Color `accessor:"getter"`
-	statusBarActivePageFg color.Color `accessor:"getter"`
-	statusBarActivePageBg color.Color `accessor:"getter"`
+	barBg                 color.Color `accessor:"getter"`
+	barFg                 color.Color `accessor:"getter"`
 	statusBarFilterTextFg color.Color `accessor:"getter"`
 	statusBarFilterBg     color.Color `accessor:"getter"`
 	statusBarFilterFg     color.Color `accessor:"getter"`
@@ -78,9 +76,9 @@ type ThemeConfig struct {
 	dialogBorderGradientFromFg color.Color `accessor:"getter"`
 	dialogBorderGradientToFg   color.Color `accessor:"getter"`
 
-	dialogTitleFg     color.Color `accessor:"getter"`
-	dialogTitleFromFg color.Color `accessor:"getter"`
-	dialogTitleToFg   color.Color `accessor:"getter"`
+	titleFg     color.Color `accessor:"getter"`
+	titleFromFg color.Color `accessor:"getter"`
+	titleToFg   color.Color `accessor:"getter"`
 
 	pageBorderFg       color.Color `accessor:"getter"`
 	pageBorderFilterFg color.Color `accessor:"getter"`
@@ -122,10 +120,8 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.scrollbarThumbFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 	tc.scrollbarTrackFg = tc.adapt(lipgloss.Darken(t.Bg, 0.3), lipgloss.Lighten(t.Bg, 0.3))
 
-	tc.statusBarFg = tc.adapt(t.Fg, t.Fg)
-	tc.statusBarBg = tc.adapt(lipgloss.Lighten(t.Bg, 0.1), lipgloss.Darken(t.Bg, 0.2))
-	tc.statusBarActivePageFg = tc.adapt(lipgloss.Lighten(t.BrightCyan, 0.4), lipgloss.Lighten(t.BrightCyan, 0.4))
-	tc.statusBarActivePageBg = tc.adapt(lipgloss.Darken(t.BrightCyan, 0.4), lipgloss.Darken(t.BrightCyan, 0.4))
+	tc.barFg = tc.adapt(t.Fg, t.Fg)
+	tc.barBg = tc.adapt(lipgloss.Lighten(t.Bg, 0.1), lipgloss.Darken(t.Bg, 0.2))
 	tc.statusBarFilterTextFg = white
 	tc.statusBarFilterBg = tc.infoBg
 	tc.statusBarFilterFg = tc.infoFg
@@ -141,9 +137,9 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.dialogBorderGradientFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
 	tc.dialogBorderGradientToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
-	tc.dialogTitleFg = tc.adapt(lipgloss.Darken(t.BrightRed, 0.5), lipgloss.Lighten(t.BrightRed, 0.5))
-	tc.dialogTitleFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
-	tc.dialogTitleToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
+	tc.titleFg = tc.adapt(lipgloss.Darken(t.BrightRed, 0.5), lipgloss.Lighten(t.BrightRed, 0.5))
+	tc.titleFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
+	tc.titleToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
 	tc.pageBorderFg = tc.adapt(lipgloss.Darken(t.Purple, 0.2), lipgloss.Lighten(t.Purple, 0.2))
 	tc.pageBorderFilterFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.3), lipgloss.Lighten(t.BrightBlue, 0.3))

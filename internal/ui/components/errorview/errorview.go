@@ -110,7 +110,7 @@ func (m *Model) View() string {
 	out = append(out, m.titleStyle.Render(styles.Title(
 		fmt.Sprintf("%d errors", len(m.errors)),
 		m.maxWidth-m.titleStyle.GetHorizontalFrameSize(),
-		"/",
+		styles.IconTitleGradient,
 		styles.Theme.ErrorFg(),
 		styles.Theme.ErrorFg(),
 		styles.Theme.WarningFg(),

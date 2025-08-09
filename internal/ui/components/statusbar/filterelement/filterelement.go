@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
@@ -57,7 +58,7 @@ func New(app types.AppState) *Model {
 	m.filter.Prompt = ""
 	m.setStyles()
 	m.filter.KeyMap.Paste = key.NewBinding(key.WithKeys("ctrl+v", "ctrl+shift+v"))
-	m.inputWidth = filterMaxWidth - lipgloss.Width(filterPrefix) - m.prefixStyle.GetHorizontalFrameSize()
+	m.inputWidth = filterMaxWidth - ansi.StringWidth(filterPrefix) - m.prefixStyle.GetHorizontalFrameSize()
 	m.filter.SetWidth(m.inputWidth)
 	return m
 }

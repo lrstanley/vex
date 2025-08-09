@@ -25,9 +25,8 @@ type Model struct {
 	operations []types.StatusOperationMsg
 
 	// Styles.
-	statusStyle     lipgloss.Style
-	operationStyle  lipgloss.Style
-	activePageStyle lipgloss.Style
+	statusStyle    lipgloss.Style
+	operationStyle lipgloss.Style
 
 	// Child components.
 	spinner spinner.Model
@@ -48,7 +47,7 @@ func New(app types.AppState) *Model {
 
 func (m *Model) setStyles() {
 	m.spinner.Style = lipgloss.NewStyle().
-		Foreground(styles.Theme.StatusBarFg())
+		Foreground(styles.Theme.BarFg())
 
 	m.statusStyle = lipgloss.NewStyle().
 		Padding(0, 1)
@@ -56,11 +55,6 @@ func (m *Model) setStyles() {
 	m.operationStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.InfoFg()).
 		Background(styles.Theme.InfoBg()).
-		Padding(0, 1)
-
-	m.activePageStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.StatusBarActivePageFg()).
-		Background(styles.Theme.StatusBarActivePageBg()).
 		Padding(0, 1)
 }
 
@@ -130,8 +124,6 @@ func (m *Model) View() string {
 			Background(bg).
 			Render(m.status.Text)
 	default:
-		return m.activePageStyle.Render(
-			m.app.Page().Get().GetTitle(),
-		)
+		return ""
 	}
 }

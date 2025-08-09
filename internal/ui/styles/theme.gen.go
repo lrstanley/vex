@@ -105,40 +105,22 @@ func (tc *ThemeConfig) ScrollbarTrackFg() color.Color {
 	return tc.scrollbarTrackFg
 }
 
-func (tc *ThemeConfig) StatusBarBg() color.Color {
+func (tc *ThemeConfig) BarBg() color.Color {
 	if tc == nil {
 		return nil
 	}
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
-	return tc.statusBarBg
+	return tc.barBg
 }
 
-func (tc *ThemeConfig) StatusBarFg() color.Color {
+func (tc *ThemeConfig) BarFg() color.Color {
 	if tc == nil {
 		return nil
 	}
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
-	return tc.statusBarFg
-}
-
-func (tc *ThemeConfig) StatusBarActivePageFg() color.Color {
-	if tc == nil {
-		return nil
-	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
-	return tc.statusBarActivePageFg
-}
-
-func (tc *ThemeConfig) StatusBarActivePageBg() color.Color {
-	if tc == nil {
-		return nil
-	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
-	return tc.statusBarActivePageBg
+	return tc.barFg
 }
 
 func (tc *ThemeConfig) StatusBarFilterTextFg() color.Color {
@@ -249,31 +231,31 @@ func (tc *ThemeConfig) DialogBorderGradientToFg() color.Color {
 	return tc.dialogBorderGradientToFg
 }
 
-func (tc *ThemeConfig) DialogTitleFg() color.Color {
+func (tc *ThemeConfig) TitleFg() color.Color {
 	if tc == nil {
 		return nil
 	}
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
-	return tc.dialogTitleFg
+	return tc.titleFg
 }
 
-func (tc *ThemeConfig) DialogTitleFromFg() color.Color {
+func (tc *ThemeConfig) TitleFromFg() color.Color {
 	if tc == nil {
 		return nil
 	}
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
-	return tc.dialogTitleFromFg
+	return tc.titleFromFg
 }
 
-func (tc *ThemeConfig) DialogTitleToFg() color.Color {
+func (tc *ThemeConfig) TitleToFg() color.Color {
 	if tc == nil {
 		return nil
 	}
 	tc.mu.Lock()
 	defer tc.mu.Unlock()
-	return tc.dialogTitleToFg
+	return tc.titleToFg
 }
 
 func (tc *ThemeConfig) PageBorderFg() color.Color {

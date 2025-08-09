@@ -95,7 +95,7 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		PageModel: &types.PageModel{
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
-			ShortKeyBinds:    []key.Binding{},
+			ShortKeyBinds:    []key.Binding{types.KeyCopy, types.KeyToggleMask},
 			FullKeyBinds: [][]key.Binding{{
 				types.KeyCopy,
 				types.KeyToggleMask,
@@ -366,7 +366,7 @@ func (m *Model) View() string {
 }
 
 func (m *Model) GetTitle() string {
-	return fmt.Sprintf("Viewing Secret: %s%s", m.mount.Path, m.path)
+	return m.mount.Path + m.path
 }
 
 func (m *Model) TopRightBorder() string {

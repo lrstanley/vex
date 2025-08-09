@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package statusbar
+package titlebar
 
 import (
 	"os"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
-	"github.com/lrstanley/vex/internal/config"
 	"github.com/lrstanley/vex/internal/ui/state"
 	"github.com/lrstanley/vex/internal/ui/testui"
 )
@@ -23,14 +22,14 @@ func TestMain(m *testing.M) {
 
 func TestNew(t *testing.T) {
 	t.Parallel()
-	t.Run("basic-statusbar", func(t *testing.T) {
+	t.Run("basic-infobar", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
 		m.Height = testui.DefaultTermHeight
 		m.Width = testui.DefaultTermWidth
 		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, config.AppName)
+		tm.ExpectViewContains(t, "mock-page", "help")
 		tm.ExpectViewSnapshot(t)
 	})
 
@@ -41,7 +40,7 @@ func TestNew(t *testing.T) {
 		m.Height = 0
 		m.Width = 0
 		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, config.AppName)
+		tm.ExpectViewContains(t, "mock-page", "help")
 		tm.ExpectViewSnapshot(t)
 	})
 
@@ -52,7 +51,7 @@ func TestNew(t *testing.T) {
 		m.Height = 3
 		m.Width = 40
 		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, config.AppName)
+		tm.ExpectViewContains(t, "mock-page", "help")
 		tm.ExpectViewSnapshot(t)
 	})
 }

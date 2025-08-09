@@ -113,7 +113,7 @@ func (m *Model) View() string {
 }
 
 func (m *Model) GetTitle() string {
-	return "Secrets: " + m.mount.Path + m.path
+	return m.mount.Path + m.path
 }
 
 func (m *Model) TopMiddleBorder() string {

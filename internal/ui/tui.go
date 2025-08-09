@@ -15,6 +15,7 @@ import (
 	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar"
+	"github.com/lrstanley/vex/internal/ui/components/titlebar"
 	"github.com/lrstanley/vex/internal/ui/dialogs/commander"
 	"github.com/lrstanley/vex/internal/ui/dialogs/help"
 	"github.com/lrstanley/vex/internal/ui/pages/aclpolicies"
@@ -77,6 +78,7 @@ type Model struct { //nolint:recvcheck
 	cmdConfig     commander.Config
 
 	// Sub-components.
+	titlebar  types.Component
 	statusbar types.Component
 }
 
@@ -94,6 +96,7 @@ func New(client types.Client) *Model {
 			Pages: pageInitializer(app),
 		},
 		focused:   types.FocusPage,
+		titlebar:  titlebar.New(app),
 		statusbar: statusbar.New(app),
 	}
 }
@@ -106,6 +109,7 @@ func (m Model) Init() tea.Cmd {
 		tea.Batch(
 			m.app.Client().Init(),
 			m.app.Dialog().Init(),
+			m.titlebar.Init(),
 			m.statusbar.Init(),
 			tea.SetWindowTitle(config.AppTitle("")),
 		),
@@ -130,10 +134,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, tea.Batch(
 			m.app.Page().Update(tea.WindowSizeMsg{
-				Height: msg.Height - 1, // -1=statusbar.
+				Height: msg.Height - 2, // -1=titlebar, -1=statusbar.
 				Width:  msg.Width,
 			}),
 			m.app.Dialog().Update(msg),
+			m.titlebar.Update(tea.WindowSizeMsg{
+				Height: 1,
+				Width:  msg.Width,
+			}),
 			m.statusbar.Update(tea.WindowSizeMsg{
 				Height: 1,
 				Width:  msg.Width,
@@ -213,6 +221,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.app.Page().Update(msg),
 		m.app.Dialog().Update(msg),
 		m.app.Client().Update(msg),
+		m.titlebar.Update(msg),
 		m.statusbar.Update(msg),
 	)...)
 }
@@ -232,6 +241,7 @@ func (m *Model) View() string {
 		Render(
 			lipgloss.JoinVertical(
 				lipgloss.Top,
+				m.titlebar.View(),
 				m.app.Page().View(),
 				m.statusbar.View(),
 			),

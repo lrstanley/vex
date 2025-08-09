@@ -5,12 +5,14 @@
 package statusbar
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 	vapi "github.com/hashicorp/vault/api"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/shorthelp"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar/filterelement"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar/statuselement"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar/vaultelement"
@@ -37,7 +39,6 @@ type Model struct {
 	// Child components.
 	statusEl *statuselement.Model
 	filterEl *filterelement.Model
-	helpEl   *shorthelp.Model
 	vaultEl  *vaultelement.Model
 }
 
@@ -47,35 +48,17 @@ func New(app types.AppState) *Model {
 		app:            app,
 		statusEl:       statuselement.New(app),
 		filterEl:       filterelement.New(app),
-		helpEl:         shorthelp.New(),
 		vaultEl:        vaultelement.New(app),
 	}
 
 	m.setStyles()
-	m.updateKeyBinds()
 	return m
 }
 
 func (m *Model) setStyles() {
 	m.baseStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.StatusBarFg()).
-		Background(styles.Theme.StatusBarBg())
-
-	helpStyles := shorthelp.Styles{}
-	helpStyles.Base = helpStyles.Base.
-		Foreground(styles.Theme.StatusBarFg()).
-		Background(styles.Theme.StatusBarBg()).
-		Padding(0, 1)
-	helpStyles.Key = helpStyles.Key.
-		Foreground(styles.Theme.ShortHelpKeyFg()).
-		Background(styles.Theme.StatusBarBg())
-	helpStyles.Desc = helpStyles.Desc.
-		Foreground(lipgloss.Darken(styles.Theme.StatusBarFg(), 0.3)).
-		Background(styles.Theme.StatusBarBg())
-	helpStyles.Separator = helpStyles.Separator.
-		Foreground(lipgloss.Darken(styles.Theme.StatusBarFg(), 0.3)).
-		Background(styles.Theme.StatusBarBg())
-	m.helpEl.SetStyles(helpStyles)
+		Foreground(styles.Theme.BarFg()).
+		Background(styles.Theme.BarBg())
 
 	m.logoStyle = lipgloss.NewStyle().
 		Padding(0, 1).
@@ -88,7 +71,6 @@ func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.statusEl.Init(),
 		m.filterEl.Init(),
-		m.helpEl.Init(),
 		m.vaultEl.Init(),
 	)
 }
@@ -110,7 +92,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		} else {
 			m.isFiltering = false
 		}
-		m.updateKeyBinds()
 	case tea.KeyMsg:
 		if key.Matches(msg, types.KeyQuit) {
 			return types.AppQuit()
@@ -126,13 +107,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		cmds,
 		m.statusEl.Update(msg),
 		m.filterEl.Update(msg),
-		m.helpEl.Update(msg),
 		m.vaultEl.Update(msg),
 	)...)
-}
-
-func (m *Model) updateKeyBinds() {
-	m.helpEl.SetKeyBinds(m.app.Page().ShortHelp()...)
 }
 
 func (m *Model) View() string {
@@ -140,25 +116,32 @@ func (m *Model) View() string {
 		return ""
 	}
 
-	var out []string
+	var status string
 
 	if m.isFiltering {
-		out = append(out, m.filterEl.View())
+		status = m.filterEl.View()
 	} else {
-		out = append(out, m.statusEl.View())
+		status = m.statusEl.View()
 	}
+	statusw := ansi.StringWidth(status)
 
-	vault := m.vaultEl.View()
 	logo := m.logoStyle.Render("vex")
+	logow := ansi.StringWidth(logo)
 
-	available := m.Width - styles.W(append(out, vault, logo)...)
+	m.vaultEl.Width = m.Width - logow
+	vault := m.vaultEl.View()
+	vaultw := ansi.StringWidth(vault)
 
-	m.helpEl.SetMaxWidth(available)
-	help := m.baseStyle.Width(available).Align(lipgloss.Right).Render(m.helpEl.View())
+	// This allows "overlapping" of the status on top of the regular statusbar elements.
+	trailing := ansi.Cut(
+		m.baseStyle.Render(strings.Repeat(" ", max(0, m.Width-vaultw-logow)))+vault+logo,
+		statusw,
+		m.Width,
+	)
 
-	out = append(out, help)
-	out = append(out, vault)
-	out = append(out, logo)
-
-	return lipgloss.JoinHorizontal(lipgloss.Left, out...)
+	return lipgloss.JoinHorizontal(
+		lipgloss.Left,
+		status,
+		trailing,
+	)
 }

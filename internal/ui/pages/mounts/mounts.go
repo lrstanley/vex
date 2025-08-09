@@ -44,6 +44,7 @@ func New(app types.AppState) *Model {
 			Commands:         Commands,
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
+			ShortKeyBinds:    []key.Binding{types.KeyDetails},
 			FullKeyBinds:     [][]key.Binding{{types.KeyDetails}},
 		},
 		app: app,

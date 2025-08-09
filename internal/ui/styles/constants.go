@@ -19,6 +19,7 @@ const (
 	IconFilter           = "🔍"
 	IconRefresh          = "⟳"
 	IconFlag             = "⚑"
+	IconTitleGradient    = "/"
 
 	IconCaution     = "⚠"
 	IconMaybeDanger = "⁈"
