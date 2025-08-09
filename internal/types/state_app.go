@@ -7,6 +7,7 @@ package types
 import (
 	"time"
 
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea/v2"
 )
 
@@ -63,8 +64,14 @@ func ClearAppFilter() tea.Cmd {
 }
 
 func SetClipboard(content string) tea.Cmd {
-	return tea.Batch(
+	return tea.Sequence(
+		// Use OSC 52 where possible, but native clipboard for fallback (and if available
+		// e.g. would need xclip or xsel on linux).
 		tea.SetClipboard(content),
+		func() tea.Msg {
+			_ = clipboard.WriteAll(content)
+			return nil
+		},
 		SendStatus("copied to clipboard", Info, 1*time.Second),
 	)
 }

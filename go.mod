@@ -18,6 +18,7 @@ require (
 	github.com/Code-Hex/go-generics-cache v1.5.1
 	github.com/alecthomas/chroma/v2 v2.20.0
 	github.com/alecthomas/kong v1.12.0
+	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4
 	github.com/charmbracelet/colorprofile v0.3.1
@@ -38,7 +39,6 @@ require (
 )
 
 require (
-	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20250808135251-9dd1310a05c0 // indirect
