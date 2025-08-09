@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/table"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/lrstanley/vex/internal/fuzzy"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/loader"
@@ -236,11 +237,11 @@ func (m *Model[T]) calculateColumnWidths() []int {
 
 	// Calculate minimum width needed for each column.
 	for i := range m.columns {
-		colWidths[i] = lipgloss.Width(m.columns[i])
+		colWidths[i] = ansi.StringWidth(m.columns[i])
 		for _, data := range m.filtered {
 			row := m.config.RowFn(data)
 			if i < len(row) {
-				colWidths[i] = max(colWidths[i], lipgloss.Width(row[i]))
+				colWidths[i] = max(colWidths[i], ansi.StringWidth(row[i]))
 			}
 		}
 	}

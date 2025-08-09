@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/lrstanley/vex/internal/cache"
 )
 
@@ -168,7 +169,7 @@ func Border(content string, fg color.Color, element any) string { // nolint:funl
 
 	embeddedText := BorderFromElement(element)
 	border := lipgloss.RoundedBorder()
-	baseStyle := lipgloss.NewStyle().Foreground(Theme.DialogTitleFg())
+	baseStyle := lipgloss.NewStyle().Foreground(Theme.TitleFg())
 	bg := GetBorderGradient(height+2, width+2) // +2=borders.
 
 	wrapBrackets := func(text string) string {
@@ -193,14 +194,14 @@ func Border(content string, fg color.Color, element any) string { // nolint:funl
 		rightText = wrapBrackets(rightText)
 
 		// Calculate length of border between embedded texts.
-		remaining := max(0, width-lipgloss.Width(leftText)-lipgloss.Width(middleText)-lipgloss.Width(rightText)-2) // -2=border.
-		leftBorderLen := max(0, (width/2)-lipgloss.Width(leftText)-(lipgloss.Width(middleText)/2)-1)
+		remaining := max(0, width-ansi.StringWidth(leftText)-ansi.StringWidth(middleText)-ansi.StringWidth(rightText)-2) // -2=border.
+		leftBorderLen := max(0, (width/2)-ansi.StringWidth(leftText)-(ansi.StringWidth(middleText)/2)-1)
 		rightBorderLen := max(0, remaining-leftBorderLen)
 
 		// Build gradient border segments.
 		var leftBorderSegment, rightBorderSegment strings.Builder
 
-		gradientOffset := 1 + lipgloss.Width(leftText)
+		gradientOffset := 1 + ansi.StringWidth(leftText)
 		for range leftBorderLen {
 			var c color.Color
 			if fg == nil {
@@ -212,7 +213,7 @@ func Border(content string, fg color.Color, element any) string { // nolint:funl
 			leftBorderSegment.WriteString(lipgloss.NewStyle().Foreground(c).Render(between))
 		}
 
-		gradientOffset += lipgloss.Width(middleText)
+		gradientOffset += ansi.StringWidth(middleText)
 		for range rightBorderLen {
 			var c color.Color
 			if fg == nil {

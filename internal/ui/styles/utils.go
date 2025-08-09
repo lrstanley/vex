@@ -21,7 +21,7 @@ import (
 //
 // Inspired by charmbraclet/crush.
 func Title(input string, width int, char string, main, from, to color.Color) string {
-	length := lipgloss.Width(input) + 1 // +1 for the space.
+	length := ansi.StringWidth(input) + 1 // +1 for the space.
 	remaining := width - length
 
 	s := lipgloss.NewStyle().Foreground(main)

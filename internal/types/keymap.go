@@ -39,7 +39,7 @@ var (
 	)
 	KeyDetails = key.NewBinding(
 		key.WithKeys("d"),
-		key.WithHelp("d", "get details about resource"),
+		key.WithHelp("d", "view details"),
 	)
 	KeyCopy = key.NewBinding(
 		key.WithKeys("c"),
