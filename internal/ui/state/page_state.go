@@ -12,6 +12,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/debouncer"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/errorview"
 	"github.com/lrstanley/vex/internal/ui/components/loader"
@@ -245,7 +246,7 @@ func (s *pageState) View() string {
 	embeddedText := styles.BorderFromElement(p)
 
 	if p.GetSupportFiltering() && s.filter != "" {
-		embeddedText[styles.BottomRightBorder] = s.filterIconStyle.String() + s.filterStyle.Render("filter: "+styles.Trunc(s.filter, 20))
+		embeddedText[styles.BottomRightBorder] = s.filterIconStyle.String() + s.filterStyle.Render("filter: "+formatter.Trunc(s.filter, 20))
 	}
 
 	if p.GetRefreshInterval() > 0 {

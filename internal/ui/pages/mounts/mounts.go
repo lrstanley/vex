@@ -11,6 +11,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/datatable"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
@@ -134,8 +135,8 @@ func (m *Model) rowFn(value *types.Mount) []string {
 
 	return []string{
 		value.Path,
-		styles.Trunc(value.Type+sopts, 15),
-		styles.Trunc(value.Description, 40),
+		formatter.Trunc(value.Type+sopts, 15),
+		formatter.Trunc(value.Description, 40),
 		value.Accessor,
 		value.DeprecationStatus,
 		value.RunningVersion,

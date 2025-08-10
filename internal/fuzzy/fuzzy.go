@@ -71,7 +71,7 @@ func FindRankedRow[T any](filter string, values []T, valuesFn func(T) []string) 
 	}
 
 	// Sort by score (highest first).
-	for i := 0; i < len(results)-1; i++ {
+	for i := range len(results) - 1 {
 		for j := i + 1; j < len(results); j++ {
 			if results[i].score < results[j].score {
 				results[i], results[j] = results[j], results[i]

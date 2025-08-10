@@ -90,15 +90,6 @@ func Expand(v int) string {
 	return strings.Repeat("\n", v)
 }
 
-// Trunc truncates a string to a given length, adding a tail to the end if
-// the string is longer than the given length. This function is aware of ANSI
-// escape codes and will not break them, and accounts for wide-characters (such
-// as East-Asian characters and emojis).
-// This treats the text as a sequence of graphemes.
-func Trunc(s string, length int) string {
-	return ansi.Truncate(s, length, IconEllipsis)
-}
-
 // Pluralize returns a string with the count and the singular or plural form of
 // the word, primarily used for things like border based titles.
 func Pluralize(count int, singular, plural string) string {

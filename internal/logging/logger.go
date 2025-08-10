@@ -127,7 +127,7 @@ func RecoverPanic(src string, callbacks ...func()) {
 		fmt.Fprintf(file, "panic @ %s: %v\n", src, r)
 		fmt.Fprintf(file, "time: %s\n\n", ts.Format(time.RFC3339))
 		fmt.Fprintf(file, "stack:\n%s\n", string(debug.Stack()))
-		file.Close()
+		_ = file.Close()
 
 		for _, cb := range callbacks {
 			cb()

@@ -13,6 +13,7 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/lrstanley/vex/internal/cache"
+	"github.com/lrstanley/vex/internal/formatter"
 )
 
 // TODO: all of this logic is kinda a mess, but it solves the issue for now.
@@ -176,7 +177,7 @@ func Border(content string, fg color.Color, element any) string { // nolint:funl
 		if text != "" {
 			return fmt.Sprintf("%s%s%s",
 				baseStyle.Render("["),
-				Trunc(text, width-4),
+				formatter.Trunc(text, width-4),
 				baseStyle.Render("]"),
 			)
 		}

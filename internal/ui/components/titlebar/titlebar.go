@@ -10,6 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/shorthelp"
 	"github.com/lrstanley/vex/internal/ui/styles"
@@ -98,7 +99,7 @@ func (m *Model) View() string {
 	m.help.SetMaxWidth(m.Width)
 
 	var title string
-	titleText := styles.Trunc(" "+m.app.Page().Get().GetTitle(), MaxTitleWidth)
+	titleText := formatter.Trunc(" "+m.app.Page().Get().GetTitle(), MaxTitleWidth)
 	titlew := ansi.StringWidth(titleText)
 
 	if hw := ansi.StringWidth(m.help.View()); m.Width-titlew-hw > 3 {

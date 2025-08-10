@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -130,7 +131,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 func (m *Model) View() string {
 	if m.Width > 0 {
-		return m.styles.Base.Render(styles.Trunc(
+		return m.styles.Base.Render(formatter.Trunc(
 			m.help,
 			m.Width-m.styles.Base.GetHorizontalFrameSize(),
 		))

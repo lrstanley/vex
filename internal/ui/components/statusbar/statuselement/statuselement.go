@@ -5,6 +5,8 @@
 package statuselement
 
 import (
+	"strings"
+
 	"github.com/charmbracelet/bubbles/v2/spinner"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -122,7 +124,7 @@ func (m *Model) View() string {
 		return m.spinner.View() + m.statusStyle.
 			Foreground(fg).
 			Background(bg).
-			Render(m.status.Text)
+			Render(strings.TrimSpace(strings.Split(m.status.Text, "\n")[0]))
 	default:
 		return ""
 	}

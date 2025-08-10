@@ -7,6 +7,7 @@ package errorview
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -77,10 +78,14 @@ func (m *Model) SetWidth(width int) {
 	m.calculateMaxWidth()
 }
 
-func (m *Model) SetErrors(errors ...error) {
-	m.errors = make([]string, 0, len(errors))
-	for _, err := range unfoldErrors(errors...) {
-		m.errors = append(m.errors, strings.TrimSpace(err.Error()))
+func (m *Model) SetErrors(errs ...error) {
+	m.errors = make([]string, 0, len(errs))
+	for _, err := range errs {
+		e := strings.TrimSpace(err.Error())
+		if slices.Contains(m.errors, e) {
+			continue
+		}
+		m.errors = append(m.errors, e)
 	}
 	m.calculateMaxWidth()
 }
