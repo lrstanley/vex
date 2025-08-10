@@ -17,7 +17,8 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 )
 
-//go:generate go run github.com/masaushi/accessory@latest -type ThemeConfig -receiver tc -lock mu -output theme.gen.go
+// TODO: https://github.com/masaushi/accessory/pull/123
+//go:generate go run github.com/lrstanley/accessory@latest -type ThemeConfig -receiver tc -lock mu -output theme.gen.go
 
 var Theme = (&ThemeConfig{
 	registry: tint.NewRegistry(
@@ -66,6 +67,10 @@ type ThemeConfig struct {
 	statusBarFilterFg     color.Color `accessor:"getter"`
 	statusBarAddrBg       color.Color `accessor:"getter"`
 	statusBarAddrFg       color.Color `accessor:"getter"`
+	statusBarUserFg       color.Color `accessor:"getter"`
+	statusBarUserBg       color.Color `accessor:"getter"`
+	statusBarTokenTTLFg   color.Color `accessor:"getter"`
+	statusBarTokenTTLBg   color.Color `accessor:"getter"`
 	statusBarLogoBg       color.Color `accessor:"getter"`
 	statusBarLogoFg       color.Color `accessor:"getter"`
 
@@ -87,11 +92,28 @@ type ThemeConfig struct {
 	listItemSelectedFg color.Color `accessor:"getter"`
 }
 
-func (tc *ThemeConfig) adapt(light, dark color.Color) color.Color {
+func (tc *ThemeConfig) Adapt(light, dark color.Color) color.Color {
 	if tc.registry.Current().Dark {
 		return dark
 	}
 	return light
+}
+
+// AdaptAuto adapts a color based on the current theme being light or dark. v is the
+// float percentage to adjust the color by. If v is positive, dark will be lightened,
+// and light will be darkened. If v is negative, dark will be darkened, and light will
+// be lightened.
+func (tc *ThemeConfig) AdaptAuto(c color.Color, v float64) color.Color {
+	if tc.registry.Current().Dark {
+		if v < 0 {
+			return lipgloss.Darken(c, -v)
+		}
+		return lipgloss.Lighten(c, v)
+	}
+	if v < 0 {
+		return lipgloss.Lighten(c, -v)
+	}
+	return lipgloss.Darken(c, v)
 }
 
 func (tc *ThemeConfig) set() *ThemeConfig {
@@ -103,49 +125,53 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.chroma = chromatint.StyleEntry(t, false)
 	tc.fg = t.Fg
 
-	white := tc.adapt(lipgloss.Lighten(t.White, 0.2), lipgloss.Lighten(t.White, 0.2))
+	white := tc.Adapt(lipgloss.Lighten(t.White, 0.2), lipgloss.Lighten(t.White, 0.2))
 
 	statusFgLighten := 0.4
 	statusBgDarken := 0.6
 
-	tc.successFg = tc.adapt(lipgloss.Lighten(t.BrightGreen, statusFgLighten), lipgloss.Lighten(t.BrightGreen, statusFgLighten))
-	tc.successBg = tc.adapt(lipgloss.Darken(t.BrightGreen, statusBgDarken), lipgloss.Darken(t.BrightGreen, statusBgDarken))
-	tc.warningFg = tc.adapt(lipgloss.Lighten(t.BrightYellow, statusFgLighten), lipgloss.Lighten(t.BrightYellow, statusFgLighten))
-	tc.warningBg = tc.adapt(lipgloss.Darken(t.BrightYellow, statusBgDarken), lipgloss.Darken(t.BrightYellow, statusBgDarken))
-	tc.errorFg = tc.adapt(lipgloss.Lighten(t.BrightRed, statusFgLighten), lipgloss.Lighten(t.BrightRed, statusFgLighten))
-	tc.errorBg = tc.adapt(lipgloss.Darken(t.BrightRed, statusBgDarken), lipgloss.Darken(t.BrightRed, statusBgDarken))
-	tc.infoFg = tc.adapt(lipgloss.Lighten(t.BrightBlue, statusFgLighten), lipgloss.Lighten(t.BrightBlue, statusFgLighten))
-	tc.infoBg = tc.adapt(lipgloss.Darken(t.BrightBlue, statusBgDarken), lipgloss.Darken(t.BrightBlue, statusBgDarken))
+	tc.successFg = tc.Adapt(lipgloss.Lighten(t.BrightGreen, statusFgLighten), lipgloss.Lighten(t.BrightGreen, statusFgLighten))
+	tc.successBg = tc.Adapt(lipgloss.Darken(t.BrightGreen, statusBgDarken), lipgloss.Darken(t.BrightGreen, statusBgDarken))
+	tc.warningFg = tc.Adapt(lipgloss.Lighten(t.BrightYellow, statusFgLighten), lipgloss.Lighten(t.BrightYellow, statusFgLighten))
+	tc.warningBg = tc.Adapt(lipgloss.Darken(t.BrightYellow, statusBgDarken), lipgloss.Darken(t.BrightYellow, statusBgDarken))
+	tc.errorFg = tc.Adapt(lipgloss.Lighten(t.BrightRed, statusFgLighten), lipgloss.Lighten(t.BrightRed, statusFgLighten))
+	tc.errorBg = tc.Adapt(lipgloss.Darken(t.BrightRed, statusBgDarken), lipgloss.Darken(t.BrightRed, statusBgDarken))
+	tc.infoFg = tc.Adapt(lipgloss.Lighten(t.BrightBlue, statusFgLighten), lipgloss.Lighten(t.BrightBlue, statusFgLighten))
+	tc.infoBg = tc.Adapt(lipgloss.Darken(t.BrightBlue, statusBgDarken), lipgloss.Darken(t.BrightBlue, statusBgDarken))
 
-	tc.scrollbarThumbFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
-	tc.scrollbarTrackFg = tc.adapt(lipgloss.Darken(t.Bg, 0.3), lipgloss.Lighten(t.Bg, 0.3))
+	tc.scrollbarThumbFg = tc.AdaptAuto(t.BrightBlue, 0.2)
+	tc.scrollbarTrackFg = tc.AdaptAuto(t.Bg, 0.3)
 
-	tc.barFg = tc.adapt(t.Fg, t.Fg)
-	tc.barBg = tc.adapt(lipgloss.Lighten(t.Bg, 0.1), lipgloss.Darken(t.Bg, 0.2))
+	tc.barFg = tc.Adapt(t.Fg, t.Fg)
+	tc.barBg = tc.Adapt(lipgloss.Lighten(t.Bg, 0.1), lipgloss.Darken(t.Bg, 0.2))
 	tc.statusBarFilterTextFg = white
 	tc.statusBarFilterBg = tc.infoBg
 	tc.statusBarFilterFg = tc.infoFg
 	tc.statusBarAddrFg = white
-	tc.statusBarAddrBg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.4), lipgloss.Darken(t.BrightBlue, 0.4))
+	tc.statusBarAddrBg = lipgloss.Darken(t.BrightBlue, 0.4)
+	tc.statusBarUserFg = white
+	tc.statusBarUserBg = lipgloss.Darken(t.BrightCyan, 0.4)
+	tc.statusBarTokenTTLFg = white
+	tc.statusBarTokenTTLBg = lipgloss.Darken(t.BrightYellow, 0.6)
 	tc.statusBarLogoFg = white
-	tc.statusBarLogoBg = tc.adapt(t.Purple, lipgloss.Lighten(t.Bg, 0.2))
+	tc.statusBarLogoBg = tc.Adapt(t.Purple, lipgloss.Lighten(t.Bg, 0.2))
 
-	tc.shortHelpKeyFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.3), lipgloss.Lighten(t.BrightPurple, 0.4))
+	tc.shortHelpKeyFg = tc.Adapt(lipgloss.Darken(t.BrightPurple, 0.3), lipgloss.Lighten(t.BrightPurple, 0.4))
 
 	tc.dialogFg = white
-	tc.dialogBorderFg = tc.adapt(t.Purple, t.Purple)
-	tc.dialogBorderGradientFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
-	tc.dialogBorderGradientToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
+	tc.dialogBorderFg = tc.Adapt(t.Purple, t.Purple)
+	tc.dialogBorderGradientFromFg = tc.AdaptAuto(t.BrightPurple, 0.2)
+	tc.dialogBorderGradientToFg = tc.AdaptAuto(t.BrightBlue, 0.2)
 
-	tc.titleFg = tc.adapt(lipgloss.Darken(t.BrightRed, 0.5), lipgloss.Lighten(t.BrightRed, 0.5))
-	tc.titleFromFg = tc.adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
-	tc.titleToFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
+	tc.titleFg = tc.Adapt(lipgloss.Darken(t.BrightRed, 0.5), lipgloss.Lighten(t.BrightRed, 0.5))
+	tc.titleFromFg = tc.Adapt(lipgloss.Darken(t.BrightPurple, 0.2), lipgloss.Lighten(t.BrightPurple, 0.2))
+	tc.titleToFg = tc.Adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
-	tc.pageBorderFg = tc.adapt(lipgloss.Darken(t.Purple, 0.2), lipgloss.Lighten(t.Purple, 0.2))
-	tc.pageBorderFilterFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.3), lipgloss.Lighten(t.BrightBlue, 0.3))
+	tc.pageBorderFg = tc.Adapt(lipgloss.Darken(t.Purple, 0.2), lipgloss.Lighten(t.Purple, 0.2))
+	tc.pageBorderFilterFg = tc.Adapt(lipgloss.Darken(t.BrightBlue, 0.3), lipgloss.Lighten(t.BrightBlue, 0.3))
 
-	tc.listItemFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.6), lipgloss.Lighten(t.BrightBlue, 0.6))
-	tc.listItemSelectedFg = tc.adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
+	tc.listItemFg = tc.Adapt(lipgloss.Darken(t.BrightBlue, 0.6), lipgloss.Lighten(t.BrightBlue, 0.6))
+	tc.listItemSelectedFg = tc.Adapt(lipgloss.Darken(t.BrightBlue, 0.2), lipgloss.Lighten(t.BrightBlue, 0.2))
 
 	borderGradientCache.DeleteAll()
 	return tc

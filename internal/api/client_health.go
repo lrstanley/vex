@@ -6,7 +6,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -14,25 +13,22 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 )
 
-func (c *client) GetHealth() tea.Cmd {
-	return func() tea.Msg {
+func (c *client) GetHealth(uuid string) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientConfigMsg, error) {
 		health := c.health.Get()
 		if health == nil {
 			var err error
 			health, err = c.api.Sys().Health()
 			if err != nil {
-				return types.ClientMsg{
-					Msg:   types.ClientConfigMsg{Address: c.api.Address()},
-					Error: fmt.Errorf("get health: %w", err),
-				}
+				return nil, err
 			}
 			c.health.Set(health, HealthCheckInterval-(1*time.Second))
 		}
-		return types.ClientMsg{Msg: types.ClientConfigMsg{
+		return &types.ClientConfigMsg{
 			Address: c.api.Address(),
 			Health:  health,
-		}}
-	}
+		}, nil
+	})
 }
 
 func (c *client) GetConfigState(uuid string) tea.Cmd {

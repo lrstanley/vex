@@ -16,7 +16,10 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 )
 
-const HealthCheckInterval = 5 * time.Second
+const (
+	HealthCheckInterval = 5 * time.Second
+	TokenLookupInterval = 1 * time.Minute
+)
 
 var _ types.Client = &client{} // Ensure client implements types.Client.
 
@@ -56,7 +59,10 @@ func NewClient() (types.Client, error) {
 }
 
 func (c *client) Init() tea.Cmd {
-	return c.GetHealth()
+	return tea.Batch(
+		c.GetHealth(""),
+		c.TokenLookupSelf(""),
+	)
 }
 
 func (c *client) Update(msg tea.Msg) tea.Cmd {
@@ -75,14 +81,19 @@ func (c *client) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := vm.Msg.(type) {
 	case types.ClientRequestConfigMsg:
-		return c.GetHealth()
+		return c.GetHealth("")
 	case types.ClientConfigMsg:
-
-		cmds = append(cmds, types.CmdAfterDuration(c.GetHealth(), HealthCheckInterval))
+		if vm.UUID == "" {
+			cmds = append(cmds, types.CmdAfterDuration(c.GetHealth(""), HealthCheckInterval))
+		}
 
 		if !c.firstHealthChecked.Load() && msg.Health != nil {
 			c.firstHealthChecked.Store(true)
 			cmds = append(cmds, types.SendStatus("initial health checked", types.Success, 1*time.Second))
+		}
+	case types.ClientTokenLookupSelfMsg:
+		if vm.UUID == "" {
+			cmds = append(cmds, types.CmdAfterDuration(c.TokenLookupSelf(""), TokenLookupInterval))
 		}
 	}
 

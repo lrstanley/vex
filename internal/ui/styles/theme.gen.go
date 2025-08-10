@@ -10,8 +10,8 @@ func (tc *ThemeConfig) Fg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.fg
 }
 
@@ -19,8 +19,8 @@ func (tc *ThemeConfig) SuccessFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.successFg
 }
 
@@ -28,8 +28,8 @@ func (tc *ThemeConfig) SuccessBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.successBg
 }
 
@@ -37,8 +37,8 @@ func (tc *ThemeConfig) WarningFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.warningFg
 }
 
@@ -46,8 +46,8 @@ func (tc *ThemeConfig) WarningBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.warningBg
 }
 
@@ -55,8 +55,8 @@ func (tc *ThemeConfig) ErrorFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.errorFg
 }
 
@@ -64,8 +64,8 @@ func (tc *ThemeConfig) ErrorBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.errorBg
 }
 
@@ -73,8 +73,8 @@ func (tc *ThemeConfig) InfoFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.infoFg
 }
 
@@ -82,8 +82,8 @@ func (tc *ThemeConfig) InfoBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.infoBg
 }
 
@@ -91,8 +91,8 @@ func (tc *ThemeConfig) ScrollbarThumbFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.scrollbarThumbFg
 }
 
@@ -100,8 +100,8 @@ func (tc *ThemeConfig) ScrollbarTrackFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.scrollbarTrackFg
 }
 
@@ -109,8 +109,8 @@ func (tc *ThemeConfig) BarBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.barBg
 }
 
@@ -118,8 +118,8 @@ func (tc *ThemeConfig) BarFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.barFg
 }
 
@@ -127,8 +127,8 @@ func (tc *ThemeConfig) StatusBarFilterTextFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.statusBarFilterTextFg
 }
 
@@ -136,8 +136,8 @@ func (tc *ThemeConfig) StatusBarFilterBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.statusBarFilterBg
 }
 
@@ -145,8 +145,8 @@ func (tc *ThemeConfig) StatusBarFilterFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.statusBarFilterFg
 }
 
@@ -154,8 +154,8 @@ func (tc *ThemeConfig) StatusBarAddrBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.statusBarAddrBg
 }
 
@@ -163,17 +163,53 @@ func (tc *ThemeConfig) StatusBarAddrFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.statusBarAddrFg
+}
+
+func (tc *ThemeConfig) StatusBarUserFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.statusBarUserFg
+}
+
+func (tc *ThemeConfig) StatusBarUserBg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.statusBarUserBg
+}
+
+func (tc *ThemeConfig) StatusBarTokenTTLFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.statusBarTokenTTLFg
+}
+
+func (tc *ThemeConfig) StatusBarTokenTTLBg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.statusBarTokenTTLBg
 }
 
 func (tc *ThemeConfig) StatusBarLogoBg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.statusBarLogoBg
 }
 
@@ -181,8 +217,8 @@ func (tc *ThemeConfig) StatusBarLogoFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.statusBarLogoFg
 }
 
@@ -190,8 +226,8 @@ func (tc *ThemeConfig) ShortHelpKeyFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.shortHelpKeyFg
 }
 
@@ -199,8 +235,8 @@ func (tc *ThemeConfig) DialogFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.dialogFg
 }
 
@@ -208,8 +244,8 @@ func (tc *ThemeConfig) DialogBorderFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.dialogBorderFg
 }
 
@@ -217,8 +253,8 @@ func (tc *ThemeConfig) DialogBorderGradientFromFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.dialogBorderGradientFromFg
 }
 
@@ -226,8 +262,8 @@ func (tc *ThemeConfig) DialogBorderGradientToFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.dialogBorderGradientToFg
 }
 
@@ -235,8 +271,8 @@ func (tc *ThemeConfig) TitleFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.titleFg
 }
 
@@ -244,8 +280,8 @@ func (tc *ThemeConfig) TitleFromFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.titleFromFg
 }
 
@@ -253,8 +289,8 @@ func (tc *ThemeConfig) TitleToFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.titleToFg
 }
 
@@ -262,8 +298,8 @@ func (tc *ThemeConfig) PageBorderFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.pageBorderFg
 }
 
@@ -271,8 +307,8 @@ func (tc *ThemeConfig) PageBorderFilterFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.pageBorderFilterFg
 }
 
@@ -280,8 +316,8 @@ func (tc *ThemeConfig) ListItemFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.listItemFg
 }
 
@@ -289,7 +325,7 @@ func (tc *ThemeConfig) ListItemSelectedFg() color.Color {
 	if tc == nil {
 		return nil
 	}
-	tc.mu.Lock()
-	defer tc.mu.Unlock()
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
 	return tc.listItemSelectedFg
 }

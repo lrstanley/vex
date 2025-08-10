@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	vapi "github.com/hashicorp/vault/api"
@@ -18,7 +19,8 @@ import (
 type Client interface {
 	Init() tea.Cmd
 	Update(msg tea.Msg) tea.Cmd
-	GetHealth() tea.Cmd
+	GetHealth(uuid string) tea.Cmd
+	TokenLookupSelf(uuid string) tea.Cmd
 	ListMounts(uuid string, filterTypes ...string) tea.Cmd
 	ListSecrets(uuid string, mount *Mount, path string) tea.Cmd
 	ListAllSecretsRecursive(uuid string) tea.Cmd
@@ -239,4 +241,32 @@ type ClientListAllSecretsRecursiveMsg struct {
 	Tree        ClientSecretTree `json:"tree"`
 	Requests    int64            `json:"requests"`
 	MaxRequests int64            `json:"max_requests"`
+}
+
+type ClientTokenLookupSelfMsg struct {
+	Result *TokenLookupResult `json:"result"`
+}
+
+type TokenLookupResult struct {
+	Accessor       string         `json:"accessor,omitempty"`
+	CreationTime   int64          `json:"creation_time,omitempty"`
+	CreationTTL    int64          `json:"creation_ttl,omitempty"`
+	DisplayName    string         `json:"display_name,omitempty"`
+	EntityID       string         `json:"entity_id,omitempty"`
+	ExpireTime     time.Time      `json:"expire_time,omitempty"`
+	ExplicitMaxTTL int64          `json:"explicit_max_ttl,omitempty"`
+	ID             string         `json:"id,omitempty"`
+	IssueTime      time.Time      `json:"issue_time,omitempty"`
+	Meta           map[string]any `json:"meta,omitempty"`
+	NumUses        int64          `json:"num_uses,omitempty"`
+	Orphan         bool           `json:"orphan,omitempty"`
+	Path           string         `json:"path,omitempty"`
+	Policies       []string       `json:"policies,omitempty"`
+	Renewable      bool           `json:"renewable,omitempty"`
+	TTL            int64          `json:"ttl,omitempty"`
+	Type           string         `json:"type,omitempty"`
+}
+
+func (r *TokenLookupResult) WhenExpires() time.Duration {
+	return time.Until(r.ExpireTime)
 }

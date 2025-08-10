@@ -96,6 +96,8 @@ tasks:
     deps: [prepare, vault:ensure-running]
     aliases: [dev, run]
     interactive: true
+    env:
+      HTTP_TRACE: true
     cmds:
       - |
         go run {{.PACKAGE}} \

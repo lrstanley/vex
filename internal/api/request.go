@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -95,9 +96,33 @@ func request[T any](c *client, method, path string, params map[string]any, data 
 		return v, fmt.Errorf("request failed: %s", resp.Status)
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(&v)
-	if err != nil {
-		return v, fmt.Errorf("request failed: %w", err)
+	switch resp.Header.Get("Content-Type") {
+	case "application/json":
+		err = json.NewDecoder(resp.Body).Decode(&v)
+		if err != nil {
+			return v, fmt.Errorf("request failed: %w", err)
+		}
+	default:
+		slog.Warn("unhandled content type for request", "content-type", resp.Header.Get("Content-Type"))
+		var body []byte
+
+		body, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return v, fmt.Errorf("request failed: %w", err)
+		}
+
+		// if T is of type []byte, then we can just return the body as is.
+		if _, ok := any(v).([]byte); ok {
+			v = any(body).(T) //nolint:errcheck
+			return v, nil
+		}
+
+		if _, ok := any(v).(string); ok {
+			v = any(string(body)).(T) //nolint:errcheck
+			return v, nil
+		}
+
+		return v, fmt.Errorf("unhandled content type for request: %s", resp.Header.Get("Content-Type"))
 	}
 
 	return v, nil

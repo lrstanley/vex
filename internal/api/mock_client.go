@@ -86,7 +86,10 @@ func NewMockClient() *MockClient {
 }
 
 func (m *MockClient) Init() tea.Cmd {
-	return m.GetHealth()
+	return tea.Batch(
+		m.GetHealth(""),
+		m.TokenLookupSelf(""),
+	)
 }
 
 func (m *MockClient) Update(msg tea.Msg) tea.Cmd {
@@ -105,14 +108,19 @@ func (m *MockClient) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := vm.Msg.(type) {
 	case types.ClientRequestConfigMsg:
-		return m.GetHealth()
+		return m.GetHealth("")
 	case types.ClientConfigMsg:
-
-		cmds = append(cmds, types.CmdAfterDuration(m.GetHealth(), HealthCheckInterval))
+		if vm.UUID == "" {
+			cmds = append(cmds, types.CmdAfterDuration(m.GetHealth(""), HealthCheckInterval))
+		}
 
 		if !m.firstHealthChecked.Load() && msg.Health != nil {
 			m.firstHealthChecked.Store(true)
 			cmds = append(cmds, types.SendStatus("initial health checked", types.Success, 1*time.Second))
+		}
+	case types.ClientTokenLookupSelfMsg:
+		if vm.UUID == "" {
+			cmds = append(cmds, types.CmdAfterDuration(m.TokenLookupSelf(""), TokenLookupInterval))
 		}
 	}
 
@@ -136,8 +144,8 @@ func (m *MockClient) ErrorOr(uuid string, msg tea.Msg) tea.Cmd {
 	}
 }
 
-func (m *MockClient) GetHealth() tea.Cmd {
-	return m.ErrorOr("", types.ClientConfigMsg{
+func (m *MockClient) GetHealth(uuid string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientConfigMsg{
 		Address: "http://localhost:8200",
 		Health: &vapi.HealthResponse{
 			Initialized: true,
@@ -146,6 +154,31 @@ func (m *MockClient) GetHealth() tea.Cmd {
 			Version:     "1.2.3",
 			ClusterName: "test-cluster",
 			ClusterID:   "test-cluster-id",
+		},
+	})
+}
+
+func (m *MockClient) TokenLookupSelf(uuid string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientTokenLookupSelfMsg{
+		Result: &types.TokenLookupResult{
+			EntityID:       "9021dde1-6d4c-26c2-24c0-a91343128bf9",
+			Accessor:       "ckkvhbhlvToTUIQmBW3Wubjs",
+			ID:             "abc12345-6d4c-26c2-24c0-a91343128bf9",
+			DisplayName:    "dev1",
+			CreationTime:   time.Now().Add(-(24 * time.Hour)).Unix(),
+			IssueTime:      time.Now().Add(-(24 * time.Hour)),
+			ExpireTime:     time.Now().Add(24 * time.Hour),
+			CreationTTL:    int64((24 * time.Hour).Seconds()),
+			ExplicitMaxTTL: int64((24 * time.Hour).Seconds()),
+			TTL:            int64((12 * time.Hour).Seconds()),
+			Renewable:      true,
+			Policies:       []string{"default", "dev-policy-1"},
+			Path:           "auth/userpass/login/dev1",
+			Type:           "service",
+			Meta: map[string]any{
+				"username": "dev1",
+			},
+			Orphan: true,
 		},
 	})
 }

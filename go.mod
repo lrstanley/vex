@@ -41,7 +41,7 @@ require (
 require (
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20250808135251-9dd1310a05c0 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20250810001545-aa2a3c4457a6 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
 	github.com/charmbracelet/x/exp/golden v0.0.0-20250806222409-83e3a29d542f // indirect
 	github.com/charmbracelet/x/input v0.3.7 // indirect
