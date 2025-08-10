@@ -67,7 +67,8 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 		)
 
 		if resp != nil && trace {
-			b, err := httputil.DumpResponse(resp, true)
+			var b []byte
+			b, err = httputil.DumpResponse(resp, true)
 			if err == nil {
 				r.AddAttrs(slog.String("response", string(b)))
 			}
@@ -86,12 +87,11 @@ func (rt *HTTPRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 		slog.Group("headers", headersAsAttrs(resp.Header)...),
 	)
 
-	if resp.StatusCode >= 400 {
-		if resp != nil && trace {
-			b, err := httputil.DumpResponse(resp, true)
-			if err == nil {
-				r.AddAttrs(slog.String("response", string(b)))
-			}
+	if trace {
+		var b []byte
+		b, err = httputil.DumpResponse(resp, true)
+		if err == nil {
+			r.AddAttrs(slog.String("response", string(b)))
 		}
 	}
 
