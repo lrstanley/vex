@@ -17,23 +17,24 @@ import (
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/config"
 	"github.com/lrstanley/vex/internal/logging"
+	"github.com/lrstanley/vex/internal/report"
 	"github.com/lrstanley/vex/internal/ui"
 )
 
-var (
-	version = "master"
-	cli     = &Flags{}
-)
+var cli = &Flags{}
 
 type Flags struct {
 	Logging     logging.Flags `embed:""`
 	EnablePprof bool          `help:"enable pprof debugging server"`
+
+	Report struct{} `cmd:"" help:"print system information for issue reporting"`
+	UI     struct{} `cmd:"" default:"1" help:"start the terminal UI (default)"`
 }
 
 func main() {
 	config.InitConfigPath()
 
-	_ = kong.Parse(
+	cctx := kong.Parse(
 		cli,
 		kong.Name("vex"),
 		kong.Description("Terminal UI for HashiCorp Vault"),
@@ -43,7 +44,13 @@ func main() {
 		},
 	)
 
-	closer := logging.New(version, cli.Logging)
+	switch cctx.Command() {
+	case "report":
+		report.Generate()
+		os.Exit(0)
+	}
+
+	closer := logging.New(config.AppVersion, cli.Logging)
 	defer closer()
 
 	if cli.EnablePprof {
