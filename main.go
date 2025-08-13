@@ -35,9 +35,7 @@ func main() {
 	// Set up a defer to ensure that we can exit with a non-zero code if we need to,
 	// while still allowing the defer stack to unwind.
 	returnCode := 0
-	defer func() {
-		os.Exit(returnCode)
-	}()
+	defer func() { os.Exit(returnCode) }()
 
 	config.InitConfigPath()
 
@@ -83,8 +81,13 @@ func main() {
 		tea.WithUniformKeyLayout(),
 	)
 
-	panicCloser := logging.NewPanicLogger(cli.Logging, tui.Kill)
-	defer panicCloser() //nolint:errcheck
+	// TODO: bubbletea currently doesn't panic from the main goroutine (like it ideally should),
+	// so when bubbletea catches a panic, it will not use this logger, but it will still print to
+	// the screen. So this only covers uncaught panics from anywhere else in the app, or if bubbletea
+	// doesn't for some reason catch a panic, see:
+	//   - https://github.com/charmbracelet/bubbletea/issues/1459#issuecomment-3182385632
+	panicCloser := logging.NewPanicLogger(cli.Logging)
+	defer panicCloser(tui.Kill) //nolint:errcheck
 
 	_, err = tui.Run()
 	if err != nil {

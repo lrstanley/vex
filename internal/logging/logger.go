@@ -99,7 +99,7 @@ func New(version string, flags Flags) (closer func() error) {
 //
 // The callback is called when the panic logger is closed, and can be used to
 // perform any additional cleanup.
-func NewPanicLogger(flags Flags, cb func()) (closer func() error) {
+func NewPanicLogger(flags Flags) (closer func(cb func()) error) {
 	dir := filepath.Dir(flags.Logging.File)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		fmt.Fprintln(os.Stderr, "failed to create log directory:", err)
@@ -133,25 +133,42 @@ func NewPanicLogger(flags Flags, cb func()) (closer func() error) {
 
 	_ = f.Close() // SetCrashOutput duplicates the file descriptor, so can safely close early.
 
-	return func() error {
+	size := func() int {
+		var stat os.FileInfo
+		stat, err = os.Stat(fn)
+		if err != nil {
+			return -1
+		}
+		return int(stat.Size())
+	}
+
+	return func(cb func()) error {
 		_ = debug.SetCrashOutput(nil, debug.CrashOptions{})
+		time.Sleep(1 * time.Second) // Allow concurrent goroutines to finish.
+
+		// Catch main goroutine panics.
+		if r := recover(); r != nil && size() == 0 {
+			stack := debug.Stack()
+			slog.Error("panic occurred", "error", r, "stack", string(stack))
+
+			f, err = os.Open(fn)
+			if err == nil {
+				_, _ = f.WriteString(fmt.Sprintf("panic occurred: %v\n%s", r, string(stack)))
+				_ = f.Close()
+			}
+		}
 
 		if cb != nil {
 			cb()
 		}
 
-		var stat os.FileInfo
-		stat, err = os.Stat(fn)
-		if err != nil {
-			return err
-		}
-
 		// If the file is empty, remove it.
-		if stat.Size() == 0 {
+		if size() == 0 {
 			return os.Remove(fn)
 		} else {
-			time.Sleep(1 * time.Second)
+			// Best-effort logging.
 			fmt.Fprintf(os.Stderr, "\n\npanic occurred, wrote dump to %s\n", fn)
+			os.Exit(1)
 		}
 		return nil
 	}
