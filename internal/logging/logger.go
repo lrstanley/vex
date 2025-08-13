@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"runtime/debug"
 	"time"
@@ -36,10 +35,6 @@ func (f *Flags) GetLogLevel() slog.Level {
 	default:
 		return slog.LevelDebug
 	}
-}
-
-type logger struct {
-	closer func() error
 }
 
 // New creates a new logger with the given version and flags, writing to
@@ -96,44 +91,68 @@ func New(version string, flags Flags) (closer func() error) {
 	return rotator.Close
 }
 
-var reCleanSrc = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
+// NewPanicLogger creates a new panic logger that will write to a file in the
+// log directory. The file will be named "panic-<app-name>-<timestamp>.log".
+//
+// The returned closer should be called to ensure that the log file is cleaned up
+// if no panic was caught.
+//
+// The callback is called when the panic logger is closed, and can be used to
+// perform any additional cleanup.
+func NewPanicLogger(flags Flags, cb func()) (closer func() error) {
+	dir := filepath.Dir(flags.Logging.File)
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		fmt.Fprintln(os.Stderr, "failed to create log directory:", err)
+		os.Exit(1)
+	}
 
-// RecoverPanic recovers from panics, and logs the panic to a log file in the current
-// working directory. If it's unable to write to the log file, it will log the panic
-// to the standard slog location (config path).
-func RecoverPanic(src string, callbacks ...func()) {
-	src = reCleanSrc.ReplaceAllString(src, "")
-
-	if r := recover(); r != nil {
-		ts := time.Now()
-		fn := fmt.Sprintf(
-			"panic-%s-%s-%s.log",
+	fn := filepath.Join(
+		dir,
+		fmt.Sprintf(
+			"panic-%s-%s.log",
 			config.AppName,
-			src,
-			ts.Format("20060102-150405"),
-		)
+			time.Now().Format("20060102-150405"),
+		),
+	)
 
-		file, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
-		if err != nil {
-			slog.Error(
-				"panic occurred",
-				"error", r,
-				"src", src,
-				"stack", string(debug.Stack()),
-			)
-			return
-		}
+	// SetCrashOutput doesn't support [io.Writer] interface, so we HAVE to create
+	// a file. The workaround for this is a defer that will delete the file if it's
+	// empty. So we will have empty files while the app is running, but it does
+	// avoid a bunch of useless empty files building up.
+	f, err := os.OpenFile(fn, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o600)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to create panic log file:", err)
+		os.Exit(1)
+	}
 
-		fmt.Fprintf(file, "panic @ %s: %v\n", src, r)
-		fmt.Fprintf(file, "time: %s\n\n", ts.Format(time.RFC3339))
-		fmt.Fprintf(file, "stack:\n%s\n", string(debug.Stack()))
-		_ = file.Close()
+	err = debug.SetCrashOutput(f, debug.CrashOptions{})
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "failed to set crash output:", err)
+		os.Exit(1)
+	}
 
-		for _, cb := range callbacks {
+	_ = f.Close() // SetCrashOutput duplicates the file descriptor, so can safely close early.
+
+	return func() error {
+		_ = debug.SetCrashOutput(nil, debug.CrashOptions{})
+
+		if cb != nil {
 			cb()
 		}
 
-		slog.Error("application exiting due to panic", "stack-trace-path", fn)
-		os.Exit(1)
+		var stat os.FileInfo
+		stat, err = os.Stat(fn)
+		if err != nil {
+			return err
+		}
+
+		// If the file is empty, remove it.
+		if stat.Size() == 0 {
+			return os.Remove(fn)
+		} else {
+			time.Sleep(1 * time.Second)
+			fmt.Fprintf(os.Stderr, "\n\npanic occurred, wrote dump to %s\n", fn)
+		}
+		return nil
 	}
 }

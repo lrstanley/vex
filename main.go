@@ -32,6 +32,13 @@ type Flags struct {
 }
 
 func main() {
+	// Set up a defer to ensure that we can exit with a non-zero code if we need to,
+	// while still allowing the defer stack to unwind.
+	returnCode := 0
+	defer func() {
+		os.Exit(returnCode)
+	}()
+
 	config.InitConfigPath()
 
 	cctx := kong.Parse(
@@ -47,11 +54,11 @@ func main() {
 	switch cctx.Command() {
 	case "report":
 		report.Generate()
-		os.Exit(0)
+		return
 	}
 
-	closer := logging.New(config.AppVersion, cli.Logging)
-	defer closer()
+	logCloser := logging.New(config.AppVersion, cli.Logging)
+	defer logCloser() //nolint:errcheck
 
 	if cli.EnablePprof {
 		go func() {
@@ -66,7 +73,8 @@ func main() {
 	client, err := api.NewClient()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create vault client: %v\n", err)
-		os.Exit(1)
+		returnCode = 1
+		return
 	}
 
 	tui := tea.NewProgram(
@@ -75,10 +83,13 @@ func main() {
 		tea.WithUniformKeyLayout(),
 	)
 
-	defer logging.RecoverPanic("main", tui.Quit)
+	panicCloser := logging.NewPanicLogger(cli.Logging, tui.Kill)
+	defer panicCloser() //nolint:errcheck
 
 	_, err = tui.Run()
 	if err != nil {
 		slog.Error("failed to run tui", "error", err)
+		returnCode = 1
+		return
 	}
 }
