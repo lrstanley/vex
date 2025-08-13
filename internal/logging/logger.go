@@ -144,16 +144,16 @@ func NewPanicLogger(flags Flags) (closer func(cb func()) error) {
 
 	return func(cb func()) error {
 		_ = debug.SetCrashOutput(nil, debug.CrashOptions{})
-		time.Sleep(1 * time.Second) // Allow concurrent goroutines to finish.
+		time.Sleep(250 * time.Millisecond) // Allow concurrent goroutines to finish flushing crash logs.
 
 		// Catch main goroutine panics.
 		if r := recover(); r != nil && size() == 0 {
 			stack := debug.Stack()
-			slog.Error("panic occurred", "error", r, "stack", string(stack))
+			slog.Error("panic occurred", "error", r, "stack", string(stack)) //nolint:sloglint
 
-			f, err = os.Open(fn)
+			f, err = os.OpenFile(fn, os.O_WRONLY|os.O_APPEND, 0o600)
 			if err == nil {
-				_, _ = f.WriteString(fmt.Sprintf("panic occurred: %v\n%s", r, string(stack)))
+				_, _ = fmt.Fprintf(f, "panic occurred: %v\n%s", r, string(stack))
 				_ = f.Close()
 			}
 		}
@@ -165,11 +165,10 @@ func NewPanicLogger(flags Flags) (closer func(cb func()) error) {
 		// If the file is empty, remove it.
 		if size() == 0 {
 			return os.Remove(fn)
-		} else {
-			// Best-effort logging.
-			fmt.Fprintf(os.Stderr, "\n\npanic occurred, wrote dump to %s\n", fn)
-			os.Exit(1)
 		}
+
+		fmt.Fprintf(os.Stderr, "\n\npanic occurred, wrote dump to %s\n", fn)
+		os.Exit(1)
 		return nil
 	}
 }

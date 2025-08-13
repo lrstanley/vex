@@ -5,6 +5,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -91,8 +92,11 @@ func main() {
 
 	_, err = tui.Run()
 	if err != nil {
+		if errors.Is(err, tea.ErrProgramPanic) {
+			panic(err)
+		}
+
 		slog.Error("failed to run tui", "error", err)
 		returnCode = 1
-		return
 	}
 }
