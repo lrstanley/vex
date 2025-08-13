@@ -4,7 +4,13 @@
 
 package formatter
 
-import "github.com/charmbracelet/x/ansi"
+import (
+	"strings"
+
+	"github.com/charmbracelet/x/ansi"
+)
+
+const TruncateEllipsis = "…" // Should be 1 character wide.
 
 // Trunc truncates a string to a given length, adding a tail to the end if the
 // string is longer than the given length. This function is aware of ANSI escape
@@ -12,5 +18,15 @@ import "github.com/charmbracelet/x/ansi"
 // East-Asian characters and emojis). This treats the text as a sequence of
 // graphemes.
 func Trunc(s string, length int) string {
-	return ansi.Truncate(s, length, "…")
+	return ansi.Truncate(s, length, TruncateEllipsis)
+}
+
+// TruncMultiline is similar to [Trunc], but it truncates each line of a
+// multiline string separately.
+func TruncMultiline(s string, length int) string {
+	out := strings.Split(s, "\n")
+	for i := range out {
+		out[i] = ansi.Truncate(out[i], length, TruncateEllipsis)
+	}
+	return strings.Join(out, "\n")
 }

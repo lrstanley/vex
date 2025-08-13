@@ -3,6 +3,8 @@ version: "3"
 vars:
   PROJECT: "vex"
   PACKAGE: "github.com/lrstanley/vex"
+env:
+  GOEXPERIMENT: jsonv2
 dotenv: [".env"]
 method: timestamp
 tasks:
