@@ -28,7 +28,7 @@ type Flags struct {
 	EnablePprof bool          `help:"enable pprof debugging server"`
 
 	Report struct{} `cmd:"" help:"print system information for issue reporting"`
-	UI     struct{} `cmd:"" default:"1" help:"start the terminal UI (default)"`
+	UI     struct{} `cmd:"" default:"1" hidden:"" help:"start the terminal UI (default)"`
 }
 
 func main() {

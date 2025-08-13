@@ -7,6 +7,8 @@ package fuzzy
 import (
 	"strings"
 	"unicode"
+
+	"github.com/charmbracelet/x/ansi"
 )
 
 type result[T any] struct {
@@ -44,19 +46,22 @@ func FindRankedStrings[T ~string](filter string, values [][]T) [][]T {
 //
 // If the filter is empty, the original values are returned as-is.
 func FindRankedRow[T any](filter string, values []T, valuesFn func(T) []string) []T {
+	filter = ansi.Strip(filter)
 	if filter == "" {
 		return values
 	}
 
 	filter = strings.ToLower(filter)
 	var results []result[T]
+	var strs []string
+	var bestScore, score int
 
 	for _, value := range values {
-		strs := valuesFn(value)
-		bestScore := -1
+		strs = valuesFn(value)
+		bestScore = -1
 
 		for _, str := range strs {
-			score := calculateScore(strings.ToLower(str), filter)
+			score = calculateScore(ansi.Strip(strings.ToLower(str)), filter)
 			if score > bestScore {
 				bestScore = score
 			}
@@ -89,7 +94,7 @@ func FindRankedRow[T any](filter string, values []T, valuesFn func(T) []string) 
 }
 
 func calculateScore(text, query string) int {
-	if len(query) == 0 {
+	if query == "" {
 		return 0
 	}
 
