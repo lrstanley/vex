@@ -9,14 +9,16 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/pages/genericcode"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
 var (
-	Commands    = []string{"aclpolicies", "aclpolicy"}
-	dataColumns = []string{"Name"}
+	Commands = []string{"aclpolicies", "aclpolicy"}
+	columns  = []*table.Column{
+		{ID: "name", Title: "Name"},
+	}
 )
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
@@ -31,7 +33,7 @@ type Model struct {
 	filter string
 
 	// Child components.
-	table *datatable.Model[string]
+	table *table.Model[*table.StaticRow[string]]
 }
 
 func New(app types.AppState) *Model {
@@ -43,14 +45,16 @@ func New(app types.AppState) *Model {
 		},
 		app: app,
 	}
-	m.table = datatable.New(app, datatable.Config[string]{
+	m.table = table.New(app, columns, table.Config[*table.StaticRow[string]]{
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListACLPolicies(m.UUID())
 		},
-		SelectFn: func(value string) tea.Cmd {
-			return m.app.Client().GetACLPolicy(m.UUID(), value)
+		SelectFn: func(value *table.StaticRow[string]) tea.Cmd {
+			return m.app.Client().GetACLPolicy(m.UUID(), value.Value)
 		},
-		RowFn: func(value string) []string { return []string{value} },
+		RowFn: func(value *table.StaticRow[string]) []string {
+			return []string{value.Value}
+		},
 	})
 
 	return m
@@ -91,7 +95,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListACLPoliciesMsg:
 			cmds = append(cmds, types.PageClearState())
-			m.table.SetData(dataColumns, vmsg.Policies)
+			m.table.SetRows(table.RowsFrom(vmsg.Policies, func(policy string) table.ID {
+				return table.ID(policy)
+			}))
 		case types.ClientGetACLPolicyMsg:
 			title := "ACL Policy: " + vmsg.Name
 			cmds = append(cmds, types.OpenPage(genericcode.New(m.app, title, vmsg.Content, "hcl"), false))
@@ -109,5 +115,5 @@ func (m *Model) View() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	return styles.Pluralize(m.table.DataLen(), "acl policy", "acl policies")
+	return styles.Pluralize(m.table.TotalFilteredRows(), "acl policy", "acl policies")
 }

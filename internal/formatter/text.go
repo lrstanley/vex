@@ -21,12 +21,32 @@ func Trunc(s string, length int) string {
 	return ansi.Truncate(s, length, TruncateEllipsis)
 }
 
+func TruncLeft(s string, length int) string {
+	return ansi.TruncateLeft(s, length, TruncateEllipsis)
+}
+
 // TruncMultiline is similar to [Trunc], but it truncates each line of a
 // multiline string separately.
 func TruncMultiline(s string, length int) string {
 	out := strings.Split(s, "\n")
 	for i := range out {
 		out[i] = ansi.Truncate(out[i], length, TruncateEllipsis)
+	}
+	return strings.Join(out, "\n")
+}
+
+func TruncLeftMultiline(s string, length int) string {
+	out := strings.Split(s, "\n")
+	for i := range out {
+		out[i] = ansi.TruncateLeft(out[i], length, TruncateEllipsis)
+	}
+	return strings.Join(out, "\n")
+}
+
+func CutMultiline(s string, left, right int) string {
+	out := strings.Split(s, "\n")
+	for i := range out {
+		out[i] = ansi.Cut(out[i], left, right)
 	}
 	return strings.Join(out, "\n")
 }

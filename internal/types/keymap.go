@@ -68,6 +68,50 @@ var (
 		key.WithKeys("z"),
 		key.WithHelp("z", "render as json"),
 	)
+
+	// Table related.
+
+	KeysTable = []key.Binding{
+		KeyTableLineUp,
+		KeyTableLineDown,
+		KeyTablePageUp,
+		KeyTablePageDown,
+		KeyTableGoToTop,
+		KeyTableGoToBottom,
+	}
+
+	KeyTableLineUp = key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "up"),
+	)
+	KeyTableLineDown = key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "down"),
+	)
+	KeyTableLineLeft = key.NewBinding(
+		key.WithKeys("left", "h"),
+		key.WithHelp("←/h", "left"),
+	)
+	KeyTableLineRight = key.NewBinding(
+		key.WithKeys("right", "l"),
+		key.WithHelp("→/l", "right"),
+	)
+	KeyTablePageUp = key.NewBinding(
+		key.WithKeys("b", "pgup"),
+		key.WithHelp("b/pgup", "page up"),
+	)
+	KeyTablePageDown = key.NewBinding(
+		key.WithKeys("f", "pgdown"),
+		key.WithHelp("f/pgdn", "page down"),
+	)
+	KeyTableGoToTop = key.NewBinding(
+		key.WithKeys("home", "g"),
+		key.WithHelp("g/home", "go to start"),
+	)
+	KeyTableGoToBottom = key.NewBinding(
+		key.WithKeys("end", "G"),
+		key.WithHelp("G/end", "go to end"),
+	)
 )
 
 type KeyBindingGroup struct {

@@ -11,17 +11,23 @@ import (
 
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
 	"github.com/lrstanley/vex/internal/ui/pages/secretwalker"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
 var (
-	Commands    = []string{"mounts", "mount"}
-	dataColumns = []string{"Path", "Type", "Description", "Accessor", "Deprecated", "Plugin Version"}
+	Commands = []string{"mounts", "mount"}
+	columns  = []*table.Column{
+		{ID: "path", Title: "Path"},
+		{ID: "type", Title: "Type", MaxWidth: 15},
+		{ID: "description", Title: "Description", MaxWidth: 40},
+		{ID: "accessor", Title: "Accessor"},
+		{ID: "deprecated", Title: "Deprecated"},
+		{ID: "plugin_version", Title: "Plugin Version"},
+	}
 )
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
@@ -36,7 +42,7 @@ type Model struct {
 	filter string
 
 	// Child components.
-	table *datatable.Model[*types.Mount]
+	table *table.Model[*table.StaticRow[*types.Mount]]
 }
 
 func New(app types.AppState) *Model {
@@ -51,12 +57,12 @@ func New(app types.AppState) *Model {
 		app: app,
 	}
 
-	m.table = datatable.New(app, datatable.Config[*types.Mount]{
+	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.Mount]]{
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListMounts(m.UUID(), "kv")
 		},
-		SelectFn: func(value *types.Mount) tea.Cmd {
-			return types.OpenPage(secretwalker.New(app, value, ""), false)
+		SelectFn: func(value *table.StaticRow[*types.Mount]) tea.Cmd {
+			return types.OpenPage(secretwalker.New(app, value.Value, ""), false)
 		},
 		RowFn: m.rowFn,
 	})
@@ -99,16 +105,15 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListMountsMsg:
 			cmds = append(cmds, types.PageClearState())
-			m.table.SetData(
-				dataColumns,
-				vmsg.Mounts,
-			)
+			m.table.SetRows(table.RowsFrom(vmsg.Mounts, func(m *types.Mount) table.ID {
+				return table.ID(m.Path)
+			}))
 		}
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyDetails):
-			if v, ok := m.table.GetSelectedData(); ok {
-				return types.OpenDialog(genericcode.NewJSON(m.app, fmt.Sprintf("Mount Details: %q", v.Path), v))
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return types.OpenDialog(genericcode.NewJSON(m.app, fmt.Sprintf("Mount Details: %q", v.Value.Path), v.Value))
 			}
 		}
 	}
@@ -116,10 +121,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(append(cmds, m.table.Update(msg))...)
 }
 
-func (m *Model) rowFn(value *types.Mount) []string {
+func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
 	var opts []string
 
-	for k, v := range value.Options {
+	for k, v := range row.Value.Options {
 		var name string
 		switch k {
 		case "version":
@@ -129,17 +134,17 @@ func (m *Model) rowFn(value *types.Mount) []string {
 	}
 
 	sopts := strings.Join(opts, ",")
-	if len(sopts) > 0 {
+	if sopts != "" {
 		sopts = " (" + sopts + ")"
 	}
 
 	return []string{
-		value.Path,
-		formatter.Trunc(value.Type+sopts, 15),
-		formatter.Trunc(value.Description, 40),
-		value.Accessor,
-		value.DeprecationStatus,
-		value.RunningVersion,
+		row.Value.Path,
+		row.Value.Type + sopts,
+		row.Value.Description,
+		row.Value.Accessor,
+		row.Value.DeprecationStatus,
+		row.Value.RunningVersion,
 	}
 }
 
@@ -151,5 +156,5 @@ func (m *Model) View() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	return styles.Pluralize(m.table.DataLen(), "mount", "mounts")
+	return styles.Pluralize(m.table.TotalFilteredRows(), "mount", "mounts")
 }

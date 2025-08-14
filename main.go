@@ -82,11 +82,6 @@ func main() {
 		tea.WithUniformKeyLayout(),
 	)
 
-	// TODO: bubbletea currently doesn't panic from the main goroutine (like it ideally should),
-	// so when bubbletea catches a panic, it will not use this logger, but it will still print to
-	// the screen. So this only covers uncaught panics from anywhere else in the app, or if bubbletea
-	// doesn't for some reason catch a panic, see:
-	//   - https://github.com/charmbracelet/bubbletea/issues/1459#issuecomment-3182385632
 	panicCloser := logging.NewPanicLogger(cli.Logging)
 	defer panicCloser(tui.Kill) //nolint:errcheck
 

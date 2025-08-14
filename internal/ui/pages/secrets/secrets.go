@@ -10,7 +10,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/pages/viewsecret"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -24,8 +24,12 @@ type Data struct {
 }
 
 var (
-	Commands    = []string{"secrets", "secret"}
-	dataColumns = []string{"Full Path", "Mount Type", "Permissions"}
+	Commands = []string{"secrets", "secret"}
+	columns  = []*table.Column{
+		{ID: "full_path", Title: "Full Path"},
+		{ID: "mount_type", Title: "Mount Type"},
+		{ID: "permissions", Title: "Permissions"},
+	}
 )
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
@@ -41,7 +45,7 @@ type Model struct {
 	data   *types.ClientListAllSecretsRecursiveMsg
 
 	// Child components.
-	table *datatable.Model[*Data]
+	table *table.Model[*table.StaticRow[*Data]]
 }
 
 func New(app types.AppState) *Model {
@@ -54,15 +58,15 @@ func New(app types.AppState) *Model {
 		app: app,
 	}
 
-	m.table = datatable.New(app, datatable.Config[*Data]{
+	m.table = table.New(app, columns, table.Config[*table.StaticRow[*Data]]{
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListAllSecretsRecursive(m.UUID())
 		},
-		SelectFn: func(value *Data) tea.Cmd {
-			return types.OpenPage(viewsecret.New(m.app, value.Mount, value.Path), false)
+		SelectFn: func(value *table.StaticRow[*Data]) tea.Cmd {
+			return types.OpenPage(viewsecret.New(m.app, value.Value.Mount, value.Value.Path), false)
 		},
-		RowFn: func(value *Data) []string {
-			return []string{value.FullPath, value.Mount.Type, value.Capabilities.String()}
+		RowFn: func(value *table.StaticRow[*Data]) []string {
+			return []string{value.Value.FullPath, value.Value.Mount.Type, value.Value.Capabilities.String()}
 		},
 	})
 
@@ -122,7 +126,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 				})
 			}
 
-			m.table.SetData(dataColumns, data)
+			m.table.SetRows(table.RowsFrom(data, func(d *Data) table.ID {
+				return table.ID(d.FullPath)
+			}))
 		}
 	}
 
@@ -137,7 +143,7 @@ func (m *Model) View() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	return styles.Pluralize(m.table.DataLen(), "secret", "secrets")
+	return styles.Pluralize(m.table.TotalFilteredRows(), "secret", "secrets")
 }
 
 func (m *Model) TopRightBorder() string {

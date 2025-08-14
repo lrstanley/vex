@@ -1,0 +1,287 @@
+
+[TestNew/0-width-height - 1]
+
+---
+
+[TestNew/basic-table - 1]
+ Name   Description           
+ item1  description1          
+ item2  description2          
+                              
+                              
+---
+
+[TestNew/filtered-no-results - 1]
+                no results for "nonexistent"                
+                                                            
+                                                            
+                                                            
+                                                            
+---
+
+[TestNew/loading-state - 1]
+                                        
+                                        
+             <spinner> loading...               
+                                        
+                                        
+---
+
+[TestNew/no-results - 1]
+             no items found             
+                                        
+                                        
+                                        
+                                        
+---
+
+[TestTableColumns/column-management - 1]
+ Name   Value                 
+ item1  value1                
+ item2  value2                
+                              
+                              
+---
+
+[TestTableColumns/column-management - 2]
+ Name   Description   Value   
+ item1  description1  value1  
+ item2  description2  value2  
+                              
+                              
+---
+
+[TestTableData/data-operations - 1]
+ Name           Value                                       
+ item0          value0                                      
+ updated_item1  updated_value1                              
+ item3          value3                                      
+                                                            
+                                                            
+                                                            
+                                                            
+---
+
+[TestTableFiltering/basic-filtering - 1]
+ Name   Category              
+ apple  fruit                 
+                              
+                              
+                              
+                              
+---
+
+[TestTableFiltering/basic-filtering - 2]
+ Name    Category             
+ apple   fruit                
+ banana  fruit                
+                              
+                              
+                              
+---
+
+[TestTableFiltering/basic-filtering - 3]
+ Name      Category           
+ apple     fruit              
+ banana    fruit              
+ carrot    vegetable          
+ broccoli  vegetable          
+                              
+---
+
+[TestTableScrolling/horizontal-truncation - 1]
+ Name   Very Long Description Column                  …
+ item1  This is a very long description that will caus…
+ item2  Another long description for testing horizonta…
+                                                       
+                                                       
+---
+
+[TestTableScrolling/horizontal-truncation - 2]
+…olumn                                          Value  
+…cription that will cause horizontal scrolling  value1 
+…n for testing horizontal scroll                value2 
+                                                       
+                                                       
+---
+
+[TestTableScrolling/horizontal-truncation - 3]
+ Name   Very Long Description Column                  …
+ item1  This is a very long description that will caus…
+ item2  Another long description for testing horizonta…
+                                                       
+                                                       
+---
+
+[TestTableScrolling/too-small-x-y - 1]
+ Name    Very Long Description Column                 …
+ item0   This is a very long description for item 0 t…┃
+ item1   This is a very long description for item 1 t…┃
+ item2   This is a very long description for item 2 t…┃
+ item3   This is a very long description for item 3 t…┃
+ item4   This is a very long description for item 4 t…┃
+ item5   This is a very long description for item 5 t…┃
+ item6   This is a very long description for item 6 t…┃
+ item7   This is a very long description for item 7 t…┃
+ item8   This is a very long description for item 8 t…┃
+---
+
+[TestTableScrolling/too-small-x-y - 2]
+…ng Description Column                                …
+… a very long description for item 0 that will cause …┃
+… a very long description for item 1 that will cause …┃
+… a very long description for item 2 that will cause …┃
+… a very long description for item 3 that will cause …┃
+… a very long description for item 4 that will cause …┃
+… a very long description for item 5 that will cause …┃
+… a very long description for item 6 that will cause …┃
+… a very long description for item 7 that will cause …┃
+… a very long description for item 8 that will cause …┃
+---
+
+[TestTableScrolling/vertical-scrollbar - 1]
+ Name    Value                
+ item0   value0              ┃
+ item1   value1              ┃
+ item2   value2              ┃
+ item3   value3              ┃
+ item4   value4              ┃
+ item5   value5              ┃
+ item6   value6              ┃
+ item7   value7              ┃
+ item8   value8              ┃
+ item9   value9              ┃
+ item10  value10             ┃
+ item11  value11             ┃
+ item12  value12             ┃
+ item13  value13             ┃
+ item14  value14             ┃
+ item15  value15             ┃
+ item16  value16             ┃
+ item17  value17             ┃
+ item18  value18             ┃
+ item19  value19             ┃
+ item20  value20             ┃
+ item21  value21             ┃
+ item22  value22             ┃
+---
+
+[TestTableScrolling/vertical-scrollbar - 2]
+ Name    Value                
+ item6   value6              ┃
+ item7   value7              ┃
+ item8   value8              ┃
+ item9   value9              ┃
+ item10  value10             ┃
+ item11  value11             ┃
+ item12  value12             ┃
+ item13  value13             ┃
+ item14  value14             ┃
+ item15  value15             ┃
+ item16  value16             ┃
+ item17  value17             ┃
+ item18  value18             ┃
+ item19  value19             ┃
+ item20  value20             ┃
+ item21  value21             ┃
+ item22  value22             ┃
+ item23  value23             ┃
+ item24  value24             ┃
+ item25  value25             ┃
+ item26  value26             ┃
+ item27  value27             ┃
+ item28  value28             ┃
+---
+
+[TestTableScrolling/vertical-scrollbar - 3]
+ Name    Value                
+ item25  value25             ┃
+ item26  value26             ┃
+ item27  value27             ┃
+ item28  value28             ┃
+ item29  value29             ┃
+ item30  value30             ┃
+ item31  value31             ┃
+ item32  value32             ┃
+ item33  value33             ┃
+ item34  value34             ┃
+ item35  value35             ┃
+ item36  value36             ┃
+ item37  value37             ┃
+ item38  value38             ┃
+ item39  value39             ┃
+ item40  value40             ┃
+ item41  value41             ┃
+ item42  value42             ┃
+ item43  value43             ┃
+ item44  value44             ┃
+ item45  value45             ┃
+ item46  value46             ┃
+ item47  value47             ┃
+---
+
+[TestTableScrolling/vertical-scrollbar - 4]
+ Name    Value                
+ item0   value0              ┃
+ item1   value1              ┃
+ item2   value2              ┃
+ item3   value3              ┃
+ item4   value4              ┃
+ item5   value5              ┃
+ item6   value6              ┃
+ item7   value7              ┃
+ item8   value8              ┃
+ item9   value9              ┃
+ item10  value10             ┃
+ item11  value11             ┃
+ item12  value12             ┃
+ item13  value13             ┃
+ item14  value14             ┃
+ item15  value15             ┃
+ item16  value16             ┃
+ item17  value17             ┃
+ item18  value18             ┃
+ item19  value19             ┃
+ item20  value20             ┃
+ item21  value21             ┃
+ item22  value22             ┃
+---
+
+[TestTableSelection/row-selection - 1]
+ Name   Value                 
+ item1  value1                
+ item2  value2                
+ item3  value3                
+                              
+---
+
+[TestTableSelection/selection-with-filter - 1]
+ Name    Category             
+ apple   fruit                
+ banana  fruit                
+                              
+                              
+---
+
+[TestTableStyles/style-customization - 1]
+ Name   Value                 
+──────────────────────────────
+ item1  value1                
+ item2  value2                
+                              
+---
+
+[TestTableTruncation/column-truncation - 1]
+ Name        Description      Value                         
+ Very Long…  This is a very…  123456789                     
+ Another L…  Another long d…  987654321                     
+                                                            
+                                                            
+---
+
+[TestTableTruncation/ellipsis-indicator - 1]
+ Name            De…
+ Very Long Name  Ve…
+                    
+                    
+---

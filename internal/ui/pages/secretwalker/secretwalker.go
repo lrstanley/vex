@@ -10,12 +10,15 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/pages/viewsecret"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-var dataColumns = []string{"Mount", "Key"}
+var columns = []*table.Column{
+	{ID: "mount", Title: "Mount"},
+	{ID: "key", Title: "Key"},
+}
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
@@ -31,7 +34,7 @@ type Model struct {
 	path   string
 
 	// Child components.
-	table *datatable.Model[*types.SecretListRef]
+	table *table.Model[*table.StaticRow[*types.SecretListRef]]
 }
 
 func New(app types.AppState, mount *types.Mount, path string) *Model {
@@ -45,18 +48,18 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		path:  path,
 	}
 
-	m.table = datatable.New(app, datatable.Config[*types.SecretListRef]{
+	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.SecretListRef]]{
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListSecrets(m.UUID(), m.mount, m.path)
 		},
-		SelectFn: func(value *types.SecretListRef) tea.Cmd {
-			if !strings.HasSuffix(value.Path, "/") {
-				return types.OpenPage(viewsecret.New(app, value.Mount, value.Path), false)
+		SelectFn: func(value *table.StaticRow[*types.SecretListRef]) tea.Cmd {
+			if !strings.HasSuffix(value.Value.Path, "/") {
+				return types.OpenPage(viewsecret.New(app, value.Value.Mount, value.Value.Path), false)
 			}
-			return types.OpenPage(New(app, value.Mount, value.Path), false)
+			return types.OpenPage(New(app, value.Value.Mount, value.Value.Path), false)
 		},
-		RowFn: func(value *types.SecretListRef) []string {
-			return []string{value.Mount.Path, value.Path}
+		RowFn: func(value *table.StaticRow[*types.SecretListRef]) []string {
+			return []string{value.Value.Mount.Path, value.Value.Path}
 		},
 	})
 
@@ -98,7 +101,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch vmsg := msg.Msg.(type) {
 		case types.ClientListSecretsMsg:
 			cmds = append(cmds, types.PageClearState())
-			m.table.SetData(dataColumns, vmsg.Values)
+			m.table.SetRows(table.RowsFrom(vmsg.Values, func(v *types.SecretListRef) table.ID {
+				return table.ID(v.Mount.Path + v.Path)
+			}))
 		}
 	}
 
@@ -117,5 +122,5 @@ func (m *Model) GetTitle() string {
 }
 
 func (m *Model) TopMiddleBorder() string {
-	return styles.Pluralize(m.table.DataLen(), "secret", "secrets")
+	return styles.Pluralize(m.table.TotalFilteredRows(), "secret", "secrets")
 }

@@ -10,7 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
-	"github.com/lrstanley/vex/internal/ui/components/datatable"
+	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -49,7 +49,7 @@ type Model struct {
 
 	// Child components.
 	input textinput.Model
-	table *datatable.Model[[]string]
+	table *table.Model[*table.StaticRow[[]string]]
 }
 
 func New(app types.AppState, config Config) *Model {
@@ -69,11 +69,20 @@ func New(app types.AppState, config Config) *Model {
 	m.input.ShowSuggestions = true
 	m.input.SetSuggestions(m.config.List.Suggestions())
 
-	m.table = datatable.New(app, datatable.Config[[]string]{
-		SelectFn: func(row []string) tea.Cmd {
-			return config.SelectFunc(row)
+	cols, _ := config.List.GetData()
+	columns := []*table.Column{}
+	for _, col := range cols {
+		columns = append(columns, &table.Column{
+			ID:    table.ID(col),
+			Title: col,
+		})
+	}
+
+	m.table = table.New(app, columns, table.Config[*table.StaticRow[[]string]]{
+		SelectFn: func(row *table.StaticRow[[]string]) tea.Cmd {
+			return config.SelectFunc(row.Value)
 		},
-		RowFn: func(row []string) []string { return row },
+		RowFn: func(row *table.StaticRow[[]string]) []string { return row.Value },
 	})
 
 	m.initStyles()
@@ -114,8 +123,8 @@ func (m *Model) initStyles() {
 	m.input.SetStyles(inputStyles)
 }
 
-func (m *Model) SetStyles(styles Styles) {
-	m.styles = styles
+func (m *Model) SetStyles(s Styles) {
+	m.styles = s
 	m.initStyles()
 }
 
@@ -156,22 +165,19 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.updateDimensions()
 	case tea.KeyMsg:
 		switch {
-		case msg.String() == "up":
-			if !m.table.Focused() {
-				m.table.Focus()
-				m.input.Blur()
-			}
-		case msg.String() == "down":
-			if !m.table.Focused() {
-				m.table.Focus()
-				m.input.Blur()
-			}
+		case msg.String() == "up" || msg.String() == "down":
+			// Move down in table - the table handles this internally.
+			return m.table.Update(msg)
+		case msg.String() == "left" || msg.String() == "right":
+			// Move left/right in input - the input handles this internally.
+			m.input, cmd = m.input.Update(msg)
+			return cmd
 		case key.Matches(msg, types.KeySelectItem):
-			selected, ok := m.table.GetSelectedData()
+			selected, ok := m.table.GetSelectedRow()
 			if !ok {
 				return nil
 			}
-			return m.config.SelectFunc(selected)
+			return m.config.SelectFunc(selected.Value)
 		case key.Matches(msg, types.KeyCancel):
 			if m.input.Value() != "" {
 				m.input.Reset()
@@ -179,14 +185,12 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			}
 			return nil
 		default:
+			// Handle input focus
 			if !m.input.Focused() {
-				m.table.Blur()
 				cmds = append(cmds, m.input.Focus())
-			} else {
-				if m.input.Focused() {
-					m.input, cmd = m.input.Update(msg)
-					cmds = append(cmds, cmd)
-				}
+			} else if m.input.Focused() {
+				m.input, cmd = m.input.Update(msg)
+				cmds = append(cmds, cmd)
 			}
 		}
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
@@ -196,23 +200,34 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	}
 
-	var tableUpdated bool
+	// Update filter if input changed
 	if m.input.Value() != m.previousInput {
 		m.previousInput = m.input.Value()
 		m.table.SetFilter(m.input.Value())
-		tableUpdated = true
 	}
 
-	if m.table.Focused() || tableUpdated {
-		cmds = append(cmds, m.table.Update(msg))
-	}
+	// Always update the table to handle navigation
+	cmds = append(cmds, m.table.Update(msg))
 
 	return tea.Batch(cmds...)
 }
 
 func (m *Model) updateTable() {
 	cols, rows := m.config.List.GetData()
-	m.table.SetData(cols, rows)
+	columns := []*table.Column{}
+	for _, col := range cols {
+		columns = append(columns, &table.Column{
+			ID:    table.ID(col),
+			Title: col,
+		})
+	}
+	m.table.SetColumns(columns)
+	m.table.SetRows(table.RowsFrom(rows, func(row []string) table.ID {
+		if len(row) > 0 {
+			return table.ID(row[0])
+		}
+		return table.ID("")
+	}))
 }
 
 func (m *Model) View() string {
@@ -223,7 +238,7 @@ func (m *Model) View() string {
 	}
 	out = append(out, m.styles.InputBase.Render(m.input.View()))
 
-	if m.table.FilteredDataLen() == 0 {
+	if m.table.TotalFilteredRows() == 0 {
 		out = append(out, lipgloss.NewStyle().Width(m.Width).
 			Align(lipgloss.Center).
 			Foreground(styles.Theme.ErrorFg()).
@@ -232,7 +247,7 @@ func (m *Model) View() string {
 			Render("no results found"),
 		)
 	} else {
-		out = append(out, lipgloss.NewStyle().MaxHeight(m.table.FilteredDataLen()+1).Render(m.table.View()))
+		out = append(out, lipgloss.NewStyle().MaxHeight(m.table.TotalFilteredRows()+1).Render(m.table.View()))
 	}
 
 	return m.styles.Base.Render(lipgloss.JoinVertical(lipgloss.Top, out...))
