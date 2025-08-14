@@ -14,12 +14,6 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-type Listable interface {
-	Suggestions() []string
-	Len() int
-	GetData() ([]string, [][]string)
-}
-
 type Styles struct {
 	Base      lipgloss.Style
 	InputBase lipgloss.Style
@@ -27,9 +21,9 @@ type Styles struct {
 }
 
 type Config struct {
-	List              Listable
+	Columns           []*table.Column
 	FilterPlaceholder string
-	SelectFunc        func(row []string) tea.Cmd
+	SelectFunc        func(id string) tea.Cmd
 }
 
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
@@ -43,6 +37,8 @@ type Model struct {
 	// UI state.
 	config        Config
 	previousInput string
+	suggestions   []string
+	items         [][]string
 
 	// Styles.
 	styles Styles
@@ -67,20 +63,10 @@ func New(app types.AppState, config Config) *Model {
 	}
 	m.input.SetVirtualCursor(true)
 	m.input.ShowSuggestions = true
-	m.input.SetSuggestions(m.config.List.Suggestions())
 
-	cols, _ := config.List.GetData()
-	columns := []*table.Column{}
-	for _, col := range cols {
-		columns = append(columns, &table.Column{
-			ID:    table.ID(col),
-			Title: col,
-		})
-	}
-
-	m.table = table.New(app, columns, table.Config[*table.StaticRow[[]string]]{
+	m.table = table.New(app, config.Columns, table.Config[*table.StaticRow[[]string]]{
 		SelectFn: func(row *table.StaticRow[[]string]) tea.Cmd {
-			return config.SelectFunc(row.Value)
+			return config.SelectFunc(string(row.ID()))
 		},
 		RowFn: func(row *table.StaticRow[[]string]) []string { return row.Value },
 	})
@@ -98,21 +84,36 @@ func (m *Model) initStyles() {
 	var inputStyles textinput.Styles
 
 	inputStyles.Focused.Placeholder = inputStyles.Focused.Placeholder.
-		Foreground(styles.Theme.Fg()).
-		Faint(true)
+		Inherit(
+			lipgloss.NewStyle().
+				Foreground(styles.Theme.Fg()).
+				Faint(true),
+		)
 
 	inputStyles.Focused.Suggestion = inputStyles.Focused.Suggestion.
-		Foreground(styles.Theme.Fg()).
-		Faint(true)
+		Inherit(
+			lipgloss.NewStyle().
+				Foreground(styles.Theme.Fg()).
+				Faint(true),
+		)
 
 	inputStyles.Focused.Text = inputStyles.Focused.Text.
-		Foreground(styles.Theme.Fg())
+		Inherit(
+			lipgloss.NewStyle().
+				Foreground(styles.Theme.Fg()),
+		)
 
 	inputStyles.Focused.Prompt = inputStyles.Focused.Prompt.
-		Foreground(styles.Theme.Fg())
+		Inherit(
+			lipgloss.NewStyle().
+				Foreground(styles.Theme.Fg()),
+		)
 
 	inputStyles.Blurred.Prompt = inputStyles.Blurred.Prompt.
-		Foreground(styles.Theme.InfoFg())
+		Inherit(
+			lipgloss.NewStyle().
+				Foreground(styles.Theme.InfoFg()),
+		)
 
 	inputStyles.Cursor.Color = styles.Theme.Fg()
 	// TODO: bug with bubbles v2, returns cursor.BlinkMsg, then returns cursor.blinkCanceled,
@@ -128,6 +129,32 @@ func (m *Model) SetStyles(s Styles) {
 	m.initStyles()
 }
 
+func (m *Model) SetSuggestions(suggestions []string) {
+	m.suggestions = suggestions
+	m.input.SetSuggestions(suggestions)
+}
+
+func (m *Model) SetItems(items [][]string) {
+	m.items = items
+	m.updateTable()
+}
+
+func (m *Model) updateTable() {
+	var out [][]string
+	var ids []table.ID
+	for _, row := range m.items {
+		out = append(out, row[1:])
+		ids = append(ids, table.ID(row[0]))
+	}
+
+	var i int
+	m.table.SetRows(table.RowsFrom(out, func(row []string) table.ID {
+		id := ids[i]
+		i++
+		return id
+	}))
+}
+
 func (m *Model) updateDimensions() {
 	m.styles.InputBase = m.styles.InputBase.Height(1)
 
@@ -137,7 +164,7 @@ func (m *Model) updateDimensions() {
 
 	// Re-calculate the height so the dialog is only as big as we need, up to the max
 	// of the default of [DialogModel.Size].
-	m.Height = min(m.Height, m.styles.InputBase.GetVerticalFrameSize()+m.config.List.Len()+1) // +1=table header.
+	m.Height = min(m.Height, m.styles.InputBase.GetVerticalFrameSize()+len(m.items)+1) // +1=table header.
 
 	m.table.Height = m.Height - m.styles.InputBase.GetVerticalFrameSize()
 	m.table.Width = m.Width
@@ -177,7 +204,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			if !ok {
 				return nil
 			}
-			return m.config.SelectFunc(selected.Value)
+			return m.config.SelectFunc(string(selected.ID()))
 		case key.Matches(msg, types.KeyCancel):
 			if m.input.Value() != "" {
 				m.input.Reset()
@@ -210,24 +237,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	cmds = append(cmds, m.table.Update(msg))
 
 	return tea.Batch(cmds...)
-}
-
-func (m *Model) updateTable() {
-	cols, rows := m.config.List.GetData()
-	columns := []*table.Column{}
-	for _, col := range cols {
-		columns = append(columns, &table.Column{
-			ID:    table.ID(col),
-			Title: col,
-		})
-	}
-	m.table.SetColumns(columns)
-	m.table.SetRows(table.RowsFrom(rows, func(row []string) table.ID {
-		if len(row) > 0 {
-			return table.ID(row[0])
-		}
-		return table.ID("")
-	}))
 }
 
 func (m *Model) View() string {

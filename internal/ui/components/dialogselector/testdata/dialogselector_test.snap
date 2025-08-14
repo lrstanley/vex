@@ -1,4 +1,48 @@
 
+[TestDialogSelectorFunctionality/dimensions - 1]
+ > type to filter                                                               
+                                                                                
+ Name   Description                                                             
+ item1  description 1                                                           
+ item2  description 2                                                           
+---
+
+[TestDialogSelectorFunctionality/dimensions - 2]
+ > type to filter                       
+                                        
+ Name   Description                     
+ item1  description 1                   
+ item2  description 2                   
+---
+
+[TestDialogSelectorFunctionality/filtering - 1]
+ > type to filter                                           
+                                                            
+ Name      Category                                         
+ apple     fruit                                            
+ banana    fruit                                            
+ carrot    vegetable                                        
+ broccoli  vegetable                                        
+---
+
+[TestDialogSelectorFunctionality/selection - 1]
+ > type to filter                                 
+                                                  
+ Name   Value                                     
+ item1  value1                                    
+ item2  value2                                    
+ item3  value3                                    
+---
+
+[TestDialogSelectorFunctionality/suggestions - 1]
+ > type to filter                       
+                                        
+ Name                                   
+ apple                                  
+ banana                                 
+ carrot                                 
+---
+
 [TestNew/0-width-height - 1]
 
 ---

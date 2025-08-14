@@ -2,26 +2,26 @@
 [TestNew/basic-validation - 1]
  > type to filter                                                     
                                                                       
-   Command      Aliases            Description                        
-   mock-page-1  mock-page-1-alias  Mock Page 1 Title                  
-   mock-page-2  mock-page-2-alias  Mock Page 2 Title                  
-   mock-page-3  mock-page-3-alias  Mock Page 3 Title                  
-   mock-page-4  mock-page-4-alias  Mock Page 4 Title                  
+    Command      Aliases            Description                       
+    mock-page-1  mock-page-1-alias  Mock Page 1 Title                 
+    mock-page-2  mock-page-2-alias  Mock Page 2 Title                 
+    mock-page-3  mock-page-3-alias  Mock Page 3 Title                 
+    mock-page-4  mock-page-4-alias  Mock Page 4 Title                 
 ---
 
 [TestNew/basic-validation - 2]
  > mock-page-1                                                        
                                                                       
-   Command      Aliases            Description                        
-   mock-page-1  mock-page-1-alias  Mock Page 1 Title                  
+    Command      Aliases            Description                       
+    mock-page-1  mock-page-1-alias  Mock Page 1 Title                 
 ---
 
 [TestNew/basic-validation - 3]
  > mock-page-1                                                        
                                                                       
-   Command      Aliases            Description                        
-   mock-page-1  mock-page-1-alias  Mock Page 1 Title                  
-   mock-page-2  mock-page-2-alias  Mock Page 2 Title                  
-   mock-page-3  mock-page-3-alias  Mock Page 3 Title                  
-   mock-page-4  mock-page-4-alias  Mock Page 4 Title                  
+    Command      Aliases            Description                       
+    mock-page-1  mock-page-1-alias  Mock Page 1 Title                 
+    mock-page-2  mock-page-2-alias  Mock Page 2 Title                 
+    mock-page-3  mock-page-3-alias  Mock Page 3 Title                 
+    mock-page-4  mock-page-4-alias  Mock Page 4 Title                 
 ---

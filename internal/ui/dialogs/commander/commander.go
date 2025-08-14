@@ -12,8 +12,16 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/dialogselector"
+	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
+
+var columns = []*table.Column{
+	{ID: "active", Title: "", MinWidth: 1},
+	{ID: "command", Title: "Command"},
+	{ID: "aliases", Title: "Aliases"},
+	{ID: "description", Title: "Description"},
+}
 
 type PageRef struct {
 	Description string
@@ -26,57 +34,17 @@ type Config struct {
 	Pages []PageRef
 }
 
-func (c Config) Suggestions() (cmds []string) {
-	for _, ref := range c.Pages {
-		cmds = append(cmds, ref.Commands...)
-	}
-	return cmds
-}
-
-func (c Config) Len() int {
-	return len(c.Pages)
-}
-
-func (c Config) GetData() (cols []string, rows [][]string) {
-	cols = []string{"  Command", "Aliases", "Description"}
-
-	currentPageCmds := c.App.Page().Get().GetCommands()
-
-	for _, ref := range c.Pages {
-		var name string
-
-		var isCurrent bool
-		for _, cmd := range ref.Commands {
-			if slices.Contains(currentPageCmds, cmd) {
-				isCurrent = true
-				break
-			}
-		}
-		if isCurrent {
-			name = styles.IconClosedCircle + " " + ref.Commands[0]
-		} else {
-			name = "  " + ref.Commands[0]
-		}
-		rows = append(rows, []string{
-			name,
-			strings.Join(ref.Commands[1:], ", "),
-			ref.Description,
-		})
-	}
-
-	return cols, rows
-}
-
 var _ types.Dialog = (*Model)(nil) // Ensure we implement the dialog interface.
 
 type Model struct {
 	*types.DialogModel
 
 	// Core state.
-	app types.AppState
-
-	// UI state.
+	app    types.AppState
 	config Config
+
+	// Styles.
+	activeStyle lipgloss.Style
 
 	// Child components.
 	selector *dialogselector.Model
@@ -94,7 +62,7 @@ func New(app types.AppState, config Config) *Model {
 
 	m := &Model{
 		DialogModel: &types.DialogModel{
-			Size:            types.DialogSizeSmall,
+			Size:            types.DialogSizeMedium,
 			DisableChildren: true,
 		},
 		app:    app,
@@ -102,10 +70,8 @@ func New(app types.AppState, config Config) *Model {
 	}
 
 	m.selector = dialogselector.New(app, dialogselector.Config{
-		List: config,
-		SelectFunc: func(row []string) tea.Cmd {
-			cmd := strings.SplitN(row[0][1:], " ", 2)[1]
-
+		Columns: columns,
+		SelectFunc: func(cmd string) tea.Cmd {
 			var ref PageRef
 			for _, p := range m.config.Pages {
 				if slices.Contains(p.Commands, cmd) {
@@ -125,10 +91,14 @@ func New(app types.AppState, config Config) *Model {
 	})
 
 	m.initStyles()
+	m.setData()
 	return m
 }
 
 func (m *Model) initStyles() {
+	m.activeStyle = m.activeStyle.
+		Foreground(styles.Theme.ErrorFg())
+
 	// Re-calculate the height so the dialog is only as big as we need, up to the max
 	// of the default of [DialogModel.Size].
 	m.Height = min(m.Height, m.selector.GetHeight())
@@ -140,6 +110,39 @@ func (m *Model) GetTitle() string {
 
 func (m *Model) IsCoreDialog() bool {
 	return true
+}
+
+func (m *Model) setData() {
+	var suggestions []string
+	for _, ref := range m.config.Pages {
+		suggestions = append(suggestions, ref.Commands...)
+	}
+	m.selector.SetSuggestions(suggestions)
+
+	currentPageCmds := m.app.Page().Get().GetCommands()
+	var rows [][]string
+	for _, ref := range m.config.Pages {
+		var isCurrent bool
+		for _, cmd := range ref.Commands {
+			if slices.Contains(currentPageCmds, cmd) {
+				isCurrent = true
+				break
+			}
+		}
+		var active string
+		if isCurrent {
+			active = m.activeStyle.Render(styles.IconClosedCircle)
+		}
+		rows = append(rows, []string{
+			ref.Commands[0], // ID.
+			active,
+			ref.Commands[0],
+			strings.Join(ref.Commands[1:], ", "),
+			ref.Description,
+		})
+	}
+
+	m.selector.SetItems(rows)
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -154,9 +157,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.Height, m.Width = msg.Height, msg.Width
 		cmds = append(cmds, m.selector.Update(msg))
 		m.initStyles()
+		m.setData()
 		return tea.Batch(cmds...)
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
+		m.setData()
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
 		cmds = append(cmds, m.selector.Update(msg))
 		return tea.Batch(cmds...)
@@ -169,8 +174,5 @@ func (m *Model) View() string {
 	if m.Width == 0 || m.Height == 0 {
 		return ""
 	}
-	return lipgloss.JoinVertical(
-		lipgloss.Top,
-		m.selector.View(),
-	)
+	return m.selector.View()
 }
