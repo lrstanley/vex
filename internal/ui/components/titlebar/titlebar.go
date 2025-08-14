@@ -106,7 +106,7 @@ func (m *Model) View() string {
 		title = styles.Title(
 			titleText,
 			m.Width-hw,
-			styles.IconTitleGradient,
+			styles.IconTitleGradientDivider,
 			styles.Theme.TitleFg(),
 			styles.Theme.TitleFromFg(),
 			styles.Theme.TitleToFg(),

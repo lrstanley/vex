@@ -6,6 +6,15 @@ import (
 	"image/color"
 )
 
+func (tc *ThemeConfig) SupportsAdvancedColors() bool {
+	if tc == nil {
+		return false
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.supportsAdvancedColors
+}
+
 func (tc *ThemeConfig) Fg() color.Color {
 	if tc == nil {
 		return nil

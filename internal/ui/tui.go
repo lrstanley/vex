@@ -147,7 +147,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				Width:  msg.Width,
 			}),
 		)
-	case tea.BackgroundColorMsg:
+	case tea.BackgroundColorMsg, tea.ColorProfileMsg:
 		return m, styles.Theme.Update(msg)
 	case tea.KeyMsg:
 		// TODO: temporary bindings, will eventually be handled by the config package.

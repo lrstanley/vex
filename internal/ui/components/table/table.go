@@ -94,7 +94,8 @@ type Model[T Row] struct {
 	xoffset int
 
 	// Styles.
-	styles Styles
+	providedStyles Styles
+	styles         Styles
 
 	// Child components.
 	loader *loader.Model
@@ -124,13 +125,13 @@ func New[T Row](app types.AppState, columns []*Column, config Config[T]) *Model[
 }
 
 func (m *Model[T]) initStyles() {
-	m.styles.Base = m.styles.Base.
+	m.styles.Base = m.providedStyles.Base.
 		Inherit(
 			lipgloss.NewStyle().
 				Foreground(styles.Theme.Fg()),
 		)
 
-	m.styles.NoResults = m.styles.NoResults.
+	m.styles.NoResults = m.providedStyles.NoResults.
 		Inherit(
 			lipgloss.NewStyle().
 				Foreground(styles.Theme.ErrorFg()).
@@ -139,7 +140,7 @@ func (m *Model[T]) initStyles() {
 		Padding(0, 1).
 		Align(lipgloss.Center)
 
-	m.styles.Cell = m.styles.Cell.
+	m.styles.Cell = m.providedStyles.Cell.
 		Inherit(
 			lipgloss.NewStyle().
 				Foreground(styles.Theme.Fg()),
@@ -152,7 +153,7 @@ func (m *Model[T]) initStyles() {
 		UnsetBorderBottom().
 		UnsetBorderLeft()
 
-	m.styles.Header = m.styles.Header.
+	m.styles.Header = m.providedStyles.Header.
 		Inherit(
 			lipgloss.NewStyle().
 				Foreground(styles.Theme.Fg()).
@@ -164,7 +165,7 @@ func (m *Model[T]) initStyles() {
 		UnsetBorderLeft().
 		UnsetBorderRight()
 
-	m.styles.SelectedRow = m.styles.SelectedRow.
+	m.styles.SelectedRow = m.providedStyles.SelectedRow.
 		Inherit(
 			lipgloss.NewStyle().
 				Foreground(styles.Theme.InfoFg()).
@@ -178,7 +179,7 @@ func (m *Model[T]) initStyles() {
 		UnsetBorderBottom().
 		UnsetBorderLeft()
 
-	m.styles.HighlightedRow = m.styles.HighlightedRow.
+	m.styles.HighlightedRow = m.providedStyles.HighlightedRow.
 		Inherit(
 			lipgloss.NewStyle().
 				Foreground(styles.Theme.SuccessFg()).
@@ -191,7 +192,7 @@ func (m *Model[T]) initStyles() {
 		UnsetBorderBottom().
 		UnsetBorderLeft()
 
-	m.styles.HighlightedAndSelectedRow = m.styles.HighlightedAndSelectedRow.
+	m.styles.HighlightedAndSelectedRow = m.providedStyles.HighlightedAndSelectedRow.
 		Inherit(
 			lipgloss.NewStyle().
 				Foreground(styles.Theme.WarningFg()).
@@ -207,7 +208,7 @@ func (m *Model[T]) initStyles() {
 }
 
 func (m *Model[T]) SetStyles(s Styles) {
-	m.styles = s
+	m.providedStyles = s
 	m.initStyles()
 }
 

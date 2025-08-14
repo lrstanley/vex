@@ -64,7 +64,7 @@ func (s *pageState) setStyles() {
 	s.filterIconStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.PageBorderFilterFg()).
 		PaddingRight(1).
-		SetString(styles.IconFilter)
+		SetString(styles.IconFilter())
 	s.separatorStyle = lipgloss.NewStyle().
 		Foreground(styles.Theme.Fg()).
 		Padding(0, 1).

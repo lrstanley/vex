@@ -41,7 +41,8 @@ type Model struct {
 	items         [][]string
 
 	// Styles.
-	styles Styles
+	styles         Styles
+	providedStyles Styles
 
 	// Child components.
 	input textinput.Model
@@ -76,12 +77,16 @@ func New(app types.AppState, config Config) *Model {
 }
 
 func (m *Model) initStyles() {
-	m.styles.Base = m.styles.Base.
-		Foreground(styles.Theme.Fg())
+	m.styles.Base = m.providedStyles.Base.
+		Inherit(
+			lipgloss.NewStyle().
+				Foreground(styles.Theme.Fg()),
+		)
 
-	m.styles.InputBase = m.styles.InputBase.Padding(0, 1, 1, 1)
+	m.styles.InputBase = m.providedStyles.InputBase.
+		Padding(0, 1, 1, 1)
 
-	var inputStyles textinput.Styles
+	inputStyles := m.providedStyles.Input
 
 	inputStyles.Focused.Placeholder = inputStyles.Focused.Placeholder.
 		Inherit(
@@ -125,7 +130,7 @@ func (m *Model) initStyles() {
 }
 
 func (m *Model) SetStyles(s Styles) {
-	m.styles = s
+	m.providedStyles = s
 	m.initStyles()
 }
 

@@ -24,7 +24,6 @@ var (
 		{ID: "path", Title: "Path"},
 		{ID: "type", Title: "Type", MaxWidth: 15},
 		{ID: "description", Title: "Description", MaxWidth: 40},
-		{ID: "accessor", Title: "Accessor"},
 		{ID: "deprecated", Title: "Deprecated"},
 		{ID: "plugin_version", Title: "Plugin Version"},
 	}
@@ -142,7 +141,6 @@ func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
 		row.Value.Path,
 		row.Value.Type + sopts,
 		row.Value.Description,
-		row.Value.Accessor,
 		row.Value.DeprecationStatus,
 		row.Value.RunningVersion,
 	}

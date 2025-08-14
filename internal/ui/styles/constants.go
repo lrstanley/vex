@@ -4,27 +4,46 @@
 
 package styles
 
-// refs:
-//   - https://gist.githubusercontent.com/nico/befa4300d44ffe579553d37ae0981941/raw/f61795f231a10ccc2c97c8b75b20fdcecfab6377/blocks.txt
-//   - https://shapecatcher.com/
-//
-// TODO: convert these to methods, so we can provide fallbacks?
-const (
-	IconSeparator        = "•"
-	IconEllipsis         = "…"
-	IconOpenDottedCircle = "◌"
-	IconSemiFilledCircle = "◎"
-	IconClosedCircle     = "◉"
-	IconFilledCircle     = "⏺"
-	IconFilter           = "🔍"
-	IconRefresh          = "⟳"
-	IconFlag             = "⚑"
-	IconTitleGradient    = "/"
-
-	IconCaution     = "⚠"
-	IconMaybeDanger = "⁈"
-	IconDanger      = "‼"
-	IconUnknown     = "⁇"
-
-	IconScrollbar = "┃"
+import (
+	"github.com/charmbracelet/colorprofile"
 )
+
+var advancedColorProfiles = []colorprofile.Profile{
+	colorprofile.ANSI256,
+	colorprofile.TrueColor,
+}
+
+// refs:
+//   - https://www.vertex42.com/ExcelTips/unicode-symbols.html
+//   - https://www.amp-what.com/
+//   - https://shapecatcher.com/
+const (
+	IconSeparator            = "•"
+	IconEllipsis             = "…"
+	IconOpenDottedCircle     = "◌"
+	IconSemiFilledCircle     = "◎"
+	IconClosedCircle         = "◉"
+	IconFilledCircle         = "⏺"
+	IconRefresh              = "⟳"
+	IconTitleGradientDivider = "⫻"
+	IconMaybeDanger          = "⁈"
+	IconDanger               = "‼"
+	IconUnknown              = "⁇"
+	IconScrollbar            = "┃"
+)
+
+var (
+	IconCaution      = iconFallback("⚠️", "⚠")
+	IconFilter       = iconFallback("🔍", "⌕")
+	IconUnderWeather = iconFallback("☔", "⛈")
+	IconFlag         = iconFallback("🚩", "⚑")
+)
+
+func iconFallback(icon, fallback string) func() string {
+	return func() string {
+		if !Theme.SupportsAdvancedColors() {
+			return fallback
+		}
+		return icon
+	}
+}

@@ -117,10 +117,12 @@ func (m *Model) renderCode() {
 		lexer = lexers.Fallback
 	}
 
-	style := chroma.MustNewStyle("vex", styles.Theme.Chroma())
-
-	// Use a simple formatter that outputs ANSI color codes.
-	formatter := formatters.TTY256
+	var formatter chroma.Formatter
+	if styles.Theme.SupportsAdvancedColors() {
+		formatter = formatters.TTY256
+	} else {
+		formatter = formatters.TTY16
+	}
 
 	// Tokenize the code.
 	iterator, err := lexer.Tokenise(nil, m.code)
@@ -132,7 +134,7 @@ func (m *Model) renderCode() {
 
 	// Format the tokens.
 	var buf bytes.Buffer
-	err = formatter.Format(&buf, style, iterator)
+	err = formatter.Format(&buf, styles.Theme.Chroma(), iterator)
 	if err != nil {
 		m.viewport.SetContent(m.code)
 		m.ensureSize()

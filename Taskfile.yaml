@@ -112,7 +112,7 @@ tasks:
     interactive: true
     cmds:
       - |
-        TERM="xterm" COLORTERM="xterm" go run {{.PACKAGE}} \
+        TERM="xterm-color" COLORTERM="xterm-color" go run {{.PACKAGE}} \
           --logging.level=debug \
           --enable-pprof \
           {{.CLI_ARGS}}

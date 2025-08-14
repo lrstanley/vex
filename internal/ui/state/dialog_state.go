@@ -301,7 +301,7 @@ func (s *dialogState) GetLayers() []*lipgloss.Layer {
 						s.titleStyle.Render(styles.Title(
 							dialog.GetTitle(),
 							dialog.GetWidth()-s.titleStyle.GetHorizontalFrameSize(),
-							styles.IconTitleGradient,
+							styles.IconTitleGradientDivider,
 							styles.Theme.TitleFg(),
 							styles.Theme.TitleFromFg(),
 							styles.Theme.TitleToFg(),

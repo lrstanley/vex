@@ -58,15 +58,15 @@ var (
 
 	KeyToggleMask = key.NewBinding(
 		key.WithKeys("x"),
-		key.WithHelp("x", "toggle masking"),
+		key.WithHelp("x", "unmask"),
 	)
 	KeyToggleMaskAll = key.NewBinding(
 		key.WithKeys("ctrl+x"),
-		key.WithHelp("ctrl+x", "toggle masking all"),
+		key.WithHelp("ctrl+x", "unmask all"),
 	)
 	KeyRenderJSON = key.NewBinding(
 		key.WithKeys("z"),
-		key.WithHelp("z", "render as json"),
+		key.WithHelp("z", "view json"),
 	)
 
 	// Table related.

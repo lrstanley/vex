@@ -382,7 +382,7 @@ func (m *Model) TopRightBorder() string {
 			Foreground(styles.Theme.ErrorFg()).
 			Background(styles.Theme.ErrorBg()).
 			Padding(0, 1).
-			Render(styles.IconFlag + " unmasked secrets")
+			Render(styles.IconCaution() + " unmasked secrets")
 	}
 	return ""
 }
