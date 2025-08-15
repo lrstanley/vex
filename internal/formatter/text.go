@@ -50,3 +50,10 @@ func CutMultiline(s string, left, right int) string {
 	}
 	return strings.Join(out, "\n")
 }
+
+const ANSIReset = "\x1b[m"
+
+// TruncReset removes the ANSI reset sequence from a string.
+func TruncReset(s string) string {
+	return strings.ReplaceAll(s, ANSIReset, "")
+}

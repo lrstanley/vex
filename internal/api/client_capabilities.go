@@ -15,7 +15,7 @@ func (c *client) getCapabilities(paths ...string) (map[string]types.ClientCapabi
 	// TODO: https://github.com/hashicorp/vault/issues/31376
 
 	if len(paths) == 0 {
-		panic("no paths provided")
+		return map[string]types.ClientCapabilities{}, nil
 	}
 
 	results, err := request[*wrappedResponse[map[string]types.ClientCapabilities]](

@@ -202,13 +202,13 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	statusFgLighten := 0.4
 	statusBgDarken := 0.6
 
-	tc.successFg = tc.adapt(tc.lighten(t.BrightGreen, statusFgLighten), tc.lighten(t.BrightGreen, statusFgLighten))
+	tc.successFg = tc.adapt(tc.lighten(t.BrightGreen, statusFgLighten/2), tc.lighten(t.BrightGreen, statusFgLighten/2))
 	tc.successBg = tc.adapt(tc.darken(t.BrightGreen, statusBgDarken), tc.darken(t.BrightGreen, statusBgDarken))
-	tc.warningFg = tc.adapt(tc.lighten(t.BrightYellow, statusFgLighten), tc.lighten(t.BrightYellow, statusFgLighten))
+	tc.warningFg = tc.adapt(tc.lighten(t.BrightYellow, statusFgLighten/2), tc.lighten(t.BrightYellow, statusFgLighten/2))
 	tc.warningBg = tc.adapt(tc.darken(t.BrightYellow, statusBgDarken), tc.darken(t.BrightYellow, statusBgDarken))
-	tc.errorFg = tc.adapt(tc.lighten(t.BrightRed, statusFgLighten), tc.lighten(t.BrightRed, statusFgLighten))
+	tc.errorFg = tc.adapt(tc.lighten(t.BrightRed, statusFgLighten/2), tc.lighten(t.BrightRed, statusFgLighten/2))
 	tc.errorBg = tc.adapt(tc.darken(t.BrightRed, statusBgDarken), tc.darken(t.BrightRed, statusBgDarken))
-	tc.infoFg = tc.adapt(tc.lighten(t.BrightBlue, statusFgLighten), tc.lighten(t.BrightBlue, statusFgLighten))
+	tc.infoFg = tc.adapt(tc.lighten(t.BrightBlue, statusFgLighten/2), tc.lighten(t.BrightBlue, statusFgLighten/2))
 	tc.infoBg = tc.adapt(tc.darken(t.BrightBlue, statusBgDarken), tc.darken(t.BrightBlue, statusBgDarken))
 
 	tc.scrollbarThumbFg = tc.adaptAuto(t.BrightBlue, 0.2)

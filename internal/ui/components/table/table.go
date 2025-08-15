@@ -168,7 +168,7 @@ func (m *Model[T]) initStyles() {
 	m.styles.SelectedRow = m.providedStyles.SelectedRow.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.InfoFg()).
+				Foreground(styles.Theme.Fg()).
 				Background(styles.Theme.InfoBg()).
 				Bold(true),
 		).
@@ -195,8 +195,8 @@ func (m *Model[T]) initStyles() {
 	m.styles.HighlightedAndSelectedRow = m.providedStyles.HighlightedAndSelectedRow.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.WarningFg()).
-				Background(styles.Theme.WarningBg()).
+				Foreground(styles.Theme.SuccessFg()).
+				Background(styles.Theme.InfoBg()).
 				Bold(true),
 		).
 		Padding(m.styles.Cell.GetPadding()).

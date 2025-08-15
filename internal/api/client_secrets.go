@@ -21,7 +21,6 @@ import (
 const MaxRecursiveRequests = 200
 
 func (c *client) ListSecrets(uuid string, mount *types.Mount, path string) tea.Cmd {
-	// TODO: refactor and dedup logic.
 	return wrapHandler(uuid, func() (*types.ClientListSecretsMsg, error) {
 		var values []*types.SecretListRef
 
@@ -30,10 +29,16 @@ func (c *client) ListSecrets(uuid string, mount *types.Mount, path string) tea.C
 			return nil, fmt.Errorf("list secrets: %w", err)
 		}
 
+		capabilities, err := c.getCapabilities(mount.PrefixPaths(paths...)...)
+		if err != nil {
+			return nil, fmt.Errorf("get capabilities: %w", err)
+		}
+
 		for _, v := range paths {
 			values = append(values, &types.SecretListRef{
-				Mount: mount,
-				Path:  path + v,
+				Mount:        mount,
+				Path:         path + v,
+				Capabilities: capabilities[mount.Path+v],
 			})
 		}
 

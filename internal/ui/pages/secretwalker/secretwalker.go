@@ -18,6 +18,7 @@ import (
 var columns = []*table.Column{
 	{ID: "mount", Title: "Mount"},
 	{ID: "key", Title: "Key"},
+	{ID: "capabilities", Title: "Capabilities"},
 }
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
@@ -58,8 +59,12 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 			}
 			return types.OpenPage(New(app, value.Value.Mount, value.Value.Path), false)
 		},
-		RowFn: func(value *table.StaticRow[*types.SecretListRef]) []string {
-			return []string{value.Value.Mount.Path, value.Value.Path}
+		RowFn: func(row *table.StaticRow[*types.SecretListRef]) []string {
+			return []string{
+				row.Value.Mount.Path,
+				row.Value.Path,
+				styles.ClientCapabilities(row.Value.Capabilities, row.Value.FullPath()),
+			}
 		},
 	})
 

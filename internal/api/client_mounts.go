@@ -23,16 +23,31 @@ func (c *client) ListMounts(uuid string, filterTypes ...string) tea.Cmd {
 			return nil, err
 		}
 
-		var filtered []*types.Mount
-
 		if len(filterTypes) > 0 {
-			for _, mount := range mounts {
-				if slices.Contains(filterTypes, mount.Type) {
-					filtered = append(filtered, mount)
+			for i := len(mounts) - 1; i >= 0; i-- {
+				if !slices.Contains(filterTypes, mounts[i].Type) {
+					mounts = append(mounts[:i], mounts[i+1:]...)
 				}
 			}
-			return &types.ClientListMountsMsg{Mounts: filtered}, nil
 		}
+
+		if len(mounts) > 0 {
+			paths := make([]string, 0, len(mounts))
+			for _, mount := range mounts {
+				paths = append(paths, mount.Path)
+			}
+
+			var capabilities map[string]types.ClientCapabilities
+			capabilities, err = c.getCapabilities(paths...)
+			if err != nil {
+				return nil, fmt.Errorf("get capabilities: %w", err)
+			}
+
+			for _, mount := range mounts {
+				mount.Capabilities = capabilities[mount.Path]
+			}
+		}
+
 		return &types.ClientListMountsMsg{Mounts: mounts}, nil
 	})
 }

@@ -54,7 +54,13 @@ type ClientListMountsMsg struct {
 
 type Mount struct {
 	*vapi.MountOutput
+
+	// Path is the path of the mount.
 	Path string `json:"path"`
+
+	// Capabilities are the capabilities of the mount. Not always available,
+	// depends on the query made.
+	Capabilities ClientCapabilities `json:"capabilities"`
 }
 
 func (m *Mount) KVVersion() int {
@@ -69,13 +75,26 @@ func (m *Mount) KVVersion() int {
 	return v
 }
 
+// PrefixPaths prefixes the given paths with the mount path.
+func (m *Mount) PrefixPaths(paths ...string) (prefixed []string) {
+	for _, path := range paths {
+		prefixed = append(prefixed, m.Path+path)
+	}
+	return prefixed
+}
+
 type ClientListSecretsMsg struct {
 	Values []*SecretListRef `json:"values"`
 }
 
 type SecretListRef struct {
-	Mount *Mount `json:"mount"`
-	Path  string `json:"path"`
+	Mount        *Mount             `json:"mount"`
+	Path         string             `json:"path"`
+	Capabilities ClientCapabilities `json:"capabilities"`
+}
+
+func (r *SecretListRef) FullPath() string {
+	return r.Mount.Path + r.Path
 }
 
 type ClientGetSecretMsg struct {
@@ -112,21 +131,47 @@ type ClientConfigStateMsg struct {
 type ClientCapability string
 
 var (
-	CapabilityRead   ClientCapability = "read"
-	CapabilityWrite  ClientCapability = "write"
-	CapabilityDelete ClientCapability = "delete"
-	CapabilityList   ClientCapability = "list"
-	CapabilityDeny   ClientCapability = "deny"
-	CapabilityRoot   ClientCapability = "root"
-	CapabilitySudo   ClientCapability = "sudo"
+	// "Note: Capabilities usually map to the HTTP verb, and not the underlying
+	// action taken. This can be a common source of confusion. Generating database
+	// credentials creates database credentials, but the HTTP request is a GET
+	// which corresponds to a read capability. Thus, to grant access to generate
+	// database credentials, the policy would grant read access on the appropriate
+	// path."
+	//  - https://developer.hashicorp.com/vault/docs/concepts/policies
+
+	CapabilityRoot      ClientCapability = "root"
+	CapabilityDeny      ClientCapability = "deny"
+	CapabilitySudo      ClientCapability = "sudo"
+	CapabilityWrite     ClientCapability = "write"
+	CapabilitySubscribe ClientCapability = "subscribe"
+	CapabilityRecover   ClientCapability = "recover"
+
+	// Capabilities that also have associated HTTP-method mappings.
+
+	CapabilityRead   ClientCapability = "read"   // GET.
+	CapabilityList   ClientCapability = "list"   // LIST.
+	CapabilityDelete ClientCapability = "delete" // DELETE.
+	CapabilityCreate ClientCapability = "create" // POST/PUT.
+	CapabilityUpdate ClientCapability = "update" // POST/PUT.
+	CapabilityPatch  ClientCapability = "patch"  // PATCH.
 )
 
 type ClientCapabilities []ClientCapability
 
 func (c ClientCapabilities) Contains(capability ClientCapability) bool {
-	if capability != CapabilityDeny && (slices.Contains(c, CapabilityRoot) || slices.Contains(c, CapabilitySudo)) {
+	if slices.Contains(c, CapabilityRoot) {
 		return true
 	}
+
+	// Deny takes precedence over all other capabilities, including sudo.
+	if slices.Contains(c, CapabilityDeny) {
+		return false
+	}
+
+	if slices.Contains(c, CapabilitySudo) {
+		return true
+	}
+
 	return slices.Contains(c, capability)
 }
 
@@ -143,20 +188,20 @@ type ClientSecretTree []*ClientSecretTreeRef
 // IterRefs iterates over all the leaf refs in the tree, recursively.
 func (c ClientSecretTree) IterRefs() iter.Seq[*ClientSecretTreeRef] {
 	return func(yield func(*ClientSecretTreeRef) bool) {
-		var iter func(*ClientSecretTreeRef) bool
-		iter = func(ref *ClientSecretTreeRef) bool {
+		var iterator func(*ClientSecretTreeRef) bool
+		iterator = func(ref *ClientSecretTreeRef) bool {
 			if !yield(ref) {
 				return false
 			}
 			for _, leaf := range ref.Leafs {
-				if !iter(leaf) {
+				if !iterator(leaf) {
 					return false
 				}
 			}
 			return true
 		}
 		for _, ref := range c {
-			if !iter(ref) {
+			if !iterator(ref) {
 				return
 			}
 		}
@@ -213,19 +258,19 @@ func (c *ClientSecretTreeRef) GetFullPath() string {
 // IterRefs iterates over all the leaf refs in this leaf, recursively.
 func (c *ClientSecretTreeRef) IterRefs() iter.Seq[*ClientSecretTreeRef] {
 	return func(yield func(*ClientSecretTreeRef) bool) {
-		var iter func(*ClientSecretTreeRef) bool
-		iter = func(ref *ClientSecretTreeRef) bool {
+		var iterator func(*ClientSecretTreeRef) bool
+		iterator = func(ref *ClientSecretTreeRef) bool {
 			if !yield(ref) {
 				return false
 			}
 			for _, leaf := range ref.Leafs {
-				if !iter(leaf) {
+				if !iterator(leaf) {
 					return false
 				}
 			}
 			return true
 		}
-		iter(c)
+		iterator(c)
 	}
 }
 

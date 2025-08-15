@@ -254,7 +254,7 @@ func (m *Model) View() string {
 			Align(lipgloss.Center, lipgloss.Center).
 			Height(m.height).
 			Width(m.width).
-			Render(styles.IconDanger + " window too small, resize")
+			Render(styles.IconCaution() + " window too small, resize")
 	}
 
 	s := lipgloss.NewStyle().

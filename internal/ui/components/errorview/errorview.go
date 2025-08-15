@@ -17,8 +17,7 @@ import (
 )
 
 const (
-	MaxWidth         = 60
-	NotShownTemplate = styles.IconDanger + " %d error(s) not shown (screen size)"
+	MaxWidth = 60
 )
 
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
@@ -90,6 +89,10 @@ func (m *Model) SetErrors(errs ...error) {
 	m.calculateMaxWidth()
 }
 
+func (m *Model) NotShownTemplate() string {
+	return styles.IconCaution() + " %d error(s) not shown (screen size)"
+}
+
 func (m *Model) calculateMaxWidth() {
 	if m.Width < MaxWidth {
 		m.maxWidth = m.Width
@@ -102,7 +105,7 @@ func (m *Model) calculateMaxWidth() {
 			w = ww
 		}
 	}
-	m.maxWidth = min(MaxWidth, max(len(NotShownTemplate), w))
+	m.maxWidth = min(MaxWidth, max(len(m.NotShownTemplate()), w))
 }
 
 func (m *Model) View() string {
@@ -126,14 +129,14 @@ func (m *Model) View() string {
 	for i, err := range m.errors {
 		e := m.errorStyle.
 			Width(m.maxWidth).
-			Render(styles.IconDanger + " " + err)
+			Render(styles.IconCaution() + " " + err)
 
 		if eh := lipgloss.Height(e); eh+h > m.Height {
 			out = append(
 				out,
 				m.errorStyle.
 					Width(m.maxWidth).
-					Render(fmt.Sprintf(NotShownTemplate, len(m.errors)-i)),
+					Render(fmt.Sprintf(m.NotShownTemplate(), len(m.errors)-i)),
 			)
 			break
 		} else {

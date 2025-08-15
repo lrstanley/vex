@@ -11,6 +11,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
@@ -24,6 +25,7 @@ var (
 		{ID: "path", Title: "Path"},
 		{ID: "type", Title: "Type", MaxWidth: 15},
 		{ID: "description", Title: "Description", MaxWidth: 40},
+		{ID: "capabilities", Title: "Capabilities"},
 		{ID: "deprecated", Title: "Deprecated"},
 		{ID: "plugin_version", Title: "Plugin Version"},
 	}
@@ -42,6 +44,10 @@ type Model struct {
 
 	// Child components.
 	table *table.Model[*table.StaticRow[*types.Mount]]
+
+	// Styles.
+	supportedFg  lipgloss.Style
+	deprecatedFg lipgloss.Style
 }
 
 func New(app types.AppState) *Model {
@@ -58,7 +64,7 @@ func New(app types.AppState) *Model {
 
 	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.Mount]]{
 		FetchFn: func() tea.Cmd {
-			return app.Client().ListMounts(m.UUID(), "kv")
+			return app.Client().ListMounts(m.UUID(), "kv", "cubbyhole")
 		},
 		SelectFn: func(value *table.StaticRow[*types.Mount]) tea.Cmd {
 			return types.OpenPage(secretwalker.New(app, value.Value, ""), false)
@@ -66,7 +72,15 @@ func New(app types.AppState) *Model {
 		RowFn: m.rowFn,
 	})
 
+	m.initStyles()
 	return m
+}
+
+func (m *Model) initStyles() {
+	m.supportedFg = lipgloss.NewStyle().
+		Foreground(styles.Theme.SuccessFg())
+	m.deprecatedFg = lipgloss.NewStyle().
+		Foreground(styles.Theme.WarningFg())
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -108,6 +122,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 				return table.ID(m.Path)
 			}))
 		}
+	case styles.ThemeUpdatedMsg:
+		m.initStyles()
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyDetails):
@@ -124,12 +140,10 @@ func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
 	var opts []string
 
 	for k, v := range row.Value.Options {
-		var name string
 		switch k {
 		case "version":
-			name = "ver"
+			opts = append(opts, "v"+v)
 		}
-		opts = append(opts, fmt.Sprintf("%s=%s", name, v))
 	}
 
 	sopts := strings.Join(opts, ",")
@@ -137,11 +151,22 @@ func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
 		sopts = " (" + sopts + ")"
 	}
 
+	deprecationStatus := row.Value.DeprecationStatus
+	if deprecationStatus == "" {
+		deprecationStatus = "unknown"
+	}
+	if row.Value.DeprecationStatus == "supported" {
+		deprecationStatus = m.supportedFg.Render(deprecationStatus)
+	} else {
+		deprecationStatus = m.deprecatedFg.Render(styles.IconCaution() + " " + deprecationStatus)
+	}
+
 	return []string{
 		row.Value.Path,
 		row.Value.Type + sopts,
 		row.Value.Description,
-		row.Value.DeprecationStatus,
+		styles.ClientCapabilities(row.Value.Capabilities, row.Value.Path),
+		deprecationStatus,
 		row.Value.RunningVersion,
 	}
 }

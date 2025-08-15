@@ -26,13 +26,11 @@ const (
 	IconFilledCircle         = "⏺"
 	IconRefresh              = "⟳"
 	IconTitleGradientDivider = "⫻"
-	IconMaybeDanger          = "⁈"
-	IconDanger               = "‼"
-	IconUnknown              = "⁇"
 	IconScrollbar            = "┃"
 )
 
 var (
+	IconExpires      = iconFallback("⌛", "⏱")
 	IconCaution      = iconFallback("⚠️", "⚠")
 	IconFilter       = iconFallback("🔍", "⌕")
 	IconUnderWeather = iconFallback("☔", "⛈")

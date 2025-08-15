@@ -28,7 +28,7 @@ var (
 	columns  = []*table.Column{
 		{ID: "full_path", Title: "Full Path"},
 		{ID: "mount_type", Title: "Mount Type"},
-		{ID: "permissions", Title: "Permissions"},
+		{ID: "capabilities", Title: "Capabilities"},
 	}
 )
 
@@ -66,7 +66,11 @@ func New(app types.AppState) *Model {
 			return types.OpenPage(viewsecret.New(m.app, value.Value.Mount, value.Value.Path), false)
 		},
 		RowFn: func(value *table.StaticRow[*Data]) []string {
-			return []string{value.Value.FullPath, value.Value.Mount.Type, value.Value.Capabilities.String()}
+			return []string{
+				value.Value.FullPath,
+				value.Value.Mount.Type,
+				styles.ClientCapabilities(value.Value.Capabilities, value.Value.FullPath),
+			}
 		},
 	})
 

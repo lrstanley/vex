@@ -155,7 +155,7 @@ func (m *Model) View() string {
 		}
 
 		if v := m.token.ExpireTime; !v.IsZero() {
-			add(m.tokenTTLStyle.Render("ttl " + formatter.TimeRelative(v, false)))
+			add(m.tokenTTLStyle.Render(styles.IconExpires() + " " + formatter.TimeRelative(v, false)))
 		}
 	}
 

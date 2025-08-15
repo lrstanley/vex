@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 }
 
 func newMockPageWithCommands(app types.AppState, commands []string, title, content, language string) types.Page {
-	p := genericcode.New(app, "Mock Page", "mock content", "text")
+	p := genericcode.New(app, title, content, language)
 	p.Commands = commands
 	return p
 }
