@@ -7,6 +7,7 @@ package ui
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -63,6 +64,27 @@ func pageInitializer(app types.AppState) []commander.PageRef {
 			},
 		},
 	}
+}
+
+var lastMouseEvent time.Time
+
+func DownsampleMouseEvents(_ tea.Model, msg tea.Msg) tea.Msg {
+	switch msg := msg.(type) {
+	case tea.MouseWheelMsg, tea.MouseMotionMsg:
+	case tea.KeyPressMsg:
+		if msg.String() != "up" && msg.String() != "down" {
+			return msg
+		}
+	default:
+		return msg
+	}
+
+	now := time.Now()
+	if now.Sub(lastMouseEvent) < 15*time.Millisecond {
+		return nil
+	}
+	lastMouseEvent = now
+	return msg
 }
 
 type Model struct { //nolint:recvcheck

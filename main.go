@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	_ "net/http/pprof"
+	_ "net/http/pprof" //nolint:gosec
 	"os"
 
 	"github.com/alecthomas/kong"
@@ -80,6 +80,7 @@ func main() {
 		ui.New(client),
 		tea.WithAltScreen(),
 		tea.WithUniformKeyLayout(),
+		tea.WithFilter(ui.DownsampleMouseEvents),
 	)
 
 	panicCloser := logging.NewPanicLogger(cli.Logging)
