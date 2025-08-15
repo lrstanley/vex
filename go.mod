@@ -10,7 +10,7 @@ go 1.25.0
 replace (
 	// TODO: https://github.com/charmbracelet/bubbles/pull/823
 	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250809091447-b4884c2f81fc
-	github.com/charmbracelet/lipgloss/v2 => github.com/lrstanley/lipgloss/v2 v2.0.0-beta.6
+	// TODO: https://github.com/charmbracelet/x/pull/516
 	github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b
 )
 
@@ -22,7 +22,7 @@ require (
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4
 	github.com/charmbracelet/colorprofile v0.3.1
-	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3
+	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3.0.20250814164412-7c497c73cf36
 	github.com/charmbracelet/x/ansi v0.10.1
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250725211024-d60e1b0112b2
 	github.com/gkampitakis/go-snaps v0.5.14

@@ -18,6 +18,8 @@ github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4 h1:UgUuKKvBwgqm2ZEL+sKv/OLea
 github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4/go.mod h1:0wWFRpsgF7vHsCukVZ5LAhZkiR4j875H6KEM2/tFQmA=
 github.com/charmbracelet/colorprofile v0.3.1 h1:k8dTHMd7fgw4bnFd7jXTLZrSU/CQrKnL3m+AxCzDz40=
 github.com/charmbracelet/colorprofile v0.3.1/go.mod h1:/GkGusxNs8VB/RSOh3fu0TJmQ4ICMMPApIIVn0KszZ0=
+github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3.0.20250814164412-7c497c73cf36 h1:EFP3yLWblGBlRc6FOdKI9PrWd6zGbDh5a46Hvf8QBi8=
+github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3.0.20250814164412-7c497c73cf36/go.mod h1:XIuqKpZTUXtVyeyiN1k9Tc/U7EzfaDnVc34feFHfBws=
 github.com/charmbracelet/ultraviolet v0.0.0-20250810001545-aa2a3c4457a6 h1:R545QdvEKw5IZEFmcLCxFe+lXVHGOozdgqGshsRH+ZM=
 github.com/charmbracelet/ultraviolet v0.0.0-20250810001545-aa2a3c4457a6/go.mod h1:tvF2zaoXYOmuLtUMLJSWcNfgGfe3302CTKkRf+vYZqo=
 github.com/charmbracelet/x/ansi v0.10.1 h1:rL3Koar5XvX0pHGfovN03f5cxLbCF2YvLeyz7D2jVDQ=
@@ -94,8 +96,6 @@ github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0 h1:vaIkTPnMe4pSyvyd
 github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0/go.mod h1:tZr0+b4xsc3TpuBklMprOQYLoI7LDGP9bgLVCJxJcpo=
 github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8 h1:4kh7hh61QRwcEYcnL3jL+QieubFavq8uAVJPWkBwi1U=
 github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8/go.mod h1:XX60XF4hn9tHMd6om1NSoOG3zIVomA1mn4dx07atzM4=
-github.com/lrstanley/lipgloss/v2 v2.0.0-beta.6 h1:+J6AypUv/kS2HGCexQmOsl5COfnnsjfQGR01CKhNqig=
-github.com/lrstanley/lipgloss/v2 v2.0.0-beta.6/go.mod h1:BXY7j7rZgAprFwzNcO698++5KTd6GKI6lU83Pr4o0r0=
 github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b h1:jItXqgr8Q/9AllJ0e3WwkNOHyHYMBgk+UcuDA8/uAaw=
 github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b/go.mod h1:456MyFIUwLfmF9MDb9uFfXLK3rxnHwXZWGgzthqquSY=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=
