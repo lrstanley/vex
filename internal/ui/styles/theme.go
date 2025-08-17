@@ -20,8 +20,7 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 )
 
-// TODO: https://github.com/masaushi/accessory/pull/123
-//go:generate go run github.com/lrstanley/accessory@latest -type ThemeConfig -receiver tc -lock mu -output theme.gen.go
+//go:generate go run github.com/masaushi/accessory@v0.5.0 -type ThemeConfig -receiver tc -lock mu -output theme.gen.go
 
 var Theme = (&ThemeConfig{
 	registry: tint.NewRegistry(

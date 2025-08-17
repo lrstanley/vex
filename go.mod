@@ -2,11 +2,6 @@ module github.com/lrstanley/vex
 
 go 1.25.0
 
-// replace (
-// 	github.com/charmbracelet/bubbletea/v2 => ./bubbletea
-// 	github.com/charmbracelet/ultraviolet => ./ultraviolet
-// )
-
 replace (
 	// TODO: https://github.com/charmbracelet/bubbles/pull/823
 	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250809091447-b4884c2f81fc
