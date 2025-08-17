@@ -53,8 +53,11 @@ type ThemeConfig struct {
 	supportsAdvancedColors bool `accessor:"getter"`
 
 	chroma *chroma.Style
-	appFg  color.Color `accessor:"getter"`
-	appBg  color.Color `accessor:"getter"`
+
+	appCursor   color.Color `accessor:"getter"`
+	appBrightFg color.Color `accessor:"getter"`
+	appFg       color.Color `accessor:"getter"`
+	appBg       color.Color `accessor:"getter"`
 
 	successFg color.Color `accessor:"getter"`
 	successBg color.Color `accessor:"getter"`
@@ -98,6 +101,11 @@ type ThemeConfig struct {
 
 	listItemFg         color.Color `accessor:"getter"`
 	listItemSelectedFg color.Color `accessor:"getter"`
+
+	inactiveButtonFg color.Color `accessor:"getter"`
+	inactiveButtonBg color.Color `accessor:"getter"`
+	activeButtonFg   color.Color `accessor:"getter"`
+	activeButtonBg   color.Color `accessor:"getter"`
 }
 
 func (tc *ThemeConfig) adapt(light, dark color.Color) color.Color {
@@ -107,11 +115,11 @@ func (tc *ThemeConfig) adapt(light, dark color.Color) color.Color {
 	return light
 }
 
-// adaptAuto adapts a color based on the current theme being light or dark. v is the
+// AdaptAuto adapts a color based on the current theme being light or dark. v is the
 // float percentage to adjust the color by. If v is positive, dark will be lightened,
 // and light will be darkened. If v is negative, dark will be darkened, and light will
 // be lightened.
-func (tc *ThemeConfig) adaptAuto(c color.Color, v float64) color.Color {
+func (tc *ThemeConfig) AdaptAuto(c color.Color, v float64) color.Color {
 	if tc.registry.Current().Dark {
 		if v < 0 {
 			return tc.darken(c, -v)
@@ -133,7 +141,9 @@ func (tc *ThemeConfig) lighten(c color.Color, v float64) color.Color {
 }
 
 func (tc *ThemeConfig) useFallback() {
+	tc.appCursor = lipgloss.White
 	tc.appFg = lipgloss.White
+	tc.appBrightFg = lipgloss.White
 	tc.appBg = lipgloss.Black
 
 	tc.successFg = lipgloss.White
@@ -178,6 +188,11 @@ func (tc *ThemeConfig) useFallback() {
 
 	tc.listItemFg = lipgloss.BrightBlue
 	tc.listItemSelectedFg = lipgloss.BrightBlue
+
+	tc.inactiveButtonFg = lipgloss.White
+	tc.inactiveButtonBg = lipgloss.BrightBlack
+	tc.activeButtonFg = lipgloss.White
+	tc.activeButtonBg = lipgloss.BrightMagenta
 }
 
 func (tc *ThemeConfig) set() *ThemeConfig {
@@ -197,9 +212,16 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 		tc.chroma = cs
 	}
 
-	tc.appFg = t.Fg
-	tc.appBg = t.Bg
 	white := tc.adapt(tc.lighten(t.White, 0.2), tc.lighten(t.White, 0.2))
+
+	if t.Cursor != nil {
+		tc.appCursor = t.Cursor
+	} else {
+		tc.appCursor = t.Fg
+	}
+	tc.appFg = t.Fg
+	tc.appBrightFg = white
+	tc.appBg = t.Bg
 
 	statusFgLighten := 0.4
 	statusBgDarken := 0.6
@@ -213,10 +235,10 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.infoFg = tc.adapt(tc.lighten(t.BrightBlue, statusFgLighten/2), tc.lighten(t.BrightBlue, statusFgLighten/2))
 	tc.infoBg = tc.adapt(tc.darken(t.BrightBlue, statusBgDarken), tc.darken(t.BrightBlue, statusBgDarken))
 
-	tc.scrollbarThumbFg = tc.adaptAuto(t.BrightBlue, 0.2)
-	tc.scrollbarTrackFg = tc.adaptAuto(t.Bg, 0.3)
+	tc.scrollbarThumbFg = tc.AdaptAuto(t.BrightBlue, 0.2)
+	tc.scrollbarTrackFg = tc.AdaptAuto(t.Bg, 0.3)
 
-	tc.barFg = tc.adapt(t.Fg, t.Fg)
+	tc.barFg = t.Fg
 	tc.barBg = tc.adapt(tc.lighten(t.Bg, 0.1), tc.darken(t.Bg, 0.2))
 	tc.statusBarFilterTextFg = white
 	tc.statusBarFilterBg = tc.infoBg
@@ -233,9 +255,9 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.shortHelpKeyFg = tc.adapt(tc.darken(t.BrightPurple, 0.3), tc.lighten(t.BrightPurple, 0.4))
 
 	tc.dialogFg = white
-	tc.dialogBorderFg = tc.adapt(t.Purple, t.Purple)
-	tc.dialogBorderGradientFromFg = tc.adaptAuto(t.BrightPurple, 0.2)
-	tc.dialogBorderGradientToFg = tc.adaptAuto(t.BrightBlue, 0.2)
+	tc.dialogBorderFg = t.Purple
+	tc.dialogBorderGradientFromFg = tc.AdaptAuto(t.BrightPurple, 0.2)
+	tc.dialogBorderGradientToFg = tc.AdaptAuto(t.BrightBlue, 0.2)
 
 	tc.titleFg = tc.adapt(tc.darken(t.BrightRed, 0.5), tc.lighten(t.BrightRed, 0.5))
 	tc.titleFromFg = tc.adapt(tc.darken(t.BrightPurple, 0.2), tc.lighten(t.BrightPurple, 0.2))
@@ -246,6 +268,11 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 
 	tc.listItemFg = tc.adapt(tc.darken(t.BrightBlue, 0.6), tc.lighten(t.BrightBlue, 0.6))
 	tc.listItemSelectedFg = tc.adapt(tc.darken(t.BrightBlue, 0.2), tc.lighten(t.BrightBlue, 0.2))
+
+	tc.inactiveButtonFg = white
+	tc.inactiveButtonBg = tc.AdaptAuto(t.Bg, 0.3)
+	tc.activeButtonFg = white
+	tc.activeButtonBg = tc.AdaptAuto(t.Cyan, -0.3)
 
 	borderGradientCache.DeleteAll()
 	return tc

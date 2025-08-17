@@ -15,6 +15,24 @@ func (tc *ThemeConfig) SupportsAdvancedColors() bool {
 	return tc.supportsAdvancedColors
 }
 
+func (tc *ThemeConfig) AppCursor() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.appCursor
+}
+
+func (tc *ThemeConfig) AppBrightFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.appBrightFg
+}
+
 func (tc *ThemeConfig) AppFg() color.Color {
 	if tc == nil {
 		return nil
@@ -346,4 +364,40 @@ func (tc *ThemeConfig) ListItemSelectedFg() color.Color {
 	tc.mu.RLock()
 	defer tc.mu.RUnlock()
 	return tc.listItemSelectedFg
+}
+
+func (tc *ThemeConfig) InactiveButtonFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.inactiveButtonFg
+}
+
+func (tc *ThemeConfig) InactiveButtonBg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.inactiveButtonBg
+}
+
+func (tc *ThemeConfig) ActiveButtonFg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.activeButtonFg
+}
+
+func (tc *ThemeConfig) ActiveButtonBg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.activeButtonBg
 }

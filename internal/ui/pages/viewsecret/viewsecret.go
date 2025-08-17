@@ -6,6 +6,7 @@ package viewsecret
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -20,6 +21,7 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
+	"github.com/lrstanley/vex/internal/ui/dialogs/textarea"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -258,6 +260,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg.Key(), types.KeyRenderJSON):
 			m.forceJSON = !m.forceJSON
 			return m.setFromData()
+		case key.Matches(msg.Key(), types.KeySelectItem):
+			return m.edit()
 		}
 	case styles.ThemeUpdatedMsg:
 		m.setStyle()
@@ -353,6 +357,29 @@ func (m *Model) toggleMasking(global bool) tea.Cmd {
 		m.setFromData(),
 		types.SendStatus("masking toggled", types.Info, 1*time.Second),
 	)
+}
+
+func (m *Model) edit() tea.Cmd {
+	item := m.getSelectedItem()
+	if item == nil {
+		return nil
+	}
+
+	return types.OpenDialog(textarea.New(m.app, textarea.Config{
+		Title:        fmt.Sprintf("Edit key: %q", item.key),
+		DefaultValue: item.ValueString(),
+		CancelText:   "cancel",
+		ConfirmText:  "save",
+		ConfirmFn: func(_ string) tea.Cmd {
+			return types.SendStatus("key edited", types.Info, 2*time.Second)
+		},
+		Validator: func(value string) error {
+			if value == "" {
+				return errors.New("value cannot be empty")
+			}
+			return errors.New("this is a test")
+		},
+	}))
 }
 
 func (m *Model) View() string {
