@@ -7,8 +7,12 @@ package types
 import (
 	"sync"
 
-	uuidv5 "github.com/gofrs/uuid/v5"
+	"github.com/segmentio/ksuid"
 )
+
+func init() { //nolint:gochecknoinits
+	ksuid.SetRand(ksuid.FastRander)
+}
 
 type uuid struct {
 	once  sync.Once
@@ -17,7 +21,7 @@ type uuid struct {
 
 func (u *uuid) String() string {
 	u.once.Do(func() {
-		u.value = uuidv5.Must(uuidv5.NewV4()).String()
+		u.value = ksuid.New().String()
 	})
 	return u.value
 }

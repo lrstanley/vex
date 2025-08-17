@@ -22,13 +22,13 @@ require (
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250725211024-d60e1b0112b2
 	github.com/gkampitakis/go-snaps v0.5.14
 	github.com/goccy/go-yaml v1.18.0
-	github.com/gofrs/uuid/v5 v5.3.2
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0
 	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/rivo/uniseg v0.4.7
+	github.com/segmentio/ksuid v1.0.4
 	golang.org/x/sync v0.16.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
