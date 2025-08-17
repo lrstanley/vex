@@ -257,13 +257,13 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 				m.highlighted = append(m.highlighted, selected.ID())
 			}
 			return nil
-		case key.Matches(msg, types.KeyTableLineUp):
+		case key.Matches(msg, types.KeyUp):
 			m.MoveUp(1)
-		case key.Matches(msg, types.KeyTableLineDown):
+		case key.Matches(msg, types.KeyDown):
 			m.MoveDown(1)
-		case key.Matches(msg, types.KeyTableLineLeft):
+		case key.Matches(msg, types.KeyLeft):
 			m.MoveLeft(1)
-		case key.Matches(msg, types.KeyTableLineRight):
+		case key.Matches(msg, types.KeyRight):
 			m.MoveRight(1)
 		case key.Matches(msg, types.KeyTablePageUp):
 			m.MoveUp(m.maxInnerTableHeight())

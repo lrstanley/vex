@@ -21,6 +21,22 @@ var (
 		key.WithKeys("/", "ctrl+f"),
 		key.WithHelp("/", "filter"),
 	)
+	KeyUp = key.NewBinding(
+		key.WithKeys("up", "k"),
+		key.WithHelp("↑/k", "up"),
+	)
+	KeyDown = key.NewBinding(
+		key.WithKeys("down", "j"),
+		key.WithHelp("↓/j", "down"),
+	)
+	KeyLeft = key.NewBinding(
+		key.WithKeys("left", "h"),
+		key.WithHelp("←/h", "left"),
+	)
+	KeyRight = key.NewBinding(
+		key.WithKeys("right", "l"),
+		key.WithHelp("→/l", "right"),
+	)
 	KeySelectItem = key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "select item"),
@@ -72,30 +88,16 @@ var (
 	// Table related.
 
 	KeysTable = []key.Binding{
-		KeyTableLineUp,
-		KeyTableLineDown,
+		KeyUp,
+		KeyDown,
+		KeyLeft,
+		KeyRight,
 		KeyTablePageUp,
 		KeyTablePageDown,
 		KeyTableGoToTop,
 		KeyTableGoToBottom,
 	}
 
-	KeyTableLineUp = key.NewBinding(
-		key.WithKeys("up", "k"),
-		key.WithHelp("↑/k", "up"),
-	)
-	KeyTableLineDown = key.NewBinding(
-		key.WithKeys("down", "j"),
-		key.WithHelp("↓/j", "down"),
-	)
-	KeyTableLineLeft = key.NewBinding(
-		key.WithKeys("left", "h"),
-		key.WithHelp("←/h", "left"),
-	)
-	KeyTableLineRight = key.NewBinding(
-		key.WithKeys("right", "l"),
-		key.WithHelp("→/l", "right"),
-	)
 	KeyTablePageUp = key.NewBinding(
 		key.WithKeys("b", "pgup"),
 		key.WithHelp("b/pgup", "page up"),
