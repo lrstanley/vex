@@ -6,7 +6,6 @@ package types
 
 import (
 	"iter"
-	"maps"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -116,10 +115,14 @@ func (o *OrderedMap[K, V]) Keys() []K {
 	return o.keys
 }
 
-func (o *OrderedMap[K, V]) Values() []V {
+func (o *OrderedMap[K, V]) Values() (values []V) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
-	return slices.Collect(maps.Values(o.store))
+
+	for _, v := range o.keys {
+		values = append(values, o.store[v])
+	}
+	return values
 }
 
 type atomicExpirable[T any] struct {
