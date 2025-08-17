@@ -53,14 +53,14 @@ func (s *dialogState) initStyles() {
 
 	helpStyles := shorthelp.Styles{}
 	helpStyles.Base = helpStyles.Base.
-		Foreground(styles.Theme.Fg())
+		Foreground(styles.Theme.AppFg())
 	helpStyles.Key = helpStyles.Key.
 		Foreground(styles.Theme.ShortHelpKeyFg())
 	helpStyles.Desc = helpStyles.Desc.
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		Faint(true)
 	helpStyles.Separator = helpStyles.Separator.
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		Faint(true)
 	s.shorthelp.SetStyles(helpStyles)
 }
@@ -265,35 +265,35 @@ func (s *dialogState) FullHelp() [][]key.Binding {
 	return append(keys, appended)
 }
 
-func (s *dialogState) GetLayers() []*lipgloss.Layer {
+func (s *dialogState) SetLayers(base *lipgloss.Layer) *lipgloss.Layer {
 	dialogs := s.dialogs.Values()
 	if len(dialogs) == 0 {
-		return nil
+		return base
 	}
 
-	layers := make([]*lipgloss.Layer, 0, len(dialogs))
 	var view string
+	var dx, dy int
+	var embeddedText map[styles.BorderPosition]string
 
-	for _, dialog := range dialogs {
+	for i, dialog := range dialogs {
 		view = dialog.View()
 		if view == "" {
 			panic("dialog view is empty")
 		}
-		dx, dy := s.calcDialogPosition(
+		dx, dy = s.calcDialogPosition(
 			s.windowHeight,
 			s.windowWidth,
 			dialog.GetHeight(),
 			dialog.GetWidth(),
 		)
 
-		embeddedText := styles.BorderFromElement(dialog)
+		embeddedText = styles.BorderFromElement(dialog)
 
 		if s.shorthelp.NumKeyBinds() > 0 && !dialog.IsCoreDialog() {
 			embeddedText[styles.BottomMiddleBorder] = s.shorthelp.View()
 		}
 
-		layers = append(
-			layers,
+		base.AddLayers(
 			lipgloss.NewLayer(
 				styles.Border(
 					lipgloss.JoinVertical(
@@ -311,10 +311,14 @@ func (s *dialogState) GetLayers() []*lipgloss.Layer {
 					nil,
 					embeddedText,
 				),
-			).X(dx).Y(dy),
+			).
+				ID(dialog.UUID()).
+				Z(base.GetZ() + i + 1).
+				X(dx).
+				Y(dy),
 		)
 	}
-	return layers
+	return base
 }
 
 func (s *dialogState) calcDialogSize(wh, ww int, size types.DialogSize) (height, width int) {

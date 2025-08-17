@@ -125,7 +125,7 @@ func BorderFromElement(element any) (text map[BorderPosition]string) {
 
 	text = make(map[BorderPosition]string)
 
-	defaultEmbedStyle := lipgloss.NewStyle().Foreground(Theme.Fg())
+	defaultEmbedStyle := lipgloss.NewStyle().Foreground(Theme.AppFg())
 
 	if v, ok := element.(TopLeftBorderEmbed); ok {
 		if vv := v.TopLeftBorder(); vv != "" {

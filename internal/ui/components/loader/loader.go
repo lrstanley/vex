@@ -38,12 +38,12 @@ func New() *Model {
 
 func (m *Model) setStyles() {
 	m.baseStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		Padding(0, 1).
 		Align(lipgloss.Center)
 
 	m.spinner.Style = lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg())
+		Foreground(styles.Theme.AppFg())
 }
 
 func (m *Model) Init() tea.Cmd {

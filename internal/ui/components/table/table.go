@@ -128,7 +128,7 @@ func (m *Model[T]) initStyles() {
 	m.styles.Base = m.providedStyles.Base.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()),
+				Foreground(styles.Theme.AppFg()),
 		)
 
 	m.styles.NoResults = m.providedStyles.NoResults.
@@ -143,7 +143,7 @@ func (m *Model[T]) initStyles() {
 	m.styles.Cell = m.providedStyles.Cell.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()),
+				Foreground(styles.Theme.AppFg()),
 		).
 		Padding(0, 1).
 		UnsetMarginTop().
@@ -156,7 +156,7 @@ func (m *Model[T]) initStyles() {
 	m.styles.Header = m.providedStyles.Header.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()).
+				Foreground(styles.Theme.AppFg()).
 				Bold(true),
 		).
 		Padding(m.styles.Cell.GetPadding()).
@@ -168,7 +168,7 @@ func (m *Model[T]) initStyles() {
 	m.styles.SelectedRow = m.providedStyles.SelectedRow.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()).
+				Foreground(styles.Theme.AppFg()).
 				Background(styles.Theme.InfoBg()).
 				Bold(true),
 		).

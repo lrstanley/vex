@@ -80,7 +80,7 @@ func (m *Model) initStyles() {
 	m.styles.Base = m.providedStyles.Base.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()),
+				Foreground(styles.Theme.AppFg()),
 		)
 
 	m.styles.InputBase = m.providedStyles.InputBase.
@@ -91,27 +91,27 @@ func (m *Model) initStyles() {
 	inputStyles.Focused.Placeholder = inputStyles.Focused.Placeholder.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()).
+				Foreground(styles.Theme.AppFg()).
 				Faint(true),
 		)
 
 	inputStyles.Focused.Suggestion = inputStyles.Focused.Suggestion.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()).
+				Foreground(styles.Theme.AppFg()).
 				Faint(true),
 		)
 
 	inputStyles.Focused.Text = inputStyles.Focused.Text.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()),
+				Foreground(styles.Theme.AppFg()),
 		)
 
 	inputStyles.Focused.Prompt = inputStyles.Focused.Prompt.
 		Inherit(
 			lipgloss.NewStyle().
-				Foreground(styles.Theme.Fg()),
+				Foreground(styles.Theme.AppFg()),
 		)
 
 	inputStyles.Blurred.Prompt = inputStyles.Blurred.Prompt.
@@ -120,7 +120,7 @@ func (m *Model) initStyles() {
 				Foreground(styles.Theme.InfoFg()),
 		)
 
-	inputStyles.Cursor.Color = styles.Theme.Fg()
+	inputStyles.Cursor.Color = styles.Theme.AppFg()
 	// TODO: bug with bubbles v2, returns cursor.BlinkMsg, then returns cursor.blinkCanceled,
 	// which we can't handle because its private. Can technically use %T and strings.Contains,
 	// but even that, the cursor stops blinking after the first blink, and disappears.

@@ -53,7 +53,8 @@ type ThemeConfig struct {
 	supportsAdvancedColors bool `accessor:"getter"`
 
 	chroma *chroma.Style
-	fg     color.Color `accessor:"getter"`
+	appFg  color.Color `accessor:"getter"`
+	appBg  color.Color `accessor:"getter"`
 
 	successFg color.Color `accessor:"getter"`
 	successBg color.Color `accessor:"getter"`
@@ -132,7 +133,8 @@ func (tc *ThemeConfig) lighten(c color.Color, v float64) color.Color {
 }
 
 func (tc *ThemeConfig) useFallback() {
-	tc.fg = lipgloss.White
+	tc.appFg = lipgloss.White
+	tc.appBg = lipgloss.Black
 
 	tc.successFg = lipgloss.White
 	tc.successBg = lipgloss.Green
@@ -195,7 +197,8 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 		tc.chroma = cs
 	}
 
-	tc.fg = t.Fg
+	tc.appFg = t.Fg
+	tc.appBg = t.Bg
 	white := tc.adapt(tc.lighten(t.White, 0.2), tc.lighten(t.White, 0.2))
 
 	statusFgLighten := 0.4
@@ -259,16 +262,15 @@ func (tc *ThemeConfig) ByStatus(status types.Status) (fg, bg color.Color) {
 	case types.Error:
 		return tc.errorFg, tc.errorBg
 	default:
-		return tc.fg, nil
+		return tc.appFg, nil
 	}
 }
 
+type ThemeUpdatedMsg struct{}
+
 func (tc *ThemeConfig) Init() tea.Cmd {
 	tc.set()
-	return tea.Sequence(
-		types.CmdMsg(ThemeUpdatedMsg{}),
-		tea.SetBackgroundColor(tc.registry.Current().Bg),
-	)
+	return tc.updateThemeCmd()
 }
 
 func (tc *ThemeConfig) Update(msg tea.Msg) tea.Cmd {
@@ -315,10 +317,7 @@ func (tc *ThemeConfig) PreviousTint() tea.Cmd {
 }
 
 func (tc *ThemeConfig) updateThemeCmd() tea.Cmd {
-	return tea.Batch(
-		types.CmdMsg(ThemeUpdatedMsg{}),
-		tea.SetBackgroundColor(tc.registry.Current().Bg),
-	)
+	return types.CmdMsg(ThemeUpdatedMsg{})
 }
 
 func (tc *ThemeConfig) Chroma() *chroma.Style {
@@ -329,5 +328,3 @@ func (tc *ThemeConfig) Chroma() *chroma.Style {
 	defer tc.mu.RUnlock()
 	return tc.chroma
 }
-
-type ThemeUpdatedMsg struct{}

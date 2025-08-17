@@ -133,7 +133,6 @@ func (m Model) Init() tea.Cmd {
 			m.app.Dialog().Init(),
 			m.titlebar.Init(),
 			m.statusbar.Init(),
-			tea.SetWindowTitle(config.AppTitle("")),
 		),
 		types.FocusChange(types.FocusPage),
 	)
@@ -147,7 +146,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case types.AppQuitMsg:
 		return m, tea.Sequence(
-			tea.SetWindowTitle(""),
+			tea.SetWindowTitle(""), // TODO: https://github.com/charmbracelet/bubbletea/issues/1474
 			tea.Quit,
 		)
 	case tea.WindowSizeMsg:
@@ -217,17 +216,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case types.AppFocusChangedMsg:
 		m.previousFocus = m.focused
 		m.focused = msg.ID
-
-		switch {
-		case m.focused == types.FocusDialog && m.app.Dialog().Len(false) > 0:
-			if m.app.Dialog().Len(false) > 0 {
-				cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Dialog().Get(false).GetTitle())))
-			}
-		case m.focused == types.FocusPage:
-			cmds = append(cmds, tea.SetWindowTitle(config.AppTitle(m.app.Page().Get().GetTitle())))
-		default:
-			cmds = append(cmds, tea.SetWindowTitle(config.AppTitle("")))
-		}
 	case types.AppRequestPreviousFocusMsg:
 		m.focused = m.previousFocus
 		return m, types.FocusChange(m.focused)
@@ -248,29 +236,50 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)...)
 }
 
-func (m *Model) View() string {
+func (m *Model) appTitle() string {
+	switch {
+	case m.focused == types.FocusDialog && m.app.Dialog().Len(false) > 0:
+		d := m.app.Dialog().Get(false)
+		if d != nil {
+			return config.AppTitle(d.GetTitle())
+		}
+	case m.focused == types.FocusPage:
+		return config.AppTitle(m.app.Page().Get().GetTitle())
+	}
+	return ""
+}
+
+func (m *Model) View() (view tea.View) {
+	view.BackgroundColor = styles.Theme.AppBg()
+	view.ForegroundColor = styles.Theme.AppFg()
+	view.WindowTitle = m.appTitle()
+
 	if m.width < MinWinWidth || m.height < MinWinHeight {
-		return lipgloss.NewStyle().
-			Align(lipgloss.Center, lipgloss.Center).
-			Height(m.height).
-			Width(m.width).
-			Render(styles.IconCaution() + " window too small, resize")
+		view.Layer = lipgloss.NewCanvas(
+			lipgloss.NewLayer(lipgloss.NewStyle().
+				Align(lipgloss.Center, lipgloss.Center).
+				Height(m.height).
+				Width(m.width).
+				Render(styles.IconCaution() + " window too small, resize")),
+		)
+		return view
 	}
 
-	s := lipgloss.NewStyle().
-		Width(m.width).
-		Height(m.height).
-		Render(
-			lipgloss.JoinVertical(
-				lipgloss.Top,
-				m.titlebar.View(),
-				m.app.Page().View(),
-				m.statusbar.View(),
-			),
-		)
+	view.Layer = lipgloss.NewCanvas(m.app.Dialog().SetLayers(
+		lipgloss.NewLayer(
+			lipgloss.NewStyle().
+				Width(m.width).
+				Height(m.height).
+				Render(
+					lipgloss.JoinVertical(
+						lipgloss.Top,
+						m.titlebar.View(),
+						m.app.Page().View(),
+						m.statusbar.View(),
+					),
+				),
+		).ID("main").Z(0).X(0).Y(0),
+	))
 
-	return lipgloss.NewCanvas(append(
-		[]*lipgloss.Layer{lipgloss.NewLayer(s)},
-		m.app.Dialog().GetLayers()...,
-	)...).Render()
+	return view
 }

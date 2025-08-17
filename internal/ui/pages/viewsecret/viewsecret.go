@@ -58,7 +58,7 @@ func (i *item) Description() string {
 
 	svalue := i.ValueString()
 	return lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		Render(svalue)
 }
 
@@ -133,28 +133,28 @@ func (m *Model) setStyle() {
 		Foreground(styles.Theme.ScrollbarTrackFg())
 
 	m.list.Styles.NoItems = m.list.Styles.NoItems.
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		PaddingLeft(2)
 
 	m.list.Styles.StatusBar = m.list.Styles.StatusBar.
-		Foreground(styles.Theme.Fg())
+		Foreground(styles.Theme.AppFg())
 
 	m.list.Styles.StatusEmpty = m.list.Styles.StatusEmpty.
-		Foreground(styles.Theme.Fg())
+		Foreground(styles.Theme.AppFg())
 
 	m.list.Styles.NoItems = m.list.Styles.NoItems.
-		Foreground(styles.Theme.Fg())
+		Foreground(styles.Theme.AppFg())
 
 	m.list.Styles.StatusBarFilterCount = m.list.Styles.StatusBarFilterCount.
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		Faint(true)
 
 	m.list.Styles.StatusBarActiveFilter = m.list.Styles.StatusBarActiveFilter.
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		Faint(true)
 
 	m.list.Styles.DividerDot = m.list.Styles.DividerDot.
-		Foreground(styles.Theme.Fg()).
+		Foreground(styles.Theme.AppFg()).
 		Faint(true)
 
 	delStyles := list.NewDefaultItemStyles(true)

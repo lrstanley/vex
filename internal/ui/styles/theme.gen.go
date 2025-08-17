@@ -15,13 +15,22 @@ func (tc *ThemeConfig) SupportsAdvancedColors() bool {
 	return tc.supportsAdvancedColors
 }
 
-func (tc *ThemeConfig) Fg() color.Color {
+func (tc *ThemeConfig) AppFg() color.Color {
 	if tc == nil {
 		return nil
 	}
 	tc.mu.RLock()
 	defer tc.mu.RUnlock()
-	return tc.fg
+	return tc.appFg
+}
+
+func (tc *ThemeConfig) AppBg() color.Color {
+	if tc == nil {
+		return nil
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.appBg
 }
 
 func (tc *ThemeConfig) SuccessFg() color.Color {
