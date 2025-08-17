@@ -5,11 +5,9 @@
 package genericcode
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
 )
@@ -46,12 +44,12 @@ func New(app types.AppState, title, content, language string) *Model {
 	return m
 }
 
-func NewJSON(app types.AppState, title string, data any) *Model {
-	b, err := json.MarshalIndent(data, "", "    ")
-	if err != nil {
-		return New(app, title, fmt.Sprintf("error: %v", err), "text")
-	}
-	return New(app, title, string(b), "json")
+func NewJSON(app types.AppState, title string, mask bool, data any) *Model {
+	return New(app, title, formatter.ToJSON(data, mask, 2), "json")
+}
+
+func NewYAML(app types.AppState, title string, mask bool, data any) *Model {
+	return New(app, title, formatter.ToYAML(data, mask, 2), "yaml")
 }
 
 func (m *Model) GetTitle() string {

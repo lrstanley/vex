@@ -53,7 +53,7 @@ type ClientListMountsMsg struct {
 }
 
 type Mount struct {
-	*vapi.MountOutput
+	*vapi.MountOutput `json:",inline"`
 
 	// Path is the path of the mount.
 	Path string `json:"path"`

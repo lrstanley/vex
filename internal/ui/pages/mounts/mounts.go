@@ -128,7 +128,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch {
 		case key.Matches(msg, types.KeyDetails):
 			if v, ok := m.table.GetSelectedRow(); ok {
-				return types.OpenDialog(genericcode.NewJSON(m.app, fmt.Sprintf("Mount Details: %q", v.Value.Path), v.Value))
+				return types.OpenDialog(genericcode.NewYAML(m.app, fmt.Sprintf("Mount Details: %q", v.Value.Path), false, v.Value))
 			}
 		}
 	}
