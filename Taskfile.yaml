@@ -13,40 +13,25 @@ tasks:
     cmds:
       - task: build
   vault:up:
-    desc: start vault cluster
-    dir: _hack/vault-cluster
-    platforms: [linux]
+    desc: start mock cluster
+    dir: mock-cluster
     cmds:
-      - mkdir -vp data/vault1 data/vault2 data/vault3 init
-      - docker compose up --detach --build --pull always
-  vault:logs:
-    desc: show vault cluster logs
-    dir: _hack/vault-cluster
-    platforms: [linux]
-    cmds:
-      - docker compose logs --follow -n 1000 --since 10m vault1 vault2 vault3 vault-cluster-init
+      - go run . start
   vault:down:
-    desc: stop vault cluster
-    dir: _hack/vault-cluster
-    platforms: [linux]
+    desc: stop mock cluster
+    dir: mock-cluster
     cmds:
-      - docker compose down --remove-orphans --timeout 2
+      - go run . stop
   vault:rm:
-    desc: remove vault cluster and data
-    platforms: [linux]
+    desc: remove mock cluster and data
+    dir: mock-cluster
     cmds:
-      - task: vault:down
-      - cd _hack/vault-cluster && docker compose rm --force --stop --volumes
-      - sudo rm -rf _hack/vault-cluster/data _hack/vault-cluster/init
-  vault:ensure-running:
-    desc: ensure vault cluster @ $VAULT_ADDR is running
+      - go run . rm
+  vault:env:
+    desc: update .env file with mock cluster credentials -- use "task vault:env -- <user-id>" to change users
+    dir: mock-cluster
     cmds:
-      - |
-        if ! curl -s -f '{{.VAULT_ADDR}}/v1/sys/health?drsecondarycode=299&haunhealthycode=299&performancestandbycode=299&removedcode=299&sealedcode=299&standbycode=299&uninitcode=299' \
-          | grep -q '\"sealed\":false'; then
-          echo "vault is not running at {{.VAULT_ADDR}}"
-          exit 1
-        fi
+      - go run . env --id {{ or .CLI_ARGS "token" }} > ../.env
   license:
     desc: generate license headers
     cmds:
@@ -95,7 +80,7 @@ tasks:
           {{.PACKAGE}} -- --logging.level=debug {{.CLI_ARGS}}
   debug:
     desc: run in debug mode
-    deps: [prepare, vault:ensure-running]
+    deps: [prepare]
     aliases: [dev, run]
     interactive: true
     env:
@@ -108,7 +93,7 @@ tasks:
           {{.CLI_ARGS}}
   debug:basic:
     desc: run in debug mode
-    deps: [prepare, vault:ensure-running]
+    deps: [prepare]
     interactive: true
     cmds:
       - |
@@ -160,7 +145,7 @@ tasks:
       - gofumpt -w .
   tape:
     desc: record demo GIFs
-    deps: [build, vault:ensure-running]
+    deps: [build]
     aliases: [demo]
     cmds:
       - mkdir -p tmp/

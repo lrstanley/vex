@@ -15,5 +15,7 @@
   "gopls": {
     "formatting.gofumpt": true
   },
-  "shellformat.flag": "-s -i 0 -bn -ci -sr"
+  "shellformat.flag": "-s -i 0 -bn -ci -sr",
+  "bashIde.shfmt.languageDialect": "bash",
+  "bashIde.shfmt.simplifyCode": true,
 }

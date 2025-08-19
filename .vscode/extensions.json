@@ -1,7 +1,7 @@
 {
-    "recommendations": [
-        "foxundermoon.shell-format",
-        "golang.go",
-        "timonwong.shellcheck"
-    ]
+  "recommendations": [
+    "mads-hartmann.bash-ide-vscode",
+    "golang.go",
+    "timonwong.shellcheck"
+  ]
 }

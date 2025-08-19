@@ -1,8 +1,6 @@
 dist
 bin
 tmp
-_hack/vault-cluster/data
-_hack/vault-cluster/init
 !/.github/**
 .cursor
 .task
@@ -15,4 +13,5 @@ _hack/vault-cluster/init
 *.conf
 vex
 **/.env
+**/.mock-cluster.json
 TODO.md
