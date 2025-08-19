@@ -4,7 +4,7 @@ vars:
   PROJECT: "vex"
   PACKAGE: "github.com/lrstanley/vex"
 env:
-  GOEXPERIMENT: jsonv2
+  GOEXPERIMENT: jsonv2,greenteagc
 dotenv: [".env"]
 method: timestamp
 tasks:

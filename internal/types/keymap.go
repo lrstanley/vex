@@ -61,6 +61,14 @@ var (
 		key.WithKeys("c"),
 		key.WithHelp("c", "copy"),
 	)
+	KeyTabForward = key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "tab forward"),
+	)
+	KeyTabBackward = key.NewBinding(
+		key.WithKeys("shift+tab"),
+		key.WithHelp("shift+tab", "tab backward"),
+	)
 	KeyHelp = key.NewBinding(
 		key.WithKeys("?"),
 		key.WithHelp("?", "help"),

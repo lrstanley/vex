@@ -62,7 +62,7 @@ func main() {
 	if cli.EnablePprof {
 		go func() {
 			slog.Info("pprof server starting on http://localhost:6060")
-			err := http.ListenAndServe("localhost:6060", nil)
+			err := http.ListenAndServe("localhost:6060", nil) //nolint:gosec
 			if err != nil {
 				slog.Error("failed to start pprof server", "error", err)
 			}

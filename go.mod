@@ -4,7 +4,7 @@ go 1.25.0
 
 replace (
 	// TODO: https://github.com/charmbracelet/bubbles/pull/823
-	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250809091447-b4884c2f81fc
+	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250819143759-7d2df753c297
 	// TODO: https://github.com/charmbracelet/x/pull/516
 	github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b
 )

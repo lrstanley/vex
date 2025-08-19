@@ -19,6 +19,7 @@ import (
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/vex/internal/ui/components/confirmable"
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
 	"github.com/lrstanley/vex/internal/ui/dialogs/textarea"
@@ -365,21 +366,24 @@ func (m *Model) edit() tea.Cmd {
 		return nil
 	}
 
-	return types.OpenDialog(textarea.New(m.app, textarea.Config{
-		Title:        fmt.Sprintf("Edit key: %q", item.key),
-		DefaultValue: item.ValueString(),
-		CancelText:   "cancel",
-		ConfirmText:  "save",
-		ConfirmFn: func(_ string) tea.Cmd {
-			return types.SendStatus("key edited", types.Info, 2*time.Second)
+	return types.OpenDialog(textarea.New(
+		m.app,
+		confirmable.Config[string]{
+			CancelText:  "cancel",
+			ConfirmText: "save",
+			ConfirmFn: func(_ string) tea.Cmd {
+				return types.SendStatus("key edited", types.Info, 2*time.Second)
+			},
+			Validator: func(value string) error {
+				if value == "" {
+					return errors.New("value cannot be empty")
+				}
+				return errors.New("this is a test")
+			},
 		},
-		Validator: func(value string) error {
-			if value == "" {
-				return errors.New("value cannot be empty")
-			}
-			return errors.New("this is a test")
-		},
-	}))
+		fmt.Sprintf("Edit key: %q", item.key),
+		item.ValueString(),
+	))
 }
 
 func (m *Model) View() string {
