@@ -60,10 +60,10 @@ func CertChainString(certs ...*x509.Certificate) string {
 	return strings.Join(chain, "\n")
 }
 
-func GenerateSlug(maxn int) (slug string) {
+func GenerateSlug(maxn int, sep string) (slug string) {
 	for i := range rand.IntN(maxn) + 1 { //nolint:gosec
 		if i > 0 {
-			slug += "-"
+			slug += sep
 		}
 		slug += faker.Word()
 	}

@@ -62,9 +62,9 @@ tasks:
       - internal/ui/styles/theme.gen.go
     cmds:
       - go generate -x ./...
-  profile:cpu: go tool pprof -http :6061 'http://localhost:6060/debug/pprof/profile?seconds=15'
-  profile:heap: go tool pprof -http :6061 'http://localhost:6060/debug/pprof/heap'
-  profile:allocs: go tool pprof -http :6061 'http://localhost:6060/debug/pprof/allocs'
+  profile:cpu: go tool pprof -http :6061 'http://127.0.0.1:6060/debug/pprof/profile?seconds=15'
+  profile:heap: go tool pprof -http :6061 'http://127.0.0.1:6060/debug/pprof/heap'
+  profile:allocs: go tool pprof -http :6061 'http://127.0.0.1:6060/debug/pprof/allocs'
   dlv:
     desc: run with delve debugger
     deps: [prepare]
