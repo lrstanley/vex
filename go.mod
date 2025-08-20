@@ -2,24 +2,20 @@ module github.com/lrstanley/vex
 
 go 1.25.0
 
-replace (
-	// TODO: https://github.com/charmbracelet/bubbles/pull/823
-	github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250819143759-7d2df753c297
-	// TODO: https://github.com/charmbracelet/x/pull/516
-	github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/x/exp/teatest/v2 v2.0.0-20250731050217-1e52275d474b
-)
+// TODO: https://github.com/charmbracelet/bubbles/pull/823
+replace github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250819143759-7d2df753c297
 
 require (
 	github.com/Code-Hex/go-generics-cache v1.5.1
 	github.com/alecthomas/chroma/v2 v2.20.0
-	github.com/alecthomas/kong v1.12.0
+	github.com/alecthomas/kong v1.12.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4.0.20250813213544-5cc219db8892
 	github.com/charmbracelet/colorprofile v0.3.2
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3.0.20250814164412-7c497c73cf36
 	github.com/charmbracelet/x/ansi v0.10.1
-	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250725211024-d60e1b0112b2
+	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250820142022-371acb6ebad9
 	github.com/gkampitakis/go-snaps v0.5.14
 	github.com/goccy/go-yaml v1.18.0
 	github.com/hashicorp/vault/api v1.20.0
@@ -38,14 +34,14 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20250813213450-50737e162af5 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20250806222409-83e3a29d542f // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20250820142022-371acb6ebad9 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/gkampitakis/ciinfo v0.3.3 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.1 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -70,10 +66,10 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/crypto v0.40.0 // indirect
-	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
-	golang.org/x/net v0.42.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b // indirect
+	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 )
