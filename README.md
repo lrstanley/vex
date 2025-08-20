@@ -11,6 +11,46 @@ Vex (**V**ault **Ex**plorer) is a **Work in Progress** HashiCorp Vault TUI (Term
 
 <!-- template:begin:header -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
+
+<p align="center">
+  <a href="https://github.com/lrstanley/vex/tags">
+    <img title="Latest Semver Tag" src="https://img.shields.io/github/v/tag/lrstanley/vex?style=flat-square">
+  </a>
+  <a href="https://github.com/lrstanley/vex/commits/master">
+    <img title="Last commit" src="https://img.shields.io/github/last-commit/lrstanley/vex?style=flat-square">
+  </a>
+
+  <a href="https://github.com/lrstanley/vex/actions?query=workflow%3Atest+event%3Apush">
+    <img title="GitHub Workflow Status (test @ master)" src="https://img.shields.io/github/actions/workflow/status/lrstanley/vex/test.yml?branch=master&label=test&style=flat-square">
+  </a>
+
+
+  <a href="https://codecov.io/gh/lrstanley/vex">
+    <img title="Code Coverage" src="https://img.shields.io/codecov/c/github/lrstanley/vex/master?style=flat-square">
+  </a>
+
+  <a href="https://pkg.go.dev/github.com/lrstanley/vex">
+    <img title="Go Documentation" src="https://pkg.go.dev/badge/github.com/lrstanley/vex?style=flat-square">
+  </a>
+  <a href="https://goreportcard.com/report/github.com/lrstanley/vex">
+    <img title="Go Report Card" src="https://goreportcard.com/badge/github.com/lrstanley/vex?style=flat-square">
+  </a>
+</p>
+<p align="center">
+  <a href="https://github.com/lrstanley/vex/issues?q=is:open+is:issue+label:bug">
+    <img title="Bug reports" src="https://img.shields.io/github/issues/lrstanley/vex/bug?label=issues&style=flat-square">
+  </a>
+  <a href="https://github.com/lrstanley/vex/issues?q=is:open+is:issue+label:enhancement">
+    <img title="Feature requests" src="https://img.shields.io/github/issues/lrstanley/vex/enhancement?label=feature%20requests&style=flat-square">
+  </a>
+  <a href="https://github.com/lrstanley/vex/pulls">
+    <img title="Open Pull Requests" src="https://img.shields.io/github/issues-pr/lrstanley/vex?label=prs&style=flat-square">
+  </a>
+  <a href="https://github.com/lrstanley/vex/discussions/new?category=q-a">
+    <img title="Ask a Question" src="https://img.shields.io/badge/support-ask_a_question!-blue?style=flat-square">
+  </a>
+  <a href="https://liam.sh/chat"><img src="https://img.shields.io/badge/discord-bytecord-blue.svg?style=flat-square" title="Discord Chat"></a>
+</p>
 <!-- template:end:header -->
 
 <!-- template:begin:toc -->
