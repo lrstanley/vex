@@ -5,6 +5,10 @@
 -->
 ![logo](https://liam.sh/-/gh/svg/lrstanley/vex?layout=left&icon=logos%3Avault-icon&icon.height=60&bg=geometric&bgcolor=rgba%2810%2C+10%2C+10%2C+1%29)
 
+---
+
+Vex (**V**ault **Ex**plorer) is a **Work in Progress** HashiCorp Vault TUI (Terminal UI)
+
 <!-- template:begin:header -->
 <!-- do not edit anything in this "template" block, its auto-generated -->
 <!-- template:end:header -->
@@ -25,8 +29,6 @@
 > [!WARNING]
 > This is **Work in Progress** and is not yet ready for any kind of real use. Expect
 > it to break, and/or not work at all.
-
-Vex (**V**ault **Ex**plorer) is a **Work in Progress** HashiCorp Vault TUI (Terminal UI),
 
 - :sparkles: [Initial design doc](https://outline.ks.liam.sh/s/fe5484ef-07d5-4d30-ade2-8c6c76081124),
   which includes most of the initial planned features and functionality.
