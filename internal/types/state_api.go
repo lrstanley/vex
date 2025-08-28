@@ -21,7 +21,7 @@ type Client interface {
 	Update(msg tea.Msg) tea.Cmd
 	GetHealth(uuid string) tea.Cmd
 	TokenLookupSelf(uuid string) tea.Cmd
-	ListMounts(uuid string, filterTypes ...string) tea.Cmd
+	ListMounts(uuid string) tea.Cmd
 	ListSecrets(uuid string, mount *Mount, path string) tea.Cmd
 	ListAllSecretsRecursive(uuid string) tea.Cmd
 	GetSecret(uuid string, mount *Mount, path string) tea.Cmd

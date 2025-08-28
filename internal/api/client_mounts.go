@@ -16,19 +16,11 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 )
 
-func (c *client) ListMounts(uuid string, filterTypes ...string) tea.Cmd {
+func (c *client) ListMounts(uuid string) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientListMountsMsg, error) {
 		mounts, err := c.listMounts(true)
 		if err != nil {
 			return nil, err
-		}
-
-		if len(filterTypes) > 0 {
-			for i := len(mounts) - 1; i >= 0; i-- {
-				if !slices.Contains(filterTypes, mounts[i].Type) {
-					mounts = append(mounts[:i], mounts[i+1:]...)
-				}
-			}
 		}
 
 		if len(mounts) > 0 {

@@ -232,7 +232,7 @@ func (m *MockClient) GetConfigState(uuid string) tea.Cmd {
 	return m.ErrorOr(uuid, types.ClientConfigStateMsg{Data: out})
 }
 
-func (m *MockClient) ListMounts(uuid string, _ ...string) tea.Cmd {
+func (m *MockClient) ListMounts(uuid string) tea.Cmd {
 	return m.ErrorOr(uuid, types.ClientListMountsMsg{
 		Mounts: mockMounts,
 	})

@@ -64,10 +64,10 @@ func New(app types.AppState) *Model {
 
 	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.Mount]]{
 		FetchFn: func() tea.Cmd {
-			return app.Client().ListMounts(m.UUID(), "kv", "cubbyhole")
+			return app.Client().ListMounts(m.UUID())
 		},
 		SelectFn: func(value *table.StaticRow[*types.Mount]) tea.Cmd {
-			return types.OpenPage(secretwalker.New(app, value.Value, ""), false)
+			return m.openMount(value)
 		},
 		RowFn: m.rowFn,
 	})
@@ -128,12 +128,23 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch {
 		case key.Matches(msg, types.KeyDetails):
 			if v, ok := m.table.GetSelectedRow(); ok {
-				return types.OpenDialog(genericcode.NewYAML(m.app, fmt.Sprintf("Mount Details: %q", v.Value.Path), false, v.Value))
+				return m.openDetails(v)
 			}
 		}
 	}
 
 	return tea.Batch(append(cmds, m.table.Update(msg))...)
+}
+
+func (m *Model) openMount(row *table.StaticRow[*types.Mount]) tea.Cmd {
+	if row.Value.Type != "kv" {
+		return m.openDetails(row)
+	}
+	return types.OpenPage(secretwalker.New(m.app, row.Value, ""), false)
+}
+
+func (m *Model) openDetails(row *table.StaticRow[*types.Mount]) tea.Cmd {
+	return types.OpenDialog(genericcode.NewYAML(m.app, fmt.Sprintf("Mount Details: %q", row.Value.Path), false, row.Value))
 }
 
 func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
@@ -158,7 +169,7 @@ func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
 	if row.Value.DeprecationStatus == "supported" {
 		deprecationStatus = m.supportedFg.Render(deprecationStatus)
 	} else {
-		deprecationStatus = m.deprecatedFg.Render(styles.IconCaution() + " " + deprecationStatus)
+		deprecationStatus = m.deprecatedFg.Render(deprecationStatus)
 	}
 
 	return []string{
