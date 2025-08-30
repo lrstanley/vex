@@ -5,6 +5,7 @@
 package formatter
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/x/ansi"
@@ -56,4 +57,81 @@ const ANSIReset = "\x1b[m"
 // TruncReset removes the ANSI reset sequence from a string.
 func TruncReset(s string) string {
 	return strings.ReplaceAll(s, ANSIReset, "")
+}
+
+// TruncPath dynamically truncates a path to a given length, prioritizing keeping
+// both start and end segments when possible.
+func TruncPath(s string, length int) string {
+	if length <= 0 {
+		return ""
+	}
+
+	sw := ansi.StringWidth(s)
+	if sw <= length {
+		return s
+	}
+
+	parts := slices.DeleteFunc(strings.SplitAfter(s, "/"), func(s string) bool {
+		return s == ""
+	})
+
+	if len(parts) == 1 {
+		return Trunc(parts[0], length)
+	}
+
+	// Split parts into left and right halves, as close as possible to the center.
+	var left, right []string
+
+	for i := range parts {
+		if i >= len(parts)/2 {
+			left = parts[:i]
+			right = parts[i:]
+			break
+		}
+	}
+
+	if len(left) == 0 || len(right) == 0 {
+		return Trunc(s, length)
+	}
+
+	var w, ellipsisWidth int
+
+	for sw+ellipsisWidth > length {
+		if len(left) >= len(right) {
+			if len(left) == 0 {
+				break
+			}
+
+			// Delete the last part of the left side.
+			w = ansi.StringWidth(left[len(left)-1])
+			left = left[:len(left)-1]
+			sw -= w
+		} else {
+			if len(right) <= 1 {
+				break
+			}
+
+			// Delete the first part of the right side.
+			w = ansi.StringWidth(right[0])
+			right = right[1:]
+			sw -= w
+		}
+
+		if ellipsisWidth == 0 {
+			ellipsisWidth = 2
+		}
+	}
+
+	if len(left) == 0 && len(right) == 0 {
+		return TruncateEllipsis
+	}
+
+	if len(left)+len(right) != len(parts) {
+		return Trunc(strings.Join(left, "")+TruncateEllipsis+"/"+strings.Join(right, ""), length)
+	}
+
+	return Trunc(
+		strings.Join(parts, ""),
+		length,
+	)
 }
