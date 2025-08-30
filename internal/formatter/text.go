@@ -5,10 +5,12 @@
 package formatter
 
 import (
+	"iter"
 	"slices"
 	"strings"
 
 	"github.com/charmbracelet/x/ansi"
+	"github.com/rivo/uniseg"
 )
 
 const TruncateEllipsis = "…" // Should be 1 character wide.
@@ -134,4 +136,70 @@ func TruncPath(s string, length int) string {
 		strings.Join(parts, ""),
 		length,
 	)
+}
+
+// TruncMaybePath truncates a string similar to [Trunc], but if one of the parts
+// of the string looks like a path, it will be truncated using [TruncPath].
+func TruncMaybePath(s string, length int) string {
+	w := ansi.StringWidth(s)
+	if w <= length {
+		return s
+	}
+
+	parts := strings.Split(s, " ")
+	pathi := -1
+
+	for i := range parts {
+		if strings.Contains(parts[i], "/") && ansi.StringWidth(parts[i]) > 1 {
+			pathi = i
+			break
+		}
+	}
+
+	if pathi == -1 {
+		return Trunc(s, length)
+	}
+
+	before := strings.Join(parts[:pathi], " ")
+	beforew := ansi.StringWidth(before)
+	after := strings.Join(parts[pathi+1:], " ")
+	afterw := ansi.StringWidth(after)
+
+	var out strings.Builder
+
+	if beforew > 0 {
+		out.WriteString(before)
+		out.WriteString(" ")
+	}
+
+	maxPathWidth := length - beforew - afterw
+
+	if beforew > 0 {
+		maxPathWidth--
+	}
+
+	if maxPathWidth > 0 {
+		maxPathWidth--
+	}
+
+	out.WriteString(TruncPath(parts[pathi], maxPathWidth))
+
+	if afterw > 0 {
+		out.WriteString(" ")
+		out.WriteString(after)
+	}
+
+	return out.String()
+}
+
+// Clusters returns an iterator of grapheme clusters from the input string.
+func Clusters(input string) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		gr := uniseg.NewGraphemes(input)
+		for gr.Next() {
+			if !yield(gr.Str()) {
+				return
+			}
+		}
+	}
 }

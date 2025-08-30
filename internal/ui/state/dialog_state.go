@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/shorthelp"
 	"github.com/lrstanley/vex/internal/ui/styles"
@@ -272,7 +273,7 @@ func (s *dialogState) SetLayers(base *lipgloss.Layer) *lipgloss.Layer {
 	}
 
 	var view string
-	var dx, dy int
+	var dx, dy, maxTitleWidth int
 	var embeddedText map[styles.BorderPosition]string
 
 	for i, dialog := range dialogs {
@@ -293,14 +294,17 @@ func (s *dialogState) SetLayers(base *lipgloss.Layer) *lipgloss.Layer {
 			embeddedText[styles.BottomMiddleBorder] = s.shorthelp.View()
 		}
 
+		maxTitleWidth = max(0, dialog.GetWidth()-s.titleStyle.GetHorizontalFrameSize())
+
 		base.AddLayers(
 			lipgloss.NewLayer(
 				styles.Border(
 					lipgloss.JoinVertical(
 						lipgloss.Top,
 						s.titleStyle.Render(styles.Title(
-							dialog.GetTitle(),
-							dialog.GetWidth()-s.titleStyle.GetHorizontalFrameSize(),
+							// Give a little extra padding.
+							formatter.TruncMaybePath(dialog.GetTitle(), maxTitleWidth-2),
+							maxTitleWidth,
 							styles.IconTitleGradientDivider,
 							styles.Theme.TitleFg(),
 							styles.Theme.TitleFromFg(),

@@ -7,13 +7,12 @@ package styles
 import (
 	"fmt"
 	"image/color"
-	"iter"
 	"slices"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/rivo/uniseg"
+	"github.com/lrstanley/vex/internal/formatter"
 )
 
 // Title returns a styled title string, with a gradient of the from and to
@@ -21,13 +20,19 @@ import (
 //
 // Inspired by charmbraclet/crush.
 func Title(input string, width int, char string, main, from, to color.Color) string {
-	length := ansi.StringWidth(input) + 1 // +1 for the space.
+	length := ansi.StringWidth(input)
 	remaining := width - length
+
+	if remaining < 1 {
+		return formatter.Trunc(input, width)
+	}
+
+	remaining-- // -1 for the space.
 
 	s := lipgloss.NewStyle().Foreground(main)
 	if remaining > 0 {
 		var out strings.Builder
-		clusters := slices.Collect(Clusters(strings.Repeat(char, remaining)))
+		clusters := slices.Collect(formatter.Clusters(strings.Repeat(char, remaining)))
 
 		for i, c := range lipgloss.Blend1D(len(clusters), from, to) {
 			// Allow multiple characters to be rendered.
@@ -41,18 +46,6 @@ func Title(input string, width int, char string, main, from, to color.Color) str
 	}
 
 	return input
-}
-
-// Clusters returns an iterator of grapheme clusters from the input string.
-func Clusters(input string) iter.Seq[string] {
-	return func(yield func(string) bool) {
-		gr := uniseg.NewGraphemes(input)
-		for gr.Next() {
-			if !yield(string(gr.Runes())) {
-				return
-			}
-		}
-	}
 }
 
 // H returns the cell height of characters in a set of strings. ANSI sequences

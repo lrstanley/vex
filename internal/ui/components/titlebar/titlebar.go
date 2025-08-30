@@ -16,7 +16,7 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-const MaxTitleWidth = 30
+const MaxTitleWidth = 50
 
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
 
@@ -99,7 +99,7 @@ func (m *Model) View() string {
 	m.help.SetMaxWidth(m.Width)
 
 	var title string
-	titleText := formatter.Trunc(" "+m.app.Page().Get().GetTitle(), MaxTitleWidth)
+	titleText := " " + formatter.TruncMaybePath(m.app.Page().Get().GetTitle(), min(MaxTitleWidth, max(1, m.Width/2)))
 	titlew := ansi.StringWidth(titleText)
 
 	if hw := ansi.StringWidth(m.help.View()); m.Width-titlew-hw > 3 {
