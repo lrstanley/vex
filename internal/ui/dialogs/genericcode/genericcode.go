@@ -18,9 +18,7 @@ type Model struct {
 	*types.DialogModel
 
 	// Core state.
-	app types.AppState
-
-	// UI state.
+	app   types.AppState
 	title string
 
 	// Child components.

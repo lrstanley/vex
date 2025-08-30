@@ -18,8 +18,6 @@ type Model struct {
 
 	// Core state.
 	app types.AppState
-
-	// UI state.
 	foo string
 
 	// Styles.
@@ -38,8 +36,7 @@ func New(app types.AppState) *Model {
 
 func (m *Model) setStyles() {
 	m.baseStyle = lipgloss.NewStyle().
-		Foreground(styles.Theme.Fg()).
-		Background(styles.Theme.Bg())
+		Foreground(styles.Theme.AppFg())
 }
 
 func (m *Model) Init() tea.Cmd {

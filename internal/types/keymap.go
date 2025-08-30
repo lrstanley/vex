@@ -124,6 +124,15 @@ var (
 	)
 )
 
+// OverrideHelp overrides the help text for a key binding, returning a new key
+// binding with the same keys and the new help text.
+func OverrideHelp(b key.Binding, help string) key.Binding {
+	return key.NewBinding(
+		key.WithKeys(b.Keys()...),
+		key.WithHelp(b.Help().Key, help),
+	)
+}
+
 type KeyBindingGroup struct {
 	Title    string
 	Bindings [][]key.Binding

@@ -12,17 +12,13 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-const ID types.DialogID = "template"
-
-var _ types.Dialog[any] = (*Model)(nil) // Ensure we implement the dialog interface.
+var _ types.Dialog = (*Model)(nil) // Ensure we implement the dialog interface.
 
 type Model struct {
-	*types.DialogModel[struct{}]
+	*types.DialogModel
 
 	// Core state.
 	app types.AppState
-
-	// UI state.
 	foo string
 
 	// Styles.
@@ -31,12 +27,9 @@ type Model struct {
 
 func New(app types.AppState) *Model {
 	m := &Model{
-		DialogModel: &types.DialogModel[struct{}]{
-			ID:              ID,
+		DialogModel: &types.DialogModel{
 			Size:            types.DialogSizeSmall,
 			DisableChildren: true,
-			ShortKeyBinds:   []key.Binding{types.KeyPopNavigation, types.KeyQuit},
-			FullKeyBinds:    [][]key.Binding{{types.KeyPopNavigation, types.KeyQuit}},
 		},
 		app: app,
 	}
@@ -47,7 +40,6 @@ func New(app types.AppState) *Model {
 
 func (m *Model) initStyles() {
 	m.baseStyle = lipgloss.NewStyle().
-		Background(styles.Theme.Bg()).
 		Foreground(styles.Theme.DialogFg())
 }
 
@@ -69,10 +61,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.initStyles()
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, types.KeyCloseDialog):
-			return types.CloseDialog(m)
-		case key.Matches(msg, types.KeyQuit):
-			return types.AppQuit()
+		case key.Matches(msg, types.KeyCancel):
+			return types.CloseActiveDialog()
 		}
 	}
 
