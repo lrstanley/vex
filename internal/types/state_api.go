@@ -24,8 +24,9 @@ type Client interface {
 	ListMounts(uuid string) tea.Cmd
 	ListSecrets(uuid string, mount *Mount, path string) tea.Cmd
 	ListAllSecretsRecursive(uuid string) tea.Cmd
-	GetSecret(uuid string, mount *Mount, path string) tea.Cmd
+	GetKVSecret(uuid string, mount *Mount, path string, version int) tea.Cmd
 	GetKVv2Metadata(uuid string, mount *Mount, path string) tea.Cmd
+	ListKVv2Versions(uuid string, mount *Mount, path string) tea.Cmd
 	ListACLPolicies(uuid string) tea.Cmd
 	GetACLPolicy(uuid string, policyName string) tea.Cmd
 	GetConfigState(uuid string) tea.Cmd

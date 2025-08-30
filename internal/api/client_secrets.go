@@ -14,6 +14,7 @@ import (
 	"sync/atomic"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
+	vapi "github.com/hashicorp/vault/api"
 	"github.com/lrstanley/vex/internal/types"
 	"golang.org/x/sync/errgroup"
 )
@@ -304,14 +305,20 @@ func (c *client) ListKVv2Versions(uuid string, mount *types.Mount, path string) 
 	})
 }
 
-func (c *client) GetSecret(uuid string, mount *types.Mount, path string) tea.Cmd {
+func (c *client) GetKVSecret(uuid string, mount *types.Mount, path string, version int) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientGetSecretMsg, error) {
-		prefix := strings.TrimSuffix(mount.Path, "/")
+		var secret *vapi.KVSecret
+		var err error
 		if mount.KVVersion() == 2 {
-			prefix += "/data"
+			if version < 1 {
+				secret, err = c.api.KVv2(mount.Path).Get(context.Background(), path)
+			} else {
+				secret, err = c.api.KVv2(mount.Path).GetVersion(context.Background(), path, version)
+			}
+		} else {
+			secret, err = c.api.KVv1(mount.Path).Get(context.Background(), path)
 		}
 
-		secret, err := c.api.Logical().Read(prefix + "/" + path)
 		if err != nil {
 			return nil, fmt.Errorf("get secret: %w", err)
 		}

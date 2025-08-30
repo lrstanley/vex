@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package viewsecret
+package kvviewsecret
 
 import (
 	"encoding/json"
@@ -78,6 +78,7 @@ type Model struct {
 	width           int
 	mount           *types.Mount
 	path            string
+	version         int
 	data            map[string]any
 	filter          string
 	isFlat          bool
@@ -91,7 +92,7 @@ type Model struct {
 	viewport *viewport.Model
 }
 
-func New(app types.AppState, mount *types.Mount, path string) *Model {
+func New(app types.AppState, mount *types.Mount, path string, version int) *Model {
 	// TODO:
 	//   - use scrollbar vs paginator. maybe if we implement a custom component?
 	m := &Model{
@@ -109,6 +110,7 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		app:             app,
 		mount:           mount,
 		path:            path,
+		version:         version,
 		isNonFlatMasked: true,
 		viewport:        viewport.New(app),
 	}
@@ -209,7 +211,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case types.RefreshDataMsg:
 		return tea.Batch(
 			types.PageLoading(),
-			m.app.Client().GetSecret(m.UUID(), m.mount, m.path),
+			m.app.Client().GetKVSecret(m.UUID(), m.mount, m.path, m.version),
 		)
 	case types.AppFilterMsg:
 		if msg.UUID != m.UUID() {
@@ -282,6 +284,9 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) getSelectedItem() *item {
+	if !m.isFlat || m.forceJSON {
+		return nil
+	}
 	item, ok := m.list.Items()[m.list.GlobalIndex()].(*item)
 	if !ok {
 		return nil
@@ -361,6 +366,7 @@ func (m *Model) toggleMasking(global bool) tea.Cmd {
 }
 
 func (m *Model) edit() tea.Cmd {
+	// TODO: handle non-flat values.
 	item := m.getSelectedItem()
 	if item == nil {
 		return nil

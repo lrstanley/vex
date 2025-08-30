@@ -306,7 +306,7 @@ func (m *MockClient) ListKVv2Versions(uuid string, mount *types.Mount, path stri
 	})
 }
 
-func (m *MockClient) GetSecret(uuid string, mount *types.Mount, path string) tea.Cmd {
+func (m *MockClient) GetKVSecret(uuid string, mount *types.Mount, path string, _ int) tea.Cmd {
 	if strings.Contains(path, "json") {
 		return m.ErrorOr(uuid, types.ClientGetSecretMsg{
 			Mount: mount,

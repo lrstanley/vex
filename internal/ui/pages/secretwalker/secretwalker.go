@@ -8,10 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
-	"github.com/lrstanley/vex/internal/ui/pages/viewsecret"
+	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
+	"github.com/lrstanley/vex/internal/ui/pages/kvv2versions"
+	"github.com/lrstanley/vex/internal/ui/pages/kvviewsecret"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
@@ -30,9 +33,8 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	filter string
-	mount  *types.Mount
-	path   string
+	mount *types.Mount
+	path  string
 
 	// Child components.
 	table *table.Model[*table.StaticRow[*types.SecretListRef]]
@@ -43,6 +45,9 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		PageModel: &types.PageModel{
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
+			FullKeyBinds: [][]key.Binding{
+				{types.OverrideHelp(types.KeyDetails, "view metadata (kv v2 only)")},
+			},
 		},
 		app:   app,
 		mount: mount,
@@ -54,10 +59,7 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 			return app.Client().ListSecrets(m.UUID(), m.mount, m.path)
 		},
 		SelectFn: func(value *table.StaticRow[*types.SecretListRef]) tea.Cmd {
-			if !strings.HasSuffix(value.Value.Path, "/") {
-				return types.OpenPage(viewsecret.New(app, value.Value.Mount, value.Value.Path), false)
-			}
-			return types.OpenPage(New(app, value.Value.Mount, value.Value.Path), false)
+			return m.selectSecret(value.Value)
 		},
 		RowFn: func(row *table.StaticRow[*types.SecretListRef]) []string {
 			return []string{
@@ -93,7 +95,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		if msg.UUID != m.UUID() {
 			return nil
 		}
-		m.filter = msg.Text
 		m.table.SetFilter(msg.Text)
 	case types.ClientMsg:
 		if msg.UUID != m.UUID() {
@@ -109,10 +110,33 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			m.table.SetRows(table.RowsFrom(vmsg.Values, func(v *types.SecretListRef) table.ID {
 				return table.ID(v.Mount.Path + v.Path)
 			}))
+		case types.ClientGetKVv2MetadataMsg:
+			return types.OpenDialog(genericcode.NewYAML(
+				m.app,
+				"Metadata: "+vmsg.Mount.Path+vmsg.Path,
+				false,
+				vmsg.Metadata,
+			))
+		}
+	case tea.KeyMsg:
+		if key.Matches(msg, types.KeyDetails) && m.mount.KVVersion() == 2 {
+			if v, ok := m.table.GetSelectedRow(); ok && !strings.HasSuffix(v.Value.Path, "/") {
+				return m.app.Client().GetKVv2Metadata(m.UUID(), v.Value.Mount, v.Value.Path)
+			}
 		}
 	}
 
 	return tea.Batch(append(cmds, m.table.Update(msg))...)
+}
+
+func (m *Model) selectSecret(secret *types.SecretListRef) tea.Cmd {
+	if !strings.HasSuffix(secret.Path, "/") {
+		if secret.Mount.KVVersion() == 2 {
+			return types.OpenPage(kvv2versions.New(m.app, secret.Mount, secret.Path), false)
+		}
+		return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.Path, 0), false)
+	}
+	return types.OpenPage(New(m.app, secret.Mount, secret.Path), false)
 }
 
 func (m *Model) View() string {
