@@ -12,6 +12,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/pages/kvv2versions"
@@ -34,12 +35,17 @@ type Model struct {
 	*types.PageModel
 
 	// Core state.
-	app types.AppState
+	app    types.AppState
+	width  int
+	height int
 
 	// UI state.
 	filter string
 	mount  *types.Mount // Optional mount to restrict to.
 	data   *types.ClientListAllSecretsRecursiveMsg
+
+	// Styles.
+	tooManyRequestsStyle lipgloss.Style
 
 	// Child components.
 	table *table.Model[*table.StaticRow[*types.ClientSecretTreeRef]]
@@ -72,7 +78,16 @@ func New(app types.AppState, mount *types.Mount) *Model {
 		},
 	})
 
+	m.initStyles()
 	return m
+}
+
+func (m *Model) initStyles() {
+	m.tooManyRequestsStyle = lipgloss.NewStyle().
+		Foreground(styles.Theme.ErrorFg()).
+		Background(styles.Theme.ErrorBg()).
+		Padding(0, 1).
+		Align(lipgloss.Center)
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -86,6 +101,17 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		if m.data != nil && m.data.RequestAttempts > m.data.MaxRequests {
+			m.table.SetDimensions(m.width, m.height-1)
+		} else {
+			m.table.SetDimensions(m.width, m.height)
+		}
+		return nil
+	case styles.ThemeUpdatedMsg:
+		m.initStyles()
 	case types.PageVisibleMsg:
 		return types.RefreshData(m.UUID())
 	case types.RefreshDataMsg:
@@ -145,6 +171,20 @@ func (m *Model) View() string {
 	if m.table.Width == 0 || m.table.Height == 0 {
 		return ""
 	}
+	if m.data != nil && m.data.RequestAttempts > m.data.MaxRequests {
+		return lipgloss.JoinVertical(
+			lipgloss.Left,
+			m.tooManyRequestsStyle.
+				Width(m.width).
+				Render(formatter.Trunc(fmt.Sprintf(
+					"hit request limit trying to list: %d/%d (need at least %d)",
+					m.data.Requests,
+					m.data.MaxRequests,
+					m.data.RequestAttempts,
+				), m.width-m.tooManyRequestsStyle.GetHorizontalFrameSize())),
+			m.table.View(),
+		)
+	}
 	return m.table.View()
 }
 
@@ -156,13 +196,7 @@ func (m *Model) TopRightBorder() string {
 	if m.data == nil {
 		return ""
 	}
-	out := fmt.Sprintf("requests: %d/%d", m.data.Requests, m.data.MaxRequests)
-
-	if m.data.RequestAttempts >= m.data.MaxRequests {
-		out += lipgloss.NewStyle().Foreground(styles.Theme.ErrorFg()).Render(" (max hit)")
-	}
-
-	return out
+	return fmt.Sprintf("requests: %d/%d", m.data.Requests, m.data.MaxRequests)
 }
 
 func (m *Model) GetTitle() string {
