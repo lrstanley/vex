@@ -19,7 +19,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const MaxRecursiveRequests = 200
+const MaxRecursiveRequests = 300
 
 func (c *client) ListSecrets(uuid string, mount *types.Mount, path string) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientListSecretsMsg, error) {
@@ -62,15 +62,26 @@ func (c *client) list(mount *types.Mount, path string) (values []string, err err
 	return secretToList(secret), nil
 }
 
-func (c *client) listAllSecretsRecursive(maxRequests int64, withCapabilities bool) (tree types.ClientSecretTree, requests int64, err error) {
-	mounts, err := c.listMounts(true)
+func (c *client) listAllSecretsRecursive(
+	mount *types.Mount,
+	maxRequests int64,
+	withCapabilities bool,
+) (tree types.ClientSecretTree, requestAttempts, requests int64, err error) {
+	var mounts []*types.Mount
+
+	if mount != nil {
+		mounts = append(mounts, mount)
+	} else {
+		mounts, err = c.listMounts(true)
+	}
+
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, err
 	}
 
 	var mu sync.Mutex
 	var eg errgroup.Group
-	var req atomic.Int64
+	var reqAttempts, actualRequests atomic.Int64
 
 	for _, mount := range mounts {
 		if mount.Type != "kv" {
@@ -78,7 +89,14 @@ func (c *client) listAllSecretsRecursive(maxRequests int64, withCapabilities boo
 		}
 
 		eg.Go(func() error {
-			inner, eerr := c.listMountSecretsRecursive(&req, maxRequests, withCapabilities, mount, "")
+			inner, eerr := c.listMountSecretsRecursive(
+				&reqAttempts,
+				&actualRequests,
+				maxRequests,
+				withCapabilities,
+				mount,
+				"",
+			)
 			if eerr != nil {
 				return eerr
 			}
@@ -91,19 +109,20 @@ func (c *client) listAllSecretsRecursive(maxRequests int64, withCapabilities boo
 
 	err = eg.Wait()
 	if err != nil {
-		return nil, req.Load(), err
+		return nil, reqAttempts.Load(), actualRequests.Load(), err
 	}
 
 	slices.SortFunc(tree, func(a, b *types.ClientSecretTreeRef) int {
 		return strings.Compare(a.Path, b.Path)
 	})
 
-	return tree, req.Load(), nil
+	return tree, reqAttempts.Load(), actualRequests.Load(), nil
 }
 
 // listMountSecretsRecursive lists the secrets for a given mount.
 func (c *client) listMountSecretsRecursive( //nolint:gocognit
-	req *atomic.Int64,
+	reqAttempts *atomic.Int64,
+	actualRequests *atomic.Int64,
 	maxRequests int64,
 	withCapabilities bool,
 	mount *types.Mount,
@@ -118,7 +137,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	if len(paths) == 0 {
 		wasMountLevel = true
 
-		if v := req.Add(1); v >= maxRequests {
+		if v := reqAttempts.Add(1); v > maxRequests {
 			tree = append(tree, &types.ClientSecretTreeRef{
 				Mount:      mount,
 				Path:       mount.Path,
@@ -128,6 +147,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 		}
 
 		parent = ""
+		actualRequests.Add(1)
 		paths, err = c.list(mount, "")
 		if err != nil {
 			return nil, err
@@ -138,7 +158,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 		switch {
 		case strings.HasSuffix(path, "/"): // Folder.
 			eg.Go(func() error {
-				if v := req.Add(1); v >= maxRequests {
+				if v := reqAttempts.Add(1); v > maxRequests {
 					ref := &types.ClientSecretTreeRef{
 						Mount:      mount,
 						Path:       path,
@@ -152,6 +172,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 				}
 
 				var ipaths []string
+				actualRequests.Add(1)
 				ipaths, err = c.list(mount, parent+path)
 				if err != nil {
 					return err
@@ -162,7 +183,15 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 				}
 
 				var inner types.ClientSecretTree
-				inner, err = c.listMountSecretsRecursive(req, maxRequests, false, mount, parent+path, ipaths...)
+				inner, err = c.listMountSecretsRecursive(
+					reqAttempts,
+					actualRequests,
+					maxRequests,
+					false,
+					mount,
+					parent+path,
+					ipaths...,
+				)
 				if err != nil {
 					return err
 				}
@@ -235,7 +264,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	if withCapabilities {
 		var values []string
 		for ref := range tree.IterRefs() {
-			values = append(values, ref.GetFullPath())
+			values = append(values, ref.GetFullPath(true))
 		}
 
 		var capabilities map[string]types.ClientCapabilities
@@ -256,17 +285,22 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	return tree, nil
 }
 
-func (c *client) ListAllSecretsRecursive(uuid string) tea.Cmd {
+func (c *client) ListAllSecretsRecursive(uuid string, mount *types.Mount) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientListAllSecretsRecursiveMsg, error) {
-		tree, requests, err := c.listAllSecretsRecursive(MaxRecursiveRequests, true)
+		tree, requestAttempts, requests, err := c.listAllSecretsRecursive(
+			mount,
+			MaxRecursiveRequests,
+			true,
+		)
 		if err != nil {
 			return nil, err
 		}
 		tree.SetParentOnLeafs(nil)
 		return &types.ClientListAllSecretsRecursiveMsg{
-			Tree:        tree,
-			Requests:    requests,
-			MaxRequests: MaxRecursiveRequests,
+			Tree:            tree,
+			RequestAttempts: requestAttempts,
+			Requests:        requests,
+			MaxRequests:     MaxRecursiveRequests,
 		}, nil
 	})
 }

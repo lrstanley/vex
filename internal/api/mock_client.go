@@ -248,7 +248,7 @@ func (m *MockClient) ListSecrets(uuid string, mount *types.Mount, path string) t
 	})
 }
 
-func (m *MockClient) ListAllSecretsRecursive(uuid string) tea.Cmd {
+func (m *MockClient) ListAllSecretsRecursive(uuid string, _ *types.Mount) tea.Cmd {
 	tree := types.ClientSecretTree{
 		{
 			Mount: mockMounts[0],

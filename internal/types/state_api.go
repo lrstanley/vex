@@ -16,19 +16,39 @@ import (
 	vapi "github.com/hashicorp/vault/api"
 )
 
+// Client is an interface for interacting with a Vault server.
 type Client interface {
 	Init() tea.Cmd
 	Update(msg tea.Msg) tea.Cmd
+	// GetHealth returns a command to get the health of the Vault server.
 	GetHealth(uuid string) tea.Cmd
+	// TokenLookupSelf returns a command to lookup the current token.
 	TokenLookupSelf(uuid string) tea.Cmd
+	// ListMounts returns a command to list the mounts of the Vault server.
 	ListMounts(uuid string) tea.Cmd
+	// ListSecrets returns a command to list the secrets of the Vault server,
+	// under a given mount and path. If path is empty, it will list all secrets
+	// under the mount.
 	ListSecrets(uuid string, mount *Mount, path string) tea.Cmd
-	ListAllSecretsRecursive(uuid string) tea.Cmd
+	// ListAllSecretsRecursive returns a command to list all secrets of the Vault
+	// server. If mount is nil, it will list all secrets under all mounts.
+	ListAllSecretsRecursive(uuid string, mount *Mount) tea.Cmd
+	// GetKVSecret returns a command to get a secret from the Vault server,
+	// under a given mount and path.
 	GetKVSecret(uuid string, mount *Mount, path string, version int) tea.Cmd
+	// GetKVv2Metadata returns a command to get the metadata of a KVv2 secret
+	// from the Vault server, under a given mount and path.
 	GetKVv2Metadata(uuid string, mount *Mount, path string) tea.Cmd
+	// ListKVv2Versions returns a command to list the versions of a KVv2 secret
+	// from the Vault server, under a given mount and path.
 	ListKVv2Versions(uuid string, mount *Mount, path string) tea.Cmd
+	// ListACLPolicies returns a command to list the ACL policies of the Vault
+	// server.
 	ListACLPolicies(uuid string) tea.Cmd
+	// GetACLPolicy returns a command to get an ACL policy of the Vault server.
 	GetACLPolicy(uuid string, policyName string) tea.Cmd
+	// GetConfigState returns a command to get the configuration of the Vault
+	// server.
 	GetConfigState(uuid string) tea.Cmd
 }
 
@@ -49,10 +69,13 @@ type ClientConfigMsg struct {
 	Health  *vapi.HealthResponse `json:"health,omitempty"`
 }
 
+// ClientListMountsMsg is a message containing the list of mounts of the Vault
+// server.
 type ClientListMountsMsg struct {
 	Mounts []*Mount `json:"mounts"`
 }
 
+// Mount is a mount of the Vault server.
 type Mount struct {
 	*vapi.MountOutput `json:",inline"`
 
@@ -64,6 +87,8 @@ type Mount struct {
 	Capabilities ClientCapabilities `json:"capabilities"`
 }
 
+// KVVersion returns the version of the KV mount, if the mount is a KV mount,
+// returning -1 otherwise.
 func (m *Mount) KVVersion() int {
 	ver, ok := m.Options["version"]
 	if !ok {
@@ -84,51 +109,67 @@ func (m *Mount) PrefixPaths(paths ...string) (prefixed []string) {
 	return prefixed
 }
 
+// ClientListSecretsMsg is a message containing the list of secrets, under a given
+// mount and path.
 type ClientListSecretsMsg struct {
 	Values []*SecretListRef `json:"values"`
 }
 
+// SecretListRef is a reference to a secret.
 type SecretListRef struct {
 	Mount        *Mount             `json:"mount"`
 	Path         string             `json:"path"`
 	Capabilities ClientCapabilities `json:"capabilities"`
 }
 
+// FullPath returns the full path of the secret (including the mount path).
 func (r *SecretListRef) FullPath() string {
 	return r.Mount.Path + r.Path
 }
 
+// ClientGetSecretMsg is a message containing the data of a secret, under a given
+// mount and path.
 type ClientGetSecretMsg struct {
 	Mount *Mount         `json:"mount"`
 	Path  string         `json:"path"`
 	Data  map[string]any `json:"data"`
 }
 
+// ClientGetKVv2MetadataMsg is a message containing the metadata of a KVv2, under
+// a given mount and path.
 type ClientGetKVv2MetadataMsg struct {
 	Mount    *Mount           `json:"mount"`
 	Path     string           `json:"path"`
 	Metadata *vapi.KVMetadata `json:"metadata"`
 }
 
+// ClientListKVv2VersionsMsg is a message containing the versions of a KVv2
+// secret, under a given mount and path.
 type ClientListKVv2VersionsMsg struct {
 	Mount    *Mount                   `json:"mount"`
 	Path     string                   `json:"path"`
 	Versions []vapi.KVVersionMetadata `json:"versions"`
 }
 
+// ClientListACLPoliciesMsg is a message containing a list of all ACL policies.
 type ClientListACLPoliciesMsg struct {
 	Policies []string `json:"policies"`
 }
 
+// ClientGetACLPolicyMsg is a message containing the data of an ACL policy.
 type ClientGetACLPolicyMsg struct {
 	Name    string `json:"name"`
 	Content string `json:"content"`
 }
 
+// ClientConfigStateMsg is a message containing the configuration state of the
+// cluster.
 type ClientConfigStateMsg struct {
 	Data json.RawMessage `json:"data"`
 }
 
+// ClientCapability contains the capabilities of a given identity, meant to
+// determine the level of permissions for a given mount/path/etc.
 type ClientCapability string
 
 var (
@@ -159,6 +200,8 @@ var (
 
 type ClientCapabilities []ClientCapability
 
+// Contains returns true if the capabilities contain the given capability.
+// Accounts for root, sudo, and deny and their associated precedence.
 func (c ClientCapabilities) Contains(capability ClientCapability) bool {
 	if slices.Contains(c, CapabilityRoot) {
 		return true
@@ -222,6 +265,7 @@ func (c ClientSecretTree) SetParentOnLeafs(parent *ClientSecretTreeRef) {
 	}
 }
 
+// ClientSecretTreeRef is a reference to a path.
 type ClientSecretTreeRef struct {
 	Parent *ClientSecretTreeRef `json:"-"`
 	Mount  *Mount               `json:"mount"`
@@ -232,28 +276,41 @@ type ClientSecretTreeRef struct {
 	Incomplete   bool               `json:"incomplete"`
 }
 
+// ClientSecretListRef returns a SecretListRef for the secret tree ref.
+func (c *ClientSecretTreeRef) ClientSecretListRef() *SecretListRef {
+	return &SecretListRef{
+		Mount:        c.Mount,
+		Path:         c.Path,
+		Capabilities: c.Capabilities,
+	}
+}
+
+// IsFolder returns true if the path is a folder.
 func (c *ClientSecretTreeRef) IsFolder() bool {
 	return strings.HasSuffix(c.Path, "/")
 }
 
+// IsSecret returns true if the path is a secret.
 func (c *ClientSecretTreeRef) IsSecret() bool {
 	return !c.IsFolder()
 }
 
+// HasLeafs returns true if the path has any leafs (children).
 func (c *ClientSecretTreeRef) HasLeafs() bool {
 	return len(c.Leafs) > 0
 }
 
 // GetFullPath returns the full path of the secret, combining all parent paths.
-func (c *ClientSecretTreeRef) GetFullPath() string {
-	if c.Parent == nil {
-		return c.Path
+// If withMount is false, the mount path will not be included.
+func (c *ClientSecretTreeRef) GetFullPath(withMount bool) string {
+	var prefix string
+	if !withMount && c.Parent == nil {
+		return ""
 	}
-	parent := c.Parent.GetFullPath()
-	if parent == "/" {
-		parent = ""
+	if c.Parent != nil {
+		prefix = c.Parent.GetFullPath(withMount)
 	}
-	return parent + c.Path
+	return prefix + c.Path
 }
 
 // IterRefs iterates over all the leaf refs in this leaf, recursively.
@@ -275,24 +332,31 @@ func (c *ClientSecretTreeRef) IterRefs() iter.Seq[*ClientSecretTreeRef] {
 	}
 }
 
+// ApplyCapabilities applies the given capabilities to the secret tree ref assuming
+// the path matches.
 func (c *ClientSecretTreeRef) ApplyCapabilities(path string, caps ClientCapabilities) bool {
-	if c.GetFullPath() == path {
+	if c.GetFullPath(true) == path {
 		c.Capabilities = caps
 		return true
 	}
 	return false
 }
 
+// ClientListAllSecretsRecursiveMsg is a message containing the results of a
+// recursive list of a given mount/path/etc.
 type ClientListAllSecretsRecursiveMsg struct {
-	Tree        ClientSecretTree `json:"tree"`
-	Requests    int64            `json:"requests"`
-	MaxRequests int64            `json:"max_requests"`
+	Tree            ClientSecretTree `json:"tree"`
+	RequestAttempts int64            `json:"request_attempts"`
+	Requests        int64            `json:"requests"`
+	MaxRequests     int64            `json:"max_requests"`
 }
 
+// ClientTokenLookupSelfMsg is a message containing the result of a token lookup.
 type ClientTokenLookupSelfMsg struct {
 	Result *TokenLookupResult `json:"result"`
 }
 
+// TokenLookupResult is the result of a token lookup.
 type TokenLookupResult struct {
 	Accessor       string         `json:"accessor,omitempty"`
 	CreationTime   int64          `json:"creation_time,omitempty"`
@@ -313,6 +377,7 @@ type TokenLookupResult struct {
 	Type           string         `json:"type,omitempty"`
 }
 
+// WhenExpires returns the duration until the token expires.
 func (r *TokenLookupResult) WhenExpires() time.Duration {
 	return time.Until(r.ExpireTime)
 }

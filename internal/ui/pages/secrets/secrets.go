@@ -6,22 +6,18 @@ package secrets
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
+	"github.com/lrstanley/vex/internal/ui/pages/kvv2versions"
 	"github.com/lrstanley/vex/internal/ui/pages/kvviewsecret"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
-
-type Data struct {
-	Mount        *types.Mount
-	Path         string
-	FullPath     string
-	Capabilities types.ClientCapabilities
-	Incomplete   bool
-}
 
 var (
 	Commands = []string{"secrets", "secret"}
@@ -42,34 +38,36 @@ type Model struct {
 
 	// UI state.
 	filter string
+	mount  *types.Mount // Optional mount to restrict to.
 	data   *types.ClientListAllSecretsRecursiveMsg
 
 	// Child components.
-	table *table.Model[*table.StaticRow[*Data]]
+	table *table.Model[*table.StaticRow[*types.ClientSecretTreeRef]]
 }
 
-func New(app types.AppState) *Model {
+func New(app types.AppState, mount *types.Mount) *Model {
 	m := &Model{
 		PageModel: &types.PageModel{
 			Commands:         Commands,
 			SupportFiltering: true,
 			RefreshInterval:  60 * time.Second,
 		},
-		app: app,
+		app:   app,
+		mount: mount,
 	}
 
-	m.table = table.New(app, columns, table.Config[*table.StaticRow[*Data]]{
+	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.ClientSecretTreeRef]]{
 		FetchFn: func() tea.Cmd {
-			return app.Client().ListAllSecretsRecursive(m.UUID())
+			return app.Client().ListAllSecretsRecursive(m.UUID(), m.mount)
 		},
-		SelectFn: func(value *table.StaticRow[*Data]) tea.Cmd {
-			return types.OpenPage(kvviewsecret.New(m.app, value.Value.Mount, value.Value.Path, 0), false)
+		SelectFn: func(value *table.StaticRow[*types.ClientSecretTreeRef]) tea.Cmd {
+			return m.selectSecret(value.Value)
 		},
-		RowFn: func(value *table.StaticRow[*Data]) []string {
+		RowFn: func(value *table.StaticRow[*types.ClientSecretTreeRef]) []string {
 			return []string{
-				value.Value.FullPath,
+				value.Value.GetFullPath(true),
 				value.Value.Mount.Type,
-				styles.ClientCapabilities(value.Value.Capabilities, value.Value.FullPath),
+				styles.ClientCapabilities(value.Value.Capabilities, value.Value.GetFullPath(true)),
 			}
 		},
 	})
@@ -114,29 +112,33 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, types.PageClearState())
 
 			m.data = &vmsg
-			var data []*Data
+			var data []*types.ClientSecretTreeRef
 
 			for ref := range vmsg.Tree.IterRefs() {
 				if !ref.IsSecret() {
 					continue
 				}
-
-				data = append(data, &Data{
-					Mount:        ref.Mount,
-					Path:         ref.Path,
-					FullPath:     ref.GetFullPath(),
-					Capabilities: ref.Capabilities,
-					Incomplete:   ref.Incomplete,
-				})
+				data = append(data, ref)
 			}
 
-			m.table.SetRows(table.RowsFrom(data, func(d *Data) table.ID {
-				return table.ID(d.FullPath)
+			slices.SortFunc(data, func(a, b *types.ClientSecretTreeRef) int {
+				return strings.Compare(a.GetFullPath(true), b.GetFullPath(true))
+			})
+
+			m.table.SetRows(table.RowsFrom(data, func(d *types.ClientSecretTreeRef) table.ID {
+				return table.ID(d.GetFullPath(true))
 			}))
 		}
 	}
 
 	return tea.Batch(append(cmds, m.table.Update(msg))...)
+}
+
+func (m *Model) selectSecret(secret *types.ClientSecretTreeRef) tea.Cmd {
+	if secret.Mount.KVVersion() == 2 {
+		return types.OpenPage(kvv2versions.New(m.app, secret.Mount, secret.GetFullPath(false)), false)
+	}
+	return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.GetFullPath(false), 0), false)
 }
 
 func (m *Model) View() string {
@@ -154,5 +156,19 @@ func (m *Model) TopRightBorder() string {
 	if m.data == nil {
 		return ""
 	}
-	return fmt.Sprintf("requests: %d/%d", m.data.Requests, m.data.MaxRequests)
+	out := fmt.Sprintf("requests: %d/%d", m.data.Requests, m.data.MaxRequests)
+
+	if m.data.RequestAttempts >= m.data.MaxRequests {
+		out += lipgloss.NewStyle().Foreground(styles.Theme.ErrorFg()).Render(" (max hit)")
+	}
+
+	return out
+}
+
+func (m *Model) GetTitle() string {
+	if m.mount == nil {
+		return "Secrets (recursive)"
+	}
+
+	return fmt.Sprintf("Secrets (recursive): %s", m.mount.Path)
 }

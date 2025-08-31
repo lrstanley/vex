@@ -92,6 +92,10 @@ var (
 		key.WithKeys("z"),
 		key.WithHelp("z", "view json"),
 	)
+	KeyListRecursive = key.NewBinding(
+		key.WithKeys("r"),
+		key.WithHelp("r", "list secrets recursively"),
+	)
 
 	// Table related.
 

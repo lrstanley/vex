@@ -43,10 +43,10 @@ func pageInitializer(app types.AppState) []commander.PageRef {
 			},
 		},
 		{
-			Description: "View secrets (recursively)",
+			Description: "View all secrets (recursively)",
 			Commands:    secrets.Commands,
 			New: func() types.Page {
-				return secrets.New(app)
+				return secrets.New(app, nil)
 			},
 		},
 		{

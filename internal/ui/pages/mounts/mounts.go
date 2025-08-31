@@ -15,6 +15,7 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
+	"github.com/lrstanley/vex/internal/ui/pages/secrets"
 	"github.com/lrstanley/vex/internal/ui/pages/secretwalker"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -56,8 +57,14 @@ func New(app types.AppState) *Model {
 			Commands:         Commands,
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
-			ShortKeyBinds:    []key.Binding{types.KeyDetails},
-			FullKeyBinds:     [][]key.Binding{{types.KeyDetails}},
+			ShortKeyBinds: []key.Binding{
+				types.OverrideHelp(types.KeyDetails, "details"),
+				types.OverrideHelp(types.KeyListRecursive, "recursive"),
+			},
+			FullKeyBinds: [][]key.Binding{{
+				types.KeyDetails,
+				types.KeyListRecursive,
+			}},
 		},
 		app: app,
 	}
@@ -130,6 +137,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			if v, ok := m.table.GetSelectedRow(); ok {
 				return m.openDetails(v)
 			}
+		case key.Matches(msg, types.KeyListRecursive):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.openRecursive(v)
+			}
 		}
 	}
 
@@ -145,6 +156,10 @@ func (m *Model) openMount(row *table.StaticRow[*types.Mount]) tea.Cmd {
 
 func (m *Model) openDetails(row *table.StaticRow[*types.Mount]) tea.Cmd {
 	return types.OpenDialog(genericcode.NewYAML(m.app, fmt.Sprintf("Mount Details: %q", row.Value.Path), false, row.Value))
+}
+
+func (m *Model) openRecursive(row *table.StaticRow[*types.Mount]) tea.Cmd {
+	return types.OpenPage(secrets.New(m.app, row.Value), false)
 }
 
 func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
