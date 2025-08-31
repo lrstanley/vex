@@ -363,13 +363,13 @@ path "*" {
 				wg.Go(func() {
 					BootstrapVaultKVSecrets(
 						ctx,
-						"kv-v1-"+strconv.Itoa(i+1)+"/"+GenerateSlug(5, "/"),
+						"kv-v1-"+strconv.Itoa(i+1)+"/"+GenerateSlug(3, "/"),
 						values,
 					)
 				})
 
 				wg.Go(func() {
-					key := GenerateSlug(5, "/")
+					key := GenerateSlug(3, "/")
 					BootstrapVaultKVSecrets(
 						ctx,
 						"kv-v2-"+strconv.Itoa(i+1)+"/data/"+key,
