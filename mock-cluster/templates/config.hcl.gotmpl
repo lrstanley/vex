@@ -4,6 +4,8 @@ api_addr = "http://{{ .NodeHostname }}:8200"
 cluster_addr = "http://{{ .NodeHostname }}:8201"
 max_lease_ttl = "8766h"
 default_lease_ttl = "168h"
+log_requests_level = "debug"
+log_level = "debug"
 
 listener "tcp" {
   address     = "0.0.0.0:8200"
