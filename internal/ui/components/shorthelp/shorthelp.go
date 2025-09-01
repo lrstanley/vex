@@ -121,6 +121,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg.(type) {
+	case tea.WindowSizeMsg:
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 		m.generateShortHelp()

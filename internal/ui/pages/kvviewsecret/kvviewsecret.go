@@ -203,8 +203,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.height = msg.Height
 		m.width = msg.Width
 		m.list.SetSize(m.width, m.height)
-		m.viewport.SetHeight(m.height)
-		m.viewport.SetWidth(m.width)
+		m.viewport.SetDimensions(m.width, m.height)
 		return nil
 	case types.PageVisibleMsg:
 		return types.RefreshData(m.UUID())

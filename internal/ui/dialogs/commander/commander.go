@@ -158,7 +158,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		cmds = append(cmds, m.selector.Update(msg))
 		m.initStyles()
 		m.setData()
-		return tea.Batch(cmds...)
+		return tea.Sequence(cmds...)
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		m.setData()

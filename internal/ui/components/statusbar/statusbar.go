@@ -11,7 +11,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
-	vapi "github.com/hashicorp/vault/api"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar/filterelement"
 	"github.com/lrstanley/vex/internal/ui/components/statusbar/statuselement"
@@ -29,7 +28,6 @@ type Model struct {
 
 	// UI state.
 	Address     string
-	health      *vapi.HealthResponse
 	isFiltering bool
 
 	// Styles.
@@ -82,6 +80,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.Height = msg.Height
 		m.Width = msg.Width
+		return tea.Sequence(
+			m.statusEl.Update(msg),
+			m.filterEl.Update(msg),
+			m.vaultEl.Update(msg),
+		)
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 	case types.StatusMsg:

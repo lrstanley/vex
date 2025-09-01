@@ -68,6 +68,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 	case spinner.TickMsg:

@@ -88,7 +88,7 @@ func (s *pageState) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (s *pageState) Update(msg tea.Msg) tea.Cmd { //nolint:gocognit
+func (s *pageState) Update(msg tea.Msg) tea.Cmd { //nolint:gocognit,funlen
 	var cmds []tea.Cmd
 
 	var active, all bool
@@ -100,10 +100,8 @@ func (s *pageState) Update(msg tea.Msg) tea.Cmd { //nolint:gocognit
 		innerHeight := s.windowHeight - PageVPadding
 		innerWidth := s.windowWidth - PageHPadding
 
-		s.loader.SetHeight(innerHeight)
-		s.loader.SetWidth(innerWidth)
-		s.errorview.SetWidth(innerWidth)
-		s.errorview.SetHeight(innerHeight)
+		s.loader.SetDimensions(innerWidth, innerHeight)
+		s.errorview.SetDimensions(innerWidth, innerHeight)
 
 		for page := range s.pages.IterValues() {
 			cmds = append(cmds, page.Update(tea.WindowSizeMsg{
@@ -112,7 +110,7 @@ func (s *pageState) Update(msg tea.Msg) tea.Cmd { //nolint:gocognit
 			}))
 		}
 
-		return tea.Batch(cmds...)
+		return tea.Sequence(cmds...)
 	case styles.ThemeUpdatedMsg:
 		s.setStyles()
 		cmds = append(

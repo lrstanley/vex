@@ -99,6 +99,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		)
 
 		m.Height = mh + m.messageStyle.GetVerticalFrameSize() + 1 // +1 for the button.
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 	case tea.KeyMsg:

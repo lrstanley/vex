@@ -75,6 +75,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.Height = msg.Height
 		m.Width = msg.Width
+		return m.help.Update(msg)
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 	case types.AppFocusChangedMsg:

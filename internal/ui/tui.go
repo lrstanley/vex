@@ -153,7 +153,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		m.width = msg.Width
 
-		return m, tea.Batch(
+		return m, tea.Sequence(
 			m.app.Page().Update(tea.WindowSizeMsg{
 				Height: msg.Height - 2, // -1=titlebar, -1=statusbar.
 				Width:  msg.Width,

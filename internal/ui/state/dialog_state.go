@@ -84,7 +84,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, s.sendDialogSize(dialog))
 		}
 
-		return tea.Batch(cmds...)
+		return tea.Sequence(cmds...)
 	case types.DialogMsg:
 		switch msg := msg.Msg.(type) {
 		case types.OpenDialogMsg:

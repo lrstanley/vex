@@ -61,6 +61,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg.(type) {
+	case tea.WindowSizeMsg:
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 	}
@@ -69,11 +71,16 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) SetHeight(height int) {
-	m.Height = height
+	m.SetDimensions(m.Width, height)
 }
 
 func (m *Model) SetWidth(width int) {
+	m.SetDimensions(width, m.Height)
+}
+
+func (m *Model) SetDimensions(width, height int) {
 	m.Width = width
+	m.Height = height
 	m.calculateMaxWidth()
 }
 

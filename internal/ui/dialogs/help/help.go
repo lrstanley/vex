@@ -86,8 +86,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		// If the viewport is smaller than the dialog height, resize the dialog
 		// even smaller.
 		m.Height = min(m.viewport.TotalLineCount(), m.Height)
-		m.viewport.SetHeight(m.Height)
-		m.viewport.SetWidth(m.Width)
+		m.viewport.SetDimensions(m.Width, m.Height)
 		return nil
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()

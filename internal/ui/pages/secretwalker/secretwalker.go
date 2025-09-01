@@ -84,6 +84,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		return m.table.Update(msg)
 	case types.PageVisibleMsg:
 		return types.RefreshData(m.UUID())
 	case types.RefreshDataMsg:

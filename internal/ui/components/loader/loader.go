@@ -54,6 +54,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
 	case spinner.TickMsg:
@@ -73,11 +75,16 @@ func (m *Model) SpinnerID() int {
 }
 
 func (m *Model) SetHeight(height int) {
-	m.Height = height
+	m.SetDimensions(m.Width, height)
 }
 
 func (m *Model) SetWidth(width int) {
+	m.SetDimensions(width, m.Height)
+}
+
+func (m *Model) SetDimensions(width, height int) {
 	m.Width = width
+	m.Height = height
 }
 
 func (m *Model) Active() tea.Cmd {

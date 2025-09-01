@@ -225,8 +225,11 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 			return nil
 		}
 		m.SetDimensions(msg.Width, msg.Height)
-		m.loader.SetHeight(msg.Height - m.styles.Base.GetVerticalFrameSize())
-		m.loader.SetWidth(msg.Width - m.styles.Base.GetHorizontalFrameSize())
+		m.loader.SetDimensions(
+			msg.Width-m.styles.Base.GetHorizontalFrameSize(),
+			msg.Height-m.styles.Base.GetVerticalFrameSize(),
+		)
+		return nil
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		m.updateCalculations()

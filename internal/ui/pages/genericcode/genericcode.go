@@ -70,6 +70,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		m.code.SetDimensions(m.width, m.height)
+		return nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyDetails):

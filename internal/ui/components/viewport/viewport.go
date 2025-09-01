@@ -154,8 +154,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.SetHeight(msg.Height)
-		m.SetWidth(msg.Width)
+		m.SetDimensions(msg.Width, msg.Height)
 		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()
@@ -187,7 +186,7 @@ func (m *Model) SetWidth(w int) {
 	m.ensureSize()
 }
 
-func (m *Model) SetSize(w, h int) {
+func (m *Model) SetDimensions(w, h int) {
 	m.Width, m.Height = w, h
 	m.ensureSize()
 }

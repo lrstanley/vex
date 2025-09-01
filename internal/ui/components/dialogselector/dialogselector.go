@@ -192,6 +192,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.Height, m.Width = msg.Height, msg.Width
 		m.updateDimensions()
 		m.updateTable()
+		return m.table.Update(msg)
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		m.updateDimensions()
