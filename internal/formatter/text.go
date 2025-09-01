@@ -203,3 +203,21 @@ func Clusters(input string) iter.Seq[string] {
 		}
 	}
 }
+
+// PadMinimum pads a string to a minimum width, adding even padding on both
+// sides of the string if the string is shorter than the minimum width.
+func PadMinimum(s string, minWidth int) string {
+	w := ansi.StringWidth(s)
+
+	if w >= minWidth {
+		return s
+	}
+
+	remaining := minWidth - w
+	if remaining%2 != 0 {
+		remaining++
+	}
+
+	p := strings.Repeat(" ", remaining/2)
+	return p + s + p
+}

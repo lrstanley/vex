@@ -17,6 +17,8 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
+const minButtonWidth = 6
+
 // Focus represents which part of the component has focus.
 type Focus int
 
@@ -95,6 +97,9 @@ func New[T Wrapped, V any](app types.AppState, wrapped T, config Config[V]) *Mod
 	if config.ConfirmText == "" {
 		config.ConfirmText = "confirm"
 	}
+
+	config.CancelText = formatter.PadMinimum(config.CancelText, minButtonWidth)
+	config.ConfirmText = formatter.PadMinimum(config.ConfirmText, minButtonWidth)
 
 	m := &Model[T, V]{
 		ComponentModel: types.ComponentModel{},

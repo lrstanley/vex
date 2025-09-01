@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -47,10 +48,7 @@ func New(app types.AppState, config Config) *Model {
 		config.ButtonText = "ok"
 	}
 
-	// if <6 chars, add even padding on left and right until it's at least 6 chars.
-	if w := ansi.StringWidth(config.ButtonText); w < minButtonWidth {
-		config.ButtonText = strings.Repeat(" ", (minButtonWidth-w)/2) + config.ButtonText + strings.Repeat(" ", (minButtonWidth-w)/2)
-	}
+	config.ButtonText = formatter.PadMinimum(config.ButtonText, minButtonWidth)
 
 	m := &Model{
 		DialogModel: &types.DialogModel{

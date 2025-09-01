@@ -161,3 +161,68 @@ func TestTruncPath(t *testing.T) {
 		})
 	}
 }
+
+var padMinimumTests = []struct {
+	name     string
+	input    string
+	minWidth int
+	expected string
+}{
+	{
+		name:     "string already at minimum width",
+		input:    "hello",
+		minWidth: 5,
+		expected: "hello",
+	},
+	{
+		name:     "string longer than minimum width",
+		input:    "hello world",
+		minWidth: 5,
+		expected: "hello world",
+	},
+	{
+		name:     "string shorter than minimum width - even padding",
+		input:    "hi",
+		minWidth: 6,
+		expected: "  hi  ",
+	},
+	{
+		name:     "string shorter than minimum width - odd padding",
+		input:    "hi",
+		minWidth: 5,
+		expected: "  hi  ",
+	},
+	{
+		name:     "empty string with minimum width",
+		input:    "",
+		minWidth: 4,
+		expected: "    ",
+	},
+	{
+		name:     "single character with uneven padding requirement",
+		input:    "x",
+		minWidth: 4,
+		expected: "  x  ",
+	},
+}
+
+func TestPadMinimum(t *testing.T) {
+	t.Parallel()
+
+	for _, tt := range padMinimumTests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			result := PadMinimum(tt.input, tt.minWidth)
+
+			if result != tt.expected {
+				t.Errorf("PadMinimum(%q, %d) = %q, want %q", tt.input, tt.minWidth, result, tt.expected)
+			}
+
+			resultWidth := ansi.StringWidth(result)
+			if resultWidth < tt.minWidth {
+				t.Errorf("PadMinimum(%q, %d) returned string with width %d, which is less than minimum %d", tt.input, tt.minWidth, resultWidth, tt.minWidth)
+			}
+		})
+	}
+}
