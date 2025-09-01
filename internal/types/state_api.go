@@ -24,6 +24,7 @@ type Client interface {
 	GetHealth(uuid string) tea.Cmd
 	// TokenLookupSelf returns a command to lookup the current token.
 	TokenLookupSelf(uuid string) tea.Cmd
+
 	// ListMounts returns a command to list the mounts of the Vault server.
 	ListMounts(uuid string) tea.Cmd
 	// ListSecrets returns a command to list the secrets of the Vault server,
@@ -33,15 +34,24 @@ type Client interface {
 	// ListAllSecretsRecursive returns a command to list all secrets of the Vault
 	// server. If mount is nil, it will list all secrets under all mounts.
 	ListAllSecretsRecursive(uuid string, mount *Mount) tea.Cmd
+	// ListKVv2Versions returns a command to list the versions of a KVv2 secret
+	// under a given mount and path.
+	ListKVv2Versions(uuid string, mount *Mount, path string) tea.Cmd
+
 	// GetKVSecret returns a command to get a secret from the Vault server,
 	// under a given mount and path.
 	GetKVSecret(uuid string, mount *Mount, path string, version int) tea.Cmd
 	// GetKVv2Metadata returns a command to get the metadata of a KVv2 secret
-	// from the Vault server, under a given mount and path.
+	// under a given mount and path.
 	GetKVv2Metadata(uuid string, mount *Mount, path string) tea.Cmd
-	// ListKVv2Versions returns a command to list the versions of a KVv2 secret
-	// from the Vault server, under a given mount and path.
-	ListKVv2Versions(uuid string, mount *Mount, path string) tea.Cmd
+
+	// DeleteKVSecret deletes a secret, under a given mount and path.
+	DeleteKVSecret(uuid string, mount *Mount, path string, versions ...int) tea.Cmd
+	// UndeleteKVSecret undeletes a secret, under a given mount and path.
+	UndeleteKVSecret(uuid string, mount *Mount, path string, versions ...int) tea.Cmd
+	// DestroyKVSecret destroys a secret, under a given mount and path.
+	DestroyKVSecret(uuid string, mount *Mount, path string, versions ...int) tea.Cmd
+
 	// ListACLPolicies returns a command to list the ACL policies of the Vault
 	// server.
 	ListACLPolicies(uuid string) tea.Cmd
@@ -381,3 +391,5 @@ type TokenLookupResult struct {
 func (r *TokenLookupResult) WhenExpires() time.Duration {
 	return time.Until(r.ExpireTime)
 }
+
+type ClientSuccessMsg struct{}

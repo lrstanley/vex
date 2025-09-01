@@ -77,6 +77,14 @@ var (
 		key.WithKeys("ctrl+c"),
 		key.WithHelp("ctrl+c", "quit"),
 	)
+	KeyDelete = key.NewBinding(
+		key.WithKeys("ctrl+d"),
+		key.WithHelp("ctrl+d", "delete"),
+	)
+	KeyDestroy = key.NewBinding(
+		key.WithKeys("ctrl+k"),
+		key.WithHelp("ctrl+k", "destroy"),
+	)
 
 	// Secret related.
 

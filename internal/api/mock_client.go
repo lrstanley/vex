@@ -320,3 +320,15 @@ func (m *MockClient) GetKVSecret(uuid string, mount *types.Mount, path string, _
 		Data:  map[string]any{"foo": "bar", "bar": "baz"},
 	})
 }
+
+func (m *MockClient) DeleteKVSecret(uuid string, _ *types.Mount, _ string, _ ...int) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{})
+}
+
+func (m *MockClient) UndeleteKVSecret(uuid string, _ *types.Mount, _ string, _ ...int) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{})
+}
+
+func (m *MockClient) DestroyKVSecret(uuid string, _ *types.Mount, _ string, _ ...int) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{})
+}

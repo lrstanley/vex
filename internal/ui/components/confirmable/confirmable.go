@@ -60,6 +60,10 @@ type Config[T any] struct {
 	// ConfirmText is the text of the confirm button. Defaults to "confirm".
 	ConfirmText string
 
+	// ConfirmStatus is the status of the confirm button. If not specified, will
+	// default to active button colors based on the theme.
+	ConfirmStatus types.Status
+
 	// ConfirmFn if provided, will be called when the confirm button is pressed.
 	// value is the value of the wrapped component, and is only provided if the
 	// wrapped component is validatable (implements [Validatable]).
@@ -72,7 +76,7 @@ type Config[T any] struct {
 	Validator func(value T) error
 }
 
-var _ types.Component = (*Model[*mockWrapped, string])(nil) // Ensure we implement the component interface.
+var _ types.Component = (*Model[*WrappedModel, string])(nil) // Ensure we implement the component interface.
 
 type Model[T Wrapped, V any] struct {
 	types.ComponentModel
@@ -324,7 +328,15 @@ func (m *Model[T, V]) View() string {
 		confirm = m.buttonStyle.Render(m.config.ConfirmText)
 	case FocusConfirm:
 		cancel = m.buttonStyle.Render(m.config.CancelText)
-		confirm = m.focusedButtonStyle.Render(m.config.ConfirmText)
+		if m.config.ConfirmStatus == "" {
+			confirm = m.focusedButtonStyle.Render(m.config.ConfirmText)
+		} else {
+			fg, bg := styles.Theme.ByStatus(m.config.ConfirmStatus)
+			confirm = m.focusedButtonStyle.
+				Foreground(fg).
+				Background(bg).
+				Render(m.config.ConfirmText)
+		}
 	default:
 		cancel = m.buttonStyle.Render(m.config.CancelText)
 		confirm = m.buttonStyle.Render(m.config.ConfirmText)

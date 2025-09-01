@@ -375,3 +375,68 @@ func (c *client) GetKVSecret(uuid string, mount *types.Mount, path string, versi
 		}, nil
 	})
 }
+
+func (c *client) DeleteKVSecret(uuid string, mount *types.Mount, path string, versions ...int) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientSuccessMsg, error) {
+		var err error
+		if mount.KVVersion() != 2 {
+			err = c.api.KVv1(mount.Path).Delete(context.Background(), path)
+		} else if len(versions) == 0 {
+			err = c.api.KVv2(mount.Path).Delete(context.Background(), path)
+		} else {
+			err = c.api.KVv2(mount.Path).DeleteVersions(context.Background(), path, versions)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("delete secret: %w", err)
+		}
+		return &types.ClientSuccessMsg{}, nil
+	})
+}
+
+func (c *client) UndeleteKVSecret(uuid string, mount *types.Mount, path string, versions ...int) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientSuccessMsg, error) {
+		if mount.KVVersion() != 2 {
+			return nil, fmt.Errorf("undelete secret: %w", errors.New("not a kv v2 mount"))
+		}
+
+		if len(versions) == 0 {
+			results, err := c.api.KVv2(mount.Path).GetVersionsAsList(context.Background(), path)
+			if err != nil {
+				return nil, fmt.Errorf("undelete secret: %w", err)
+			}
+			if len(results) == 0 {
+				return nil, errors.New("no versions to undelete")
+			}
+			versions = append(versions, results[0].Version)
+		}
+
+		err := c.api.KVv2(mount.Path).Undelete(context.Background(), path, versions)
+		if err != nil {
+			return nil, fmt.Errorf("undelete secret: %w", err)
+		}
+		return &types.ClientSuccessMsg{}, nil
+	})
+}
+
+func (c *client) DestroyKVSecret(uuid string, mount *types.Mount, path string, versions ...int) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientSuccessMsg, error) {
+		if mount.KVVersion() != 2 {
+			err := c.api.KVv1(mount.Path).Delete(context.Background(), path)
+			if err != nil {
+				return nil, fmt.Errorf("destroy secret: %w", err)
+			}
+			return &types.ClientSuccessMsg{}, nil
+		}
+
+		var err error
+		if len(versions) == 0 {
+			err = c.api.KVv2(mount.Path).DeleteMetadata(context.Background(), path)
+		} else {
+			err = c.api.KVv2(mount.Path).Destroy(context.Background(), path, versions)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("destroy secret: %w", err)
+		}
+		return &types.ClientSuccessMsg{}, nil
+	})
+}
