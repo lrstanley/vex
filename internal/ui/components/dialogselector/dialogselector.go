@@ -5,6 +5,7 @@
 package dialogselector
 
 import (
+	"github.com/charmbracelet/bubbles/v2/cursor"
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -121,10 +122,7 @@ func (m *Model) initStyles() {
 		)
 
 	inputStyles.Cursor.Color = styles.Theme.AppFg()
-	// TODO: bug with bubbles v2, returns cursor.BlinkMsg, then returns cursor.blinkCanceled,
-	// which we can't handle because its private. Can technically use %T and strings.Contains,
-	// but even that, the cursor stops blinking after the first blink, and disappears.
-	inputStyles.Cursor.Blink = false
+	inputStyles.Cursor.Blink = true
 
 	m.input.SetStyles(inputStyles)
 }
@@ -199,12 +197,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case tea.KeyMsg:
 		switch {
 		case msg.String() == "up" || msg.String() == "down":
+			m.input.Blur()
 			// Move down in table - the table handles this internally.
 			return m.table.Update(msg)
 		case msg.String() == "left" || msg.String() == "right":
 			// Move left/right in input - the input handles this internally.
 			m.input, cmd = m.input.Update(msg)
-			return cmd
+			return tea.Batch(cmd, m.input.Focus())
 		case key.Matches(msg, types.KeySelectItem):
 			selected, ok := m.table.GetSelectedRow()
 			if !ok {
@@ -231,6 +230,12 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			m.input, cmd = m.input.Update(msg)
 			cmds = append(cmds, cmd)
 		}
+	case cursor.BlinkMsg:
+		if !m.input.Focused() {
+			return nil
+		}
+		m.input, cmd = m.input.Update(msg)
+		return cmd
 	}
 
 	// Update filter if input changed

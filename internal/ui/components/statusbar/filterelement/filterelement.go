@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/charmbracelet/bubbles/v2/cursor"
 	"github.com/charmbracelet/bubbles/v2/key"
 	"github.com/charmbracelet/bubbles/v2/textinput"
 	tea "github.com/charmbracelet/bubbletea/v2"
@@ -82,6 +83,8 @@ func (m *Model) setStyles() {
 		Foreground(styles.Theme.StatusBarFilterTextFg()).
 		Background(lipgloss.Darken(styles.Theme.StatusBarFilterBg(), 0.1))
 
+	filterStyles.Cursor.Blink = true
+
 	m.filter.SetStyles(filterStyles)
 }
 
@@ -142,7 +145,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			return m.sendFilter()
 		}
 		return nil
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
+		if !m.filter.Focused() {
+			return m.filter.Focus()
+		}
 		switch {
 		case key.Matches(msg, types.KeyCancel) && m.filter.Value() != "":
 			m.filter.Reset()
@@ -180,6 +186,13 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		var cmd tea.Cmd
 		m.filter, cmd = m.filter.Update(msg)
 		cmds = append(cmds, cmd, m.sendFilterDebounced())
+	case cursor.BlinkMsg:
+		if !m.filter.Focused() {
+			return nil
+		}
+		var cmd tea.Cmd
+		m.filter, cmd = m.filter.Update(msg)
+		return cmd
 	}
 
 	return tea.Batch(cmds...)
