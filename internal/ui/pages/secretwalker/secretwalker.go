@@ -5,6 +5,7 @@
 package secretwalker
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
+	"github.com/lrstanley/vex/internal/ui/dialogs/confirm"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
 	"github.com/lrstanley/vex/internal/ui/pages/kvv2versions"
 	"github.com/lrstanley/vex/internal/ui/pages/kvviewsecret"
@@ -121,7 +123,12 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			))
 		}
 	case tea.KeyMsg:
-		if key.Matches(msg, types.KeyDetails) && m.mount.KVVersion() == 2 {
+		switch {
+		case key.Matches(msg, types.KeyDelete):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.deleteSecret(v.Value)
+			}
+		case key.Matches(msg, types.KeyDetails) && m.mount.KVVersion() == 2:
 			if v, ok := m.table.GetSelectedRow(); ok && !strings.HasSuffix(v.Value.Path, "/") {
 				return m.app.Client().GetKVv2Metadata(m.UUID(), v.Value.Mount, v.Value.Path)
 			}
@@ -139,6 +146,38 @@ func (m *Model) selectSecret(secret *types.SecretListRef) tea.Cmd {
 		return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.Path, 0), false)
 	}
 	return types.OpenPage(New(m.app, secret.Mount, secret.Path), false)
+}
+
+func (m *Model) deleteSecret(secret *types.SecretListRef) tea.Cmd {
+	if strings.HasSuffix(secret.Path, "/") {
+		return nil
+	}
+
+	var confirmCmds []tea.Cmd
+	if len(m.table.GetAllRows()) > 1 {
+		confirmCmds = []tea.Cmd{
+			m.app.Client().DeleteKVSecret(m.UUID(), secret.Mount, secret.Path),
+			types.CloseActiveDialog(),
+			types.RefreshData(m.UUID()),
+		}
+	} else {
+		confirmCmds = []tea.Cmd{
+			m.app.Client().DeleteKVSecret(m.UUID(), secret.Mount, secret.Path),
+			types.CloseActiveDialog(),
+			types.CloseActivePage(),
+		}
+	}
+
+	return types.OpenDialog(confirm.New(m.app, confirm.Config{
+		Title:         fmt.Sprintf("Delete %s", secret.FullPath()),
+		Message:       "Are you sure you want to delete this secret? This cannot be undone.",
+		AllowsBlur:    true,
+		ConfirmStatus: types.Error,
+		ConfirmFn: func() tea.Cmd {
+			return tea.Sequence(confirmCmds...)
+		},
+		CancelFn: types.CloseActiveDialog,
+	}))
 }
 
 func (m *Model) View() string {

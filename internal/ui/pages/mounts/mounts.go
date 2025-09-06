@@ -59,7 +59,7 @@ func New(app types.AppState) *Model {
 			RefreshInterval:  30 * time.Second,
 			ShortKeyBinds: []key.Binding{
 				types.OverrideHelp(types.KeyDetails, "details"),
-				types.OverrideHelp(types.KeyListRecursive, "recursive"),
+				types.OverrideHelp(types.KeyListRecursive, "recurse"),
 			},
 			FullKeyBinds: [][]key.Binding{{
 				types.KeyDetails,
