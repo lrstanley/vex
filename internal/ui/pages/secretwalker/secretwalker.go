@@ -11,6 +11,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/v2/key"
 	tea "github.com/charmbracelet/bubbletea/v2"
+	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/dialogs/confirm"
@@ -50,6 +51,7 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 			FullKeyBinds: [][]key.Binding{{
 				types.OverrideHelp(types.KeyDetails, "view metadata (kv v2 only)"),
 				types.KeyOpenEditor,
+				types.KeyDelete,
 			}},
 		},
 		app:   app,
@@ -65,9 +67,17 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 			return m.selectSecret(value.Value)
 		},
 		RowFn: func(row *table.StaticRow[*types.SecretListRef]) []string {
+			var pathValue string
+
+			if strings.HasSuffix(row.Value.Path, "/") {
+				pathValue = lipgloss.NewStyle().Bold(true).Foreground(styles.Theme.InfoFg()).Render(row.Value.Path)
+			} else {
+				pathValue = row.Value.Path
+			}
+
 			return []string{
 				row.Value.Mount.Path,
-				row.Value.Path,
+				pathValue,
 				styles.ClientCapabilities(row.Value.Capabilities, row.Value.FullPath()),
 			}
 		},
