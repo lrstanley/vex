@@ -3,7 +3,8 @@ module github.com/lrstanley/vex
 go 1.25.0
 
 // TODO: https://github.com/charmbracelet/bubbles/pull/823
-replace github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250819143759-7d2df753c297
+// TODO: https://github.com/charmbracelet/bubbles/pull/840
+replace github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250907113656-d3d1bb8ae0ef
 
 require (
 	github.com/Code-Hex/go-generics-cache v1.5.1
@@ -15,7 +16,7 @@ require (
 	github.com/charmbracelet/colorprofile v0.3.2
 	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3.0.20250814164412-7c497c73cf36
 	github.com/charmbracelet/x/ansi v0.10.1
-	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250820142022-371acb6ebad9
+	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250904123553-b4e2667e5ad5
 	github.com/gkampitakis/go-snaps v0.5.14
 	github.com/goccy/go-yaml v1.18.0
 	github.com/hashicorp/vault/api v1.20.0
@@ -34,7 +35,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20250813213450-50737e162af5 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20250820142022-371acb6ebad9 // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20250904123553-b4e2667e5ad5 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -62,7 +63,7 @@ require (
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
-	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect

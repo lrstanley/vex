@@ -5,6 +5,7 @@
 package textarea
 
 import (
+	"github.com/charmbracelet/bubbles/v2/key"
 	bta "github.com/charmbracelet/bubbles/v2/textarea"
 	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/lipgloss/v2"
@@ -32,7 +33,7 @@ type Model struct {
 	needsScrollbar bool
 
 	// Child components.
-	textarea bta.Model
+	textarea *bta.Model
 }
 
 // New creates a new textarea component.
@@ -167,6 +168,20 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	case styles.ThemeUpdatedMsg:
 		m.initStyles()
 		return nil
+	case tea.KeyPressMsg:
+		switch {
+		// TODO: textarea doesn't have page up/down at the moment.
+		case key.Matches(msg, types.KeyPageUp):
+			for range m.Height - 1 {
+				m.textarea.CursorUp()
+			}
+			return nil
+		case key.Matches(msg, types.KeyPageDown):
+			for range m.Height - 1 {
+				m.textarea.CursorDown()
+			}
+			return nil
+		}
 	}
 
 	var cmd tea.Cmd
@@ -187,7 +202,7 @@ func (m *Model) View() string {
 				m.Height,
 				m.textarea.LineCount(),
 				m.Height,
-				m.textarea.VisibleYOffset(),
+				m.textarea.ScrollYOffset(),
 				styles.IconScrollbar,
 				styles.IconScrollbar,
 			),
