@@ -101,6 +101,10 @@ var (
 		key.WithKeys("ctrl+k"),
 		key.WithHelp("ctrl+k", "destroy"),
 	)
+	KeyOpenEditor = key.NewBinding(
+		key.WithKeys("ctrl+e"),
+		key.WithHelp("ctrl+e", "open in editor"),
+	)
 
 	// Secret related.
 

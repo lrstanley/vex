@@ -47,9 +47,10 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		PageModel: &types.PageModel{
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
-			FullKeyBinds: [][]key.Binding{
-				{types.OverrideHelp(types.KeyDetails, "view metadata (kv v2 only)")},
-			},
+			FullKeyBinds: [][]key.Binding{{
+				types.OverrideHelp(types.KeyDetails, "view metadata (kv v2 only)"),
+				types.KeyOpenEditor,
+			}},
 		},
 		app:   app,
 		mount: mount,
@@ -124,13 +125,17 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, types.KeyDelete):
-			if v, ok := m.table.GetSelectedRow(); ok {
-				return m.deleteSecret(v.Value)
-			}
 		case key.Matches(msg, types.KeyDetails) && m.mount.KVVersion() == 2:
 			if v, ok := m.table.GetSelectedRow(); ok && !strings.HasSuffix(v.Value.Path, "/") {
 				return m.app.Client().GetKVv2Metadata(m.UUID(), v.Value.Mount, v.Value.Path)
+			}
+		case key.Matches(msg, types.KeyOpenEditor):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.editSecret(v.Value)
+			}
+		case key.Matches(msg, types.KeyDelete):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.deleteSecret(v.Value)
 			}
 		}
 	}
@@ -143,9 +148,16 @@ func (m *Model) selectSecret(secret *types.SecretListRef) tea.Cmd {
 		if secret.Mount.KVVersion() == 2 {
 			return types.OpenPage(kvv2versions.New(m.app, secret.Mount, secret.Path), false)
 		}
-		return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.Path, 0), false)
+		return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.Path, 0, false), false)
 	}
 	return types.OpenPage(New(m.app, secret.Mount, secret.Path), false)
+}
+
+func (m *Model) editSecret(secret *types.SecretListRef) tea.Cmd {
+	if strings.HasSuffix(secret.Path, "/") {
+		return nil
+	}
+	return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.Path, 0, true), false)
 }
 
 func (m *Model) deleteSecret(secret *types.SecretListRef) tea.Cmd {

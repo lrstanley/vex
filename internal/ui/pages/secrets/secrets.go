@@ -66,6 +66,7 @@ func New(app types.AppState, mount *types.Mount) *Model {
 			},
 			FullKeyBinds: [][]key.Binding{{
 				types.KeyDetails,
+				types.KeyOpenEditor,
 				types.KeyDelete,
 			}},
 		},
@@ -171,13 +172,17 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, types.KeyDelete):
-			if v, ok := m.table.GetSelectedRow(); ok {
-				return m.deleteSecret(v.Value)
-			}
 		case key.Matches(msg, types.KeyDetails):
 			if v, ok := m.table.GetSelectedRow(); ok && !strings.HasSuffix(v.Value.Path, "/") && v.Value.Mount.KVVersion() == 2 {
 				return m.app.Client().GetKVv2Metadata(m.UUID(), v.Value.Mount, v.Value.Path)
+			}
+		case key.Matches(msg, types.KeyOpenEditor):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.editSecret(v.Value)
+			}
+		case key.Matches(msg, types.KeyDelete):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.deleteSecret(v.Value)
 			}
 		}
 	}
@@ -199,7 +204,14 @@ func (m *Model) selectSecret(secret *types.ClientSecretTreeRef) tea.Cmd {
 	if secret.Mount.KVVersion() == 2 {
 		return types.OpenPage(kvv2versions.New(m.app, secret.Mount, secret.GetFullPath(false)), false)
 	}
-	return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.GetFullPath(false), 0), false)
+	return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.GetFullPath(false), 0, false), false)
+}
+
+func (m *Model) editSecret(secret *types.ClientSecretTreeRef) tea.Cmd {
+	if strings.HasSuffix(secret.Path, "/") {
+		return nil
+	}
+	return types.OpenPage(kvviewsecret.New(m.app, secret.Mount, secret.GetFullPath(false), 0, true), false)
 }
 
 func (m *Model) deleteSecret(secret *types.ClientSecretTreeRef) tea.Cmd {

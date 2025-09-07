@@ -59,6 +59,7 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 				types.KeyDestroy,
 			},
 			FullKeyBinds: [][]key.Binding{{
+				types.KeyOpenEditor,
 				types.KeyDelete,
 				types.KeyDestroy,
 			}},
@@ -134,18 +135,29 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		}
 	case tea.KeyPressMsg:
 		switch {
-		case key.Matches(msg, types.KeyDelete):
-			if v, ok := m.table.GetSelectedRow(); ok {
-				return m.toggleDeleteVersion(v.Value)
-			}
 		case key.Matches(msg, types.KeyDestroy):
 			if v, ok := m.table.GetSelectedRow(); ok {
 				return m.destroyVersion(v.Value)
+			}
+		case key.Matches(msg, types.KeyOpenEditor):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.editVersion(v.Value)
+			}
+		case key.Matches(msg, types.KeyDelete):
+			if v, ok := m.table.GetSelectedRow(); ok {
+				return m.toggleDeleteVersion(v.Value)
 			}
 		}
 	}
 
 	return tea.Batch(append(cmds, m.table.Update(msg))...)
+}
+
+func (m *Model) editVersion(version api.KVVersionMetadata) tea.Cmd {
+	if version.Destroyed || !version.DeletionTime.IsZero() {
+		return nil
+	}
+	return types.OpenPage(kvviewsecret.New(m.app, m.mount, m.path, version.Version, true), false)
 }
 
 func (m *Model) toggleDeleteVersion(version api.KVVersionMetadata) tea.Cmd {
@@ -224,7 +236,7 @@ func (m *Model) selectVersion(version api.KVVersionMetadata) tea.Cmd {
 		}))
 	}
 
-	return types.OpenPage(kvviewsecret.New(m.app, m.mount, m.path, version.Version), false)
+	return types.OpenPage(kvviewsecret.New(m.app, m.mount, m.path, version.Version, false), false)
 }
 
 func (m *Model) rowFn(row *table.StaticRow[api.KVVersionMetadata]) []string {

@@ -69,6 +69,10 @@ type Config[T any] struct {
 	// wrapped component is validatable (implements [Validatable]).
 	ConfirmFn func(value T) tea.Cmd
 
+	// PassthroughTab if true, will allow the tab key to be passed to the wrapped
+	// component.
+	PassthroughTab bool
+
 	// Validator if provided, will be called when the confirm button is pressed,
 	// and the wrapped component is validatable (implements [Validatable]). If
 	// the validator returns an error, the confirm button will be be a no-op,
@@ -276,9 +280,15 @@ func (m *Model[T, V]) Update(msg tea.Msg) tea.Cmd {
 				}
 				return nil
 			}
-		case key.Matches(msg, types.KeyTabForward): // TODO: alternative to tab, so we can use tab to indent textareas and similar?
+		case key.Matches(msg, types.KeyTabForward):
+			if m.focus == FocusWrapped && m.config.PassthroughTab {
+				return m.Wrapped.Update(msg)
+			}
 			return m.TabForward()
 		case key.Matches(msg, types.KeyTabBackward):
+			if m.focus == FocusWrapped && m.config.PassthroughTab {
+				return m.Wrapped.Update(msg)
+			}
 			return m.TabBackward()
 		case !wrappedFocusedWithInput && key.Matches(msg, types.KeySelectItem):
 			switch m.focus { //nolint:exhaustive
@@ -301,9 +311,9 @@ func (m *Model[T, V]) Update(msg tea.Msg) tea.Cmd {
 				}
 			}
 			return nil
-		case !wrappedFocusedWithInput && key.Matches(msg, types.KeyLeft):
+		case !wrappedFocusedWithInput && (key.Matches(msg, types.KeyLeft) || key.Matches(msg, types.KeyUp)):
 			return m.TabBackward()
-		case !wrappedFocusedWithInput && key.Matches(msg, types.KeyRight):
+		case !wrappedFocusedWithInput && (key.Matches(msg, types.KeyRight) || key.Matches(msg, types.KeyDown)):
 			return m.TabForward()
 		case wrappedFocusedWithInput:
 			m.validatorError = nil

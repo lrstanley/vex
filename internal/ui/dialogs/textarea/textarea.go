@@ -63,6 +63,12 @@ func New(app types.AppState, config confirmable.Config[string], title, defaultVa
 		DialogModel: &types.DialogModel{
 			Size:            types.DialogSizeLarge,
 			DisableChildren: true,
+			ShortKeyBinds: []key.Binding{
+				types.KeyOpenEditor,
+			},
+			FullKeyBinds: [][]key.Binding{{
+				types.KeyOpenEditor,
+			}},
 		},
 		app:      app,
 		title:    title,
@@ -119,10 +125,26 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			default:
 				return m.textarea.Update(msg)
 			}
+		case key.Matches(msg, types.KeyOpenEditor):
+			return m.editWithEditor()
 		}
 	}
 
 	return m.textarea.Update(msg)
+}
+
+func (m *Model) editWithEditor() tea.Cmd {
+	return types.OpenTempEditor(
+		m.UUID(),
+		"update-value-*",
+		m.textarea.Wrapped.GetValue(),
+		func(msg types.EditorResultMsg) tea.Cmd {
+			if msg.HasChanged {
+				m.textarea.Wrapped.SetValue(msg.After)
+			}
+			return nil
+		},
+	)
 }
 
 func (m *Model) View() string {

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
 const (
@@ -34,29 +33,14 @@ func InitConfigPath() {
 // GetConfigPath returns the path to the config folder where we will store any
 // app state, configurations, db, etc.
 //
-//   - $XDG_CONFIG_HOME/<config-folder-name> (if XDG_CONFIG_HOME is set)
-//   - windows: %LOCALAPPDATA%/<config-folder-name>
-//   - everything else: $HOME/.config/<config-folder-name>
+//   - $XDG_CONFIG_HOME/<app-name> (if XDG_CONFIG_HOME is set)
+//   - windows: %AppData%/<app-name>
+//   - everything else: $HOME/.config/<app-name>
 func GetConfigPath() string {
-	dir := os.Getenv("XDG_CONFIG_HOME")
-	if dir != "" {
+	dir, err := os.UserConfigDir()
+	if err == nil {
 		return filepath.Join(dir, AppName)
 	}
-
-	if runtime.GOOS == "windows" {
-		dir = os.Getenv("LOCALAPPDATA")
-		if dir != "" {
-			return filepath.Join(dir, AppName)
-		}
-		if up := os.Getenv("USERPROFILE"); up != "" {
-			return filepath.Join(up, "AppData", "Local")
-		}
-	}
-
-	if home := os.Getenv("HOME"); home != "" {
-		return filepath.Join(home, ".config", AppName)
-	}
-
 	fmt.Fprintln(os.Stderr, "failed to determine config path (no $XDG_CONFIG_HOME, $LOCALAPPDATA, $USERPROFILE, or $HOME set)")
 	os.Exit(1)
 	return ""

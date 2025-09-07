@@ -76,6 +76,7 @@ type Model struct {
 	// UI state.
 	height          int
 	width           int
+	openedAsEditor  bool
 	mount           *types.Mount
 	path            string
 	version         int
@@ -92,15 +93,21 @@ type Model struct {
 	viewport *viewport.Model
 }
 
-func New(app types.AppState, mount *types.Mount, path string, version int) *Model {
+func New(app types.AppState, mount *types.Mount, path string, version int, openedAsEditor bool) *Model {
 	// TODO:
 	//   - use scrollbar vs paginator. maybe if we implement a custom component?
 	m := &Model{
 		PageModel: &types.PageModel{
 			SupportFiltering: true,
 			RefreshInterval:  30 * time.Second,
-			ShortKeyBinds:    []key.Binding{types.KeyCopy, types.KeyToggleMask},
+			ShortKeyBinds: []key.Binding{
+				types.OverrideHelp(types.KeySelectItem, "edit"),
+				types.KeyCopy,
+				types.KeyToggleMask,
+			},
 			FullKeyBinds: [][]key.Binding{{
+				types.OverrideHelp(types.KeySelectItem, "edit"),
+				types.KeyOpenEditor,
 				types.KeyCopy,
 				types.KeyToggleMask,
 				types.KeyToggleMaskAll,
@@ -108,6 +115,7 @@ func New(app types.AppState, mount *types.Mount, path string, version int) *Mode
 			}},
 		},
 		app:             app,
+		openedAsEditor:  openedAsEditor,
 		mount:           mount,
 		path:            path,
 		version:         version,
@@ -264,6 +272,8 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			return m.setFromData()
 		case key.Matches(msg.Key(), types.KeySelectItem):
 			return m.edit()
+		case key.Matches(msg.Key(), types.KeyOpenEditor):
+			return m.editWithEditor()
 		}
 	case styles.ThemeUpdatedMsg:
 		m.setStyle()
@@ -294,23 +304,31 @@ func (m *Model) getSelectedItem() *item {
 }
 
 func (m *Model) setFromData() tea.Cmd {
+	var cmds []tea.Cmd
+
 	if !m.isFlat || m.forceJSON {
 		m.viewport.SetCode(formatter.ToJSON(m.data, m.isNonFlatMasked, 2), "json")
-		return nil
+	} else {
+		var values []list.Item
+		keys := slices.Collect(maps.Keys(m.data))
+		slices.Sort(keys)
+		for _, k := range keys {
+			values = append(values, &item{
+				model:  m,
+				key:    k,
+				value:  m.data[k],
+				masked: !slices.Contains(m.unmaskedKeys, k),
+			})
+		}
+		cmds = append(cmds, m.list.SetItems(values))
 	}
 
-	var values []list.Item
-	keys := slices.Collect(maps.Keys(m.data))
-	slices.Sort(keys)
-	for _, k := range keys {
-		values = append(values, &item{
-			model:  m,
-			key:    k,
-			value:  m.data[k],
-			masked: !slices.Contains(m.unmaskedKeys, k),
-		})
+	if m.openedAsEditor {
+		m.openedAsEditor = false
+		cmds = append(cmds, m.editWithEditor())
 	}
-	return m.list.SetItems(values)
+
+	return tea.Batch(cmds...)
 }
 
 func (m *Model) items() (out []*item) {
@@ -379,6 +397,7 @@ func (m *Model) edit() tea.Cmd {
 			ConfirmFn: func(_ string) tea.Cmd {
 				return types.SendStatus("key edited", types.Info, 2*time.Second)
 			},
+			PassthroughTab: item.IsMultiLine(),
 			Validator: func(value string) error {
 				if value == "" {
 					return errors.New("value cannot be empty")
@@ -389,6 +408,24 @@ func (m *Model) edit() tea.Cmd {
 		fmt.Sprintf("Edit key: %q", item.key),
 		item.ValueString(),
 	))
+}
+
+func (m *Model) editWithEditor() tea.Cmd {
+	if m.data == nil {
+		return nil
+	}
+	return types.OpenTempEditor(
+		m.UUID(),
+		"update-secret-*.json",
+		formatter.ToJSON(m.data, false, 2),
+		func(msg types.EditorResultMsg) tea.Cmd {
+			if !msg.HasChanged {
+				return types.SendStatus("no changes detected", types.Info, 2*time.Second)
+			}
+			// TODO: do JSON validation.
+			return types.SendStatus("key edited", types.Info, 2*time.Second)
+		},
+	)
 }
 
 func (m *Model) View() string {
