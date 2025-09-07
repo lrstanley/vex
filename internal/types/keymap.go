@@ -37,6 +37,22 @@ var (
 		key.WithKeys("right", "l"),
 		key.WithHelp("→/l", "right"),
 	)
+	KeyPageUp = key.NewBinding(
+		key.WithKeys("b", "pgup"),
+		key.WithHelp("b/pgup", "page up"),
+	)
+	KeyPageDown = key.NewBinding(
+		key.WithKeys("f", "pgdown"),
+		key.WithHelp("f/pgdn", "page down"),
+	)
+	KeyGoToTop = key.NewBinding(
+		key.WithKeys("home", "g"),
+		key.WithHelp("g/home", "go to start"),
+	)
+	KeyGoToBottom = key.NewBinding(
+		key.WithKeys("end", "G"),
+		key.WithHelp("G/end", "go to end"),
+	)
 	KeySelectItem = key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "select item"),
@@ -112,28 +128,11 @@ var (
 		KeyDown,
 		KeyLeft,
 		KeyRight,
-		KeyTablePageUp,
-		KeyTablePageDown,
-		KeyTableGoToTop,
-		KeyTableGoToBottom,
+		KeyPageUp,
+		KeyPageDown,
+		KeyGoToTop,
+		KeyGoToBottom,
 	}
-
-	KeyTablePageUp = key.NewBinding(
-		key.WithKeys("b", "pgup"),
-		key.WithHelp("b/pgup", "page up"),
-	)
-	KeyTablePageDown = key.NewBinding(
-		key.WithKeys("f", "pgdown"),
-		key.WithHelp("f/pgdn", "page down"),
-	)
-	KeyTableGoToTop = key.NewBinding(
-		key.WithKeys("home", "g"),
-		key.WithHelp("g/home", "go to start"),
-	)
-	KeyTableGoToBottom = key.NewBinding(
-		key.WithKeys("end", "G"),
-		key.WithHelp("G/end", "go to end"),
-	)
 )
 
 // OverrideHelp overrides the help text for a key binding, returning a new key

@@ -268,13 +268,13 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 			m.MoveLeft(1)
 		case key.Matches(msg, types.KeyRight):
 			m.MoveRight(1)
-		case key.Matches(msg, types.KeyTablePageUp):
+		case key.Matches(msg, types.KeyPageUp):
 			m.MoveUp(m.maxInnerTableHeight())
-		case key.Matches(msg, types.KeyTablePageDown):
+		case key.Matches(msg, types.KeyPageDown):
 			m.MoveDown(m.maxInnerTableHeight())
-		case key.Matches(msg, types.KeyTableGoToTop):
+		case key.Matches(msg, types.KeyGoToTop):
 			m.GoToTop()
-		case key.Matches(msg, types.KeyTableGoToBottom):
+		case key.Matches(msg, types.KeyGoToBottom):
 			m.GoToBottom()
 		}
 		return nil
