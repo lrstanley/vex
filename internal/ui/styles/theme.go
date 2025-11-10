@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/alecthomas/chroma/v2"
 	chromastyles "github.com/alecthomas/chroma/v2/styles"
-	tea "github.com/charmbracelet/bubbletea/v2"
 	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/lrstanley/bubbletint/chromatint/v2"
 	tint "github.com/lrstanley/bubbletint/v2"
 	"github.com/lrstanley/vex/internal/types"

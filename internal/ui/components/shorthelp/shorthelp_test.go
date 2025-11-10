@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/charmbracelet/bubbles/v2/key"
+	"charm.land/bubbles/v2/key"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/ui/testui"
 )

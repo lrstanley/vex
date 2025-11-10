@@ -5,7 +5,7 @@
 package api
 
 import (
-	tea "github.com/charmbracelet/bubbletea/v2"
+	tea "charm.land/bubbletea/v2"
 	vapi "github.com/hashicorp/vault/api"
 	"github.com/lrstanley/vex/internal/types"
 )

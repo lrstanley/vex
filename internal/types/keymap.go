@@ -7,7 +7,7 @@ package types
 import (
 	"slices"
 
-	"github.com/charmbracelet/bubbles/v2/key"
+	"charm.land/bubbles/v2/key"
 )
 
 var (

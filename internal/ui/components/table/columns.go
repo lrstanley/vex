@@ -4,7 +4,7 @@
 
 package table
 
-import "github.com/charmbracelet/lipgloss/v2"
+import "charm.land/lipgloss/v2"
 
 type Column struct { // TODO: add width.
 	ID               ID

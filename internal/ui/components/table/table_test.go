@@ -11,14 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/state"
 	"github.com/lrstanley/vex/internal/ui/testui"
 )
 
-// testRow implements the Row interface for testing
+// testRow implements the Row interface for testing.
 type testRow struct {
 	id   string
 	data []string

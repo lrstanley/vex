@@ -12,8 +12,8 @@ import (
 	_ "net/http/pprof" //nolint:gosec
 	"os"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/alecthomas/kong"
-	tea "github.com/charmbracelet/bubbletea/v2"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/config"
@@ -78,8 +78,6 @@ func main() {
 
 	tui := tea.NewProgram(
 		ui.New(client),
-		tea.WithAltScreen(),
-		tea.WithUniformKeyLayout(),
 		tea.WithFilter(ui.DownsampleMouseEvents),
 	)
 

@@ -5,10 +5,10 @@
 package textarea
 
 import (
-	"github.com/charmbracelet/bubbles/v2/key"
-	bta "github.com/charmbracelet/bubbles/v2/textarea"
-	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/bubbles/v2/key"
+	bta "charm.land/bubbles/v2/textarea"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/confirmable"
 	"github.com/lrstanley/vex/internal/ui/styles"

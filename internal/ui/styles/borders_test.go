@@ -8,7 +8,7 @@ import (
 	"image/color"
 	"testing"
 
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/ui/testui"
 	"github.com/lucasb-eyer/go-colorful"
 )

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/spinner"
 	"github.com/charmbracelet/colorprofile"
 	"github.com/gkampitakis/go-snaps/snaps"
 )

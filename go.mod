@@ -2,20 +2,18 @@ module github.com/lrstanley/vex
 
 go 1.25.0
 
-// TODO: https://github.com/charmbracelet/bubbles/pull/823
-// TODO: https://github.com/charmbracelet/bubbles/pull/840
-replace github.com/charmbracelet/bubbles/v2 => github.com/lrstanley/bubbles/v2 v2.0.0-beta.1.0.20250907113656-d3d1bb8ae0ef
+replace github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/charm-x/exp/teatest/v2 v2.0.0-20251110104020-34abe263a95e
 
 require (
+	charm.land/bubbles/v2 v2.0.0-beta.1.0.20251106192719-c2b822795a69
+	charm.land/bubbletea/v2 v2.0.0-rc.1.0.20251106192006-06c0cda318b3
+	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251106192539-4b304240aab7
 	github.com/Code-Hex/go-generics-cache v1.5.1
 	github.com/alecthomas/chroma/v2 v2.20.0
 	github.com/alecthomas/kong v1.12.1
 	github.com/atotto/clipboard v0.1.4
-	github.com/charmbracelet/bubbles/v2 v2.0.0-beta.1
-	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.4.0.20250813213544-5cc219db8892
-	github.com/charmbracelet/colorprofile v0.3.2
-	github.com/charmbracelet/lipgloss/v2 v2.0.0-beta.3.0.20250814164412-7c497c73cf36
-	github.com/charmbracelet/x/ansi v0.10.1
+	github.com/charmbracelet/colorprofile v0.3.3
+	github.com/charmbracelet/x/ansi v0.11.0
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250904123553-b4e2667e5ad5
 	github.com/gkampitakis/go-snaps v0.5.14
 	github.com/goccy/go-yaml v1.18.0
@@ -23,22 +21,24 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0
 	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8
-	github.com/lucasb-eyer/go-colorful v1.2.0
+	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/rivo/uniseg v0.4.7
 	github.com/segmentio/ksuid v1.0.4
-	golang.org/x/sync v0.16.0
+	golang.org/x/sync v0.18.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20250813213450-50737e162af5 // indirect
-	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20250904123553-b4e2667e5ad5 // indirect
-	github.com/charmbracelet/x/term v0.2.1 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20251106193841-7889546fc720 // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20251109135125-8916d276318f // indirect
+	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
+	github.com/clipperhouse/displaywidth v0.5.0 // indirect
+	github.com/clipperhouse/stringish v0.1.1 // indirect
+	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/gkampitakis/ciinfo v0.3.3 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/maruel/natural v1.1.1 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
@@ -70,7 +70,7 @@ require (
 	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b // indirect
 	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	golang.org/x/text v0.28.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 )

@@ -6,6 +6,7 @@ package testui
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"reflect"
 	"slices"
@@ -13,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea/v2"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/lipgloss/v2"
 	"github.com/charmbracelet/x/exp/teatest/v2"
 )
 
@@ -26,7 +27,7 @@ const (
 
 type TestModel struct {
 	*teatest.TestModel
-	model   tea.ViewModel
+	model   tea.Model
 	profile colorprofile.Profile
 }
 
@@ -75,23 +76,38 @@ func (m *TestModel) WaitForFilterMessages(t testing.TB, sameType any) (filtered 
 
 // View returns the view of the model. Note that for root-based models, this might not
 // use the latest version of the model, where as for non-root models, it will.
-func (m *TestModel) View(t testing.TB) string {
+func (m *TestModel) View(t testing.TB) tea.View {
 	t.Helper()
-	return m.model.View()
+	var view tea.View
+	view.AltScreen = true
+	view.SetContent(m.model.View())
+	return view
+}
+
+func (m *TestModel) String(t testing.TB) string {
+	v := m.View(t)
+	switch vv := v.Content.(type) {
+	case *lipgloss.Canvas:
+		return vv.Render()
+	case fmt.Stringer:
+		return vv.String()
+	default:
+		panic(fmt.Sprintf("unexpected content type in view: %T", vv))
+	}
 }
 
 // ExpectViewSnapshot takes a snapshot of the view of the model. This method strips
 // all ANSI escape codes.
 func (m *TestModel) ExpectViewSnapshot(t testing.TB) {
 	t.Helper()
-	ExpectSnapshotNonANSI(t, m.View(t))
+	ExpectSnapshotNonANSI(t, m.String(t))
 }
 
 // ExpectViewSnapshotProfile takes a snapshot of the view of the model. This
 // method uses the color profile of the model.
 func (m *TestModel) ExpectViewSnapshotProfile(t testing.TB) {
 	t.Helper()
-	ExpectSnapshotProfile(t, m.View(t), m.profile)
+	ExpectSnapshotProfile(t, m.String(t), m.profile)
 }
 
 // WaitFinished waits for the app to finish. This method only returns once the
@@ -142,7 +158,7 @@ func (m *TestModel) ExpectNotContains(t testing.TB, substr ...string) {
 // ExpectViewContains waits for the view to contain ALL of the given substrings.
 func (m *TestModel) ExpectViewContains(t testing.TB, substr ...string) {
 	t.Helper()
-	view := m.View(t)
+	view := m.String(t)
 	for _, v := range substr {
 		if !strings.Contains(view, v) {
 			t.Fatalf("expected view to contain %q, got %q", v, view)
@@ -153,7 +169,7 @@ func (m *TestModel) ExpectViewContains(t testing.TB, substr ...string) {
 // ExpectViewNotContains waits for the view to not contain ANY of the given substrings.
 func (m *TestModel) ExpectViewNotContains(t testing.TB, substr ...string) {
 	t.Helper()
-	view := m.View(t)
+	view := m.String(t)
 	for _, v := range substr {
 		if strings.Contains(view, v) {
 			t.Fatalf("expected view to not contain %q, got %q", v, view)
@@ -171,7 +187,7 @@ func (m *TestModel) ExpectViewDimensions(t testing.TB, width, height int) {
 // ExpectViewHeight waits for the view to have the given height.
 func (m *TestModel) ExpectViewHeight(t testing.TB, height int) {
 	t.Helper()
-	v := m.View(t)
+	v := m.String(t)
 	if lipgloss.Height(v) != height {
 		t.Fatalf("expected height %d, got %d", height, lipgloss.Height(v))
 	}
@@ -180,7 +196,7 @@ func (m *TestModel) ExpectViewHeight(t testing.TB, height int) {
 // ExpectViewWidth waits for the view to have the given width.
 func (m *TestModel) ExpectViewWidth(t testing.TB, width int) {
 	t.Helper()
-	v := m.View(t)
+	v := m.String(t)
 	if lipgloss.Width(v) != width {
 		t.Fatalf("expected width %d, got %d", width, lipgloss.Width(v))
 	}
@@ -188,7 +204,6 @@ func (m *TestModel) ExpectViewWidth(t testing.TB, width int) {
 
 type RootModel interface {
 	tea.Model
-	tea.ViewModel
 }
 
 type NonRootModel interface {
@@ -216,8 +231,11 @@ func (m *NonRootModelWrapper) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, m.model.Update(msg)
 }
 
-func (m *NonRootModelWrapper) View() string {
-	return m.model.View()
+func (m *NonRootModelWrapper) View() tea.View {
+	var view tea.View
+	view.AltScreen = true
+	view.SetContent(m.model.View())
+	return view
 }
 
 func (m *NonRootModelWrapper) Messages() []tea.Msg {

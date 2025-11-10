@@ -9,9 +9,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/charmbracelet/bubbles/v2/key"
-	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/bubbles/v2/key"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/config"
 	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
@@ -145,10 +145,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case types.AppQuitMsg:
-		return m, tea.Sequence(
-			tea.SetWindowTitle(""), // TODO: https://github.com/charmbracelet/bubbletea/issues/1474
-			tea.Quit,
-		)
+		return m, tea.Quit
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
@@ -249,13 +246,15 @@ func (m *Model) appTitle() string {
 	return ""
 }
 
-func (m *Model) View() (view tea.View) {
+func (m *Model) View() tea.View {
+	var view tea.View
 	view.BackgroundColor = styles.Theme.AppBg()
 	view.ForegroundColor = styles.Theme.AppFg()
-	view.WindowTitle = m.appTitle()
+	view.WindowTitle = m.appTitle() // TODO: https://github.com/charmbracelet/bubbletea/issues/1474
+	view.AltScreen = true
 
 	if m.width < MinWinWidth || m.height < MinWinHeight {
-		view.Layer = lipgloss.NewCanvas(
+		view.Content = lipgloss.NewCanvas(
 			lipgloss.NewLayer(lipgloss.NewStyle().
 				Align(lipgloss.Center, lipgloss.Center).
 				Height(m.height).
@@ -265,7 +264,7 @@ func (m *Model) View() (view tea.View) {
 		return view
 	}
 
-	view.Layer = lipgloss.NewCanvas(m.app.Dialog().SetLayers(
+	view.Content = lipgloss.NewCanvas(m.app.Dialog().SetLayers(
 		lipgloss.NewLayer(
 			lipgloss.NewStyle().
 				Width(m.width).

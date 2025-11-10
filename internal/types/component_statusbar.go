@@ -7,7 +7,7 @@ package types
 import (
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea/v2"
+	tea "charm.land/bubbletea/v2"
 )
 
 // Status represents the state of a temporary message that we want to display to the user.

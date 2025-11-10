@@ -4,7 +4,7 @@
 
 package types
 
-import tea "github.com/charmbracelet/bubbletea/v2"
+import tea "charm.land/bubbletea/v2"
 
 // RefreshDataMsg is sent when the data for a page should be refreshed.
 type RefreshDataMsg struct {

@@ -7,7 +7,7 @@ package types
 import (
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea/v2"
+	tea "charm.land/bubbletea/v2"
 )
 
 // CmdMsg is a helper function to create a tea.Cmd that just returns the provided message.

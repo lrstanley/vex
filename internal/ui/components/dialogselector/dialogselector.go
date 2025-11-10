@@ -5,11 +5,11 @@
 package dialogselector
 
 import (
-	"github.com/charmbracelet/bubbles/v2/cursor"
-	"github.com/charmbracelet/bubbles/v2/key"
-	"github.com/charmbracelet/bubbles/v2/textinput"
-	tea "github.com/charmbracelet/bubbletea/v2"
-	"github.com/charmbracelet/lipgloss/v2"
+	"charm.land/bubbles/v2/cursor"
+	"charm.land/bubbles/v2/key"
+	"charm.land/bubbles/v2/textinput"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/styles"
@@ -161,7 +161,7 @@ func (m *Model) updateTable() {
 func (m *Model) updateDimensions() {
 	m.styles.InputBase = m.styles.InputBase.Height(1)
 
-	// TODO: https://github.com/charmbracelet/bubbles/issues/812
+	// TODO: https://charm.land/bubbles/issues/812
 	m.input.SetWidth(m.Width - m.styles.InputBase.GetHorizontalFrameSize() - 5)
 	m.styles.InputBase = m.styles.InputBase.Width(m.Width - m.styles.InputBase.GetHorizontalFrameSize())
 
