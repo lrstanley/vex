@@ -83,7 +83,7 @@ func New(app types.AppState, mount *types.Mount) *Model {
 		},
 		RowFn: func(value *table.StaticRow[*types.ClientSecretTreeRef]) []string {
 			return []string{
-				value.Value.GetFullPath(true),
+				styles.IconSecret() + " " + value.Value.GetFullPath(true),
 				value.Value.Mount.Type,
 				styles.ClientCapabilities(value.Value.Capabilities, value.Value.GetFullPath(true)),
 			}

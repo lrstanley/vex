@@ -70,7 +70,10 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 			var pathValue string
 
 			if strings.HasSuffix(row.Value.Path, "/") {
-				pathValue = lipgloss.NewStyle().Bold(true).Foreground(styles.Theme.InfoFg()).Render(styles.IconFolder() + " " + row.Value.Path)
+				pathValue = lipgloss.NewStyle().
+					Bold(true).
+					Foreground(styles.Theme.InfoFg()).
+					Render(styles.IconFolder() + " " + row.Value.Path)
 			} else {
 				pathValue = styles.IconSecret() + " " + row.Value.Path
 			}

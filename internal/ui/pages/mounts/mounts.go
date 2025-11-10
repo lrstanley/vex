@@ -190,7 +190,10 @@ func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
 	}
 
 	return []string{
-		row.Value.Path,
+		lipgloss.NewStyle().
+			Bold(true).
+			Foreground(styles.Theme.InfoFg()).
+			Render(styles.IconFolder() + " " + row.Value.Path),
 		row.Value.Type + sopts,
 		row.Value.Description,
 		styles.ClientCapabilities(row.Value.Capabilities, row.Value.Path),

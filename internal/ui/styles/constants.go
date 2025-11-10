@@ -37,6 +37,7 @@ var (
 	IconFlag         = iconFallback("🚩", "⚑")
 	IconFolder       = iconFallback("📁", "🖿")
 	IconSecret       = iconFallback("🔑", "🔒")
+	IconProhibited   = iconFallback("⛔", "🛇")
 )
 
 func iconFallback(icon, fallback string) func() string {

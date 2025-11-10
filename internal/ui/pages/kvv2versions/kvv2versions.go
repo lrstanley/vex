@@ -249,7 +249,10 @@ func (m *Model) rowFn(row *table.StaticRow[api.KVVersionMetadata]) []string {
 			Render(" (latest)")
 	}
 
+	icon := styles.IconSecret()
+
 	if row.Value.Destroyed {
+		icon = styles.IconProhibited()
 		destroyed = lipgloss.NewStyle().Foreground(styles.Theme.ErrorFg()).Bold(true).Render("true")
 	} else {
 		destroyed = "false"
@@ -258,6 +261,7 @@ func (m *Model) rowFn(row *table.StaticRow[api.KVVersionMetadata]) []string {
 	if row.Value.DeletionTime.IsZero() {
 		deleted = "false"
 	} else {
+		icon = styles.IconCaution()
 		deleted = lipgloss.NewStyle().
 			Foreground(styles.Theme.ErrorFg()).
 			Bold(true).
@@ -265,7 +269,7 @@ func (m *Model) rowFn(row *table.StaticRow[api.KVVersionMetadata]) []string {
 	}
 
 	return []string{
-		strconv.Itoa(row.Value.Version) + latest,
+		icon + " " + strconv.Itoa(row.Value.Version) + latest,
 		destroyed,
 		formatter.TimeRelative(row.Value.CreatedTime, true),
 		deleted,
