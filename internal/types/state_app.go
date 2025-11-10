@@ -13,8 +13,8 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/atotto/clipboard"
 	tea "charm.land/bubbletea/v2"
+	"github.com/atotto/clipboard"
 	"github.com/lrstanley/vex/internal/config"
 )
 

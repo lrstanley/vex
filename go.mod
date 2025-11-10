@@ -1,6 +1,6 @@
 module github.com/lrstanley/vex
 
-go 1.25.0
+go 1.25.1
 
 replace github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/charm-x/exp/teatest/v2 v2.0.0-20251110104020-34abe263a95e
 
@@ -21,6 +21,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0
 	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8
+	github.com/lrstanley/clix/v2 v2.0.0-beta.0
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/rivo/uniseg v0.4.7
 	github.com/segmentio/ksuid v1.0.4
@@ -54,6 +55,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/lmittmann/tint v1.1.2 // indirect
 	github.com/maruel/natural v1.1.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

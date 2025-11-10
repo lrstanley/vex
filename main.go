@@ -15,6 +15,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/alecthomas/kong"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/lrstanley/clix/v2"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/config"
 	"github.com/lrstanley/vex/internal/logging"
@@ -22,7 +23,22 @@ import (
 	"github.com/lrstanley/vex/internal/ui"
 )
 
-var cli = &Flags{}
+var cli = clix.New(
+	clix.WithEnvFiles[Flags](),
+	clix.WithVersionPlugin[Flags](),
+	clix.WithMarkdownPlugin[Flags](),
+	clix.WithKongOptions[Flags](
+		kong.Vars{
+			"CONFIG_PATH": config.GetConfigPath(),
+		},
+	),
+	clix.WithAppInfo[Flags](clix.AppInfo{
+		Name:        config.AppName,
+		Version:     config.AppVersion,
+		Description: "Terminal UI for HashiCorp Vault",
+		Links:       clix.GithubLinks("github.com/lrstanley/vex", "master", "https://liam.sh"),
+	}),
+)
 
 type Flags struct {
 	Logging     logging.Flags `embed:""`
@@ -40,26 +56,16 @@ func main() {
 
 	config.InitConfigPath()
 
-	cctx := kong.Parse(
-		cli,
-		kong.Name("vex"),
-		kong.Description("Terminal UI for HashiCorp Vault"),
-		kong.UsageOnError(),
-		kong.Vars{
-			"CONFIG_PATH": config.GetConfigPath(),
-		},
-	)
-
-	switch cctx.Command() {
+	switch cli.Context.Command() {
 	case "report":
 		report.Generate()
 		return
 	}
 
-	logCloser := logging.New(config.AppVersion, cli.Logging)
+	logCloser := logging.New(config.AppVersion, cli.Flags.Logging)
 	defer logCloser() //nolint:errcheck
 
-	if cli.EnablePprof {
+	if cli.Flags.EnablePprof {
 		go func() {
 			slog.Info("pprof server starting on http://localhost:6060")
 			err := http.ListenAndServe("localhost:6060", nil) //nolint:gosec
@@ -81,7 +87,7 @@ func main() {
 		tea.WithFilter(ui.DownsampleMouseEvents),
 	)
 
-	panicCloser := logging.NewPanicLogger(cli.Logging)
+	panicCloser := logging.NewPanicLogger(cli.Flags.Logging)
 	defer panicCloser(tui.Kill) //nolint:errcheck
 
 	_, err = tui.Run()
@@ -90,7 +96,7 @@ func main() {
 			panic(err)
 		}
 
-		slog.Error("failed to run tui", "error", err)
+		slog.Error("failed to run tui", "error", err) //nolint:sloglint
 		returnCode = 1
 	}
 }
