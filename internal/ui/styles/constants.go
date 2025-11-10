@@ -35,6 +35,8 @@ var (
 	IconFilter       = iconFallback("🔍", "⌕")
 	IconUnderWeather = iconFallback("☔", "⛈")
 	IconFlag         = iconFallback("🚩", "⚑")
+	IconFolder       = iconFallback("📁", "🖿")
+	IconSecret       = iconFallback("🔑", "🔒")
 )
 
 func iconFallback(icon, fallback string) func() string {
