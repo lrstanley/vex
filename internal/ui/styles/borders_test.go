@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"charm.land/lipgloss/v2"
-	"github.com/lrstanley/vex/internal/ui/testui"
+	"github.com/lrstanley/x/charm/testui"
 	"github.com/lucasb-eyer/go-colorful"
 )
 

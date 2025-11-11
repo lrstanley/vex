@@ -11,7 +11,7 @@ import (
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/vex/internal/ui/testui"
+	"github.com/lrstanley/x/charm/testui"
 )
 
 func TestMain(m *testing.M) {

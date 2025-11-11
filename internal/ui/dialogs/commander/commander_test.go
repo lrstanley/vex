@@ -14,7 +14,7 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/pages/genericcode"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/vex/internal/ui/testui"
+	"github.com/lrstanley/x/charm/testui"
 )
 
 func TestMain(m *testing.M) {
@@ -83,7 +83,7 @@ func TestNew(t *testing.T) {
 		tm.ExpectNotContains(t, "Current Page") // Since we didn't pass it in, and it has no commands.
 		tm.ExpectViewSnapshot(t)
 
-		tm.Type("mock-page-1")
+		go tm.Type("mock-page-1")
 		tm.ExpectContains(t, "Mock Page 1 Title", "mock-page-1", "mock-page-1-alias")
 		tm.ExpectNotContains(t, "mock-page-2", "mock-page-3", "mock-page-4")
 		tm.ExpectViewSnapshot(t)

@@ -1,6 +1,6 @@
 module github.com/lrstanley/vex
 
-go 1.25.1
+go 1.25.4
 
 replace github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/charm-x/exp/teatest/v2 v2.0.0-20251110104020-34abe263a95e
 
@@ -13,15 +13,15 @@ require (
 	github.com/alecthomas/kong v1.12.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/colorprofile v0.3.3
-	github.com/charmbracelet/x/ansi v0.11.0
-	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20250904123553-b4e2667e5ad5
-	github.com/gkampitakis/go-snaps v0.5.14
+	github.com/charmbracelet/x/ansi v0.11.1-0.20251110210702-903592506081
+	github.com/gkampitakis/go-snaps v0.5.15
 	github.com/goccy/go-yaml v1.18.0
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0
 	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8
 	github.com/lrstanley/clix/v2 v2.0.0-beta.0
+	github.com/lrstanley/x/charm/testui v0.0.0-20251111032211-c9a901e15047
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/rivo/uniseg v0.4.7
 	github.com/segmentio/ksuid v1.0.4
@@ -32,8 +32,9 @@ require (
 require (
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20251106193841-7889546fc720 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20251109135125-8916d276318f // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20251110211939-d0eeadbd8712 // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20251110210702-903592506081 // indirect
+	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20251110210702-903592506081 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -56,7 +57,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lmittmann/tint v1.1.2 // indirect
-	github.com/maruel/natural v1.1.1 // indirect
+	github.com/maruel/natural v1.2.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
