@@ -7,9 +7,9 @@ package genericcode
 import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
-	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 var _ types.Dialog = (*Model)(nil) // Ensure we implement the dialog interface.

@@ -12,7 +12,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/lrstanley/vex/internal/formatter"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 // Title returns a styled title string, with a gradient of the from and to

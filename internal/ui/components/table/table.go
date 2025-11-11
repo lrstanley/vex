@@ -14,10 +14,10 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/loader"
 	"github.com/lrstanley/vex/internal/ui/styles"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 type Styles struct {

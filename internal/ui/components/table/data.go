@@ -7,9 +7,11 @@ package table
 import (
 	"iter"
 	"slices"
+	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/lrstanley/vex/internal/fuzzy"
+	"github.com/charmbracelet/x/ansi"
+	"github.com/lrstanley/x/text/fuzzy"
 )
 
 // StaticRow is a row that is created from a static value and ID.
@@ -61,6 +63,8 @@ func (m *Model[T]) applyFiltering() {
 			filterable = append(filterable, values[i])
 		}
 		return filterable
+	}, func(s string) string {
+		return ansi.Strip(strings.ToLower(s))
 	})
 }
 

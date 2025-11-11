@@ -14,13 +14,13 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/hashicorp/vault/api"
-	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/dialogs/alert"
 	"github.com/lrstanley/vex/internal/ui/dialogs/confirm"
 	"github.com/lrstanley/vex/internal/ui/pages/kvviewsecret"
 	"github.com/lrstanley/vex/internal/ui/styles"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.

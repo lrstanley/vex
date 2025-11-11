@@ -17,13 +17,13 @@ import (
 	"charm.land/bubbles/v2/list"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/confirmable"
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
 	"github.com/lrstanley/vex/internal/ui/dialogs/textarea"
 	"github.com/lrstanley/vex/internal/ui/styles"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 type item struct {

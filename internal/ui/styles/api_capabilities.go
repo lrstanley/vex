@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 // ClientCapabilities returns a string of the capabilities for a given path.

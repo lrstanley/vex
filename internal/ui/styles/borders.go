@@ -13,7 +13,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/lrstanley/vex/internal/cache"
-	"github.com/lrstanley/vex/internal/formatter"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 // TODO: all of this logic is kinda a mess, but it solves the issue for now.

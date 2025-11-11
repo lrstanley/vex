@@ -13,9 +13,9 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 	vapi "github.com/hashicorp/vault/api"
-	"github.com/lrstanley/vex/internal/formatter"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/styles"
+	"github.com/lrstanley/x/charm/formatter"
 )
 
 const (

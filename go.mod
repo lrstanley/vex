@@ -2,8 +2,6 @@ module github.com/lrstanley/vex
 
 go 1.25.4
 
-replace github.com/charmbracelet/x/exp/teatest/v2 => github.com/lrstanley/charm-x/exp/teatest/v2 v2.0.0-20251110104020-34abe263a95e
-
 require (
 	charm.land/bubbles/v2 v2.0.0-beta.1.0.20251106192719-c2b822795a69
 	charm.land/bubbletea/v2 v2.0.0-rc.1.0.20251106192006-06c0cda318b3
@@ -15,15 +13,15 @@ require (
 	github.com/charmbracelet/colorprofile v0.3.3
 	github.com/charmbracelet/x/ansi v0.11.1-0.20251110210702-903592506081
 	github.com/gkampitakis/go-snaps v0.5.15
-	github.com/goccy/go-yaml v1.18.0
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0
 	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8
 	github.com/lrstanley/clix/v2 v2.0.0-beta.0
-	github.com/lrstanley/x/charm/testui v0.0.0-20251111032211-c9a901e15047
+	github.com/lrstanley/x/charm/formatter v0.0.0-20251111034152-5b7382a402a8
+	github.com/lrstanley/x/charm/testui v0.0.0-20251111034152-5b7382a402a8
+	github.com/lrstanley/x/text/fuzzy v0.0.0-20251111034152-5b7382a402a8
 	github.com/lucasb-eyer/go-colorful v1.3.0
-	github.com/rivo/uniseg v0.4.7
 	github.com/segmentio/ksuid v1.0.4
 	golang.org/x/sync v0.18.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
@@ -32,9 +30,12 @@ require (
 require (
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
+	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.3.0.20250617194119-3f1d09f7d826 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20251110211939-d0eeadbd8712 // indirect
+	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
 	github.com/charmbracelet/x/exp/golden v0.0.0-20251110210702-903592506081 // indirect
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20251110210702-903592506081 // indirect
+	github.com/charmbracelet/x/input v0.3.5-0.20250509021451-13796e822d86 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -45,6 +46,7 @@ require (
 	github.com/gkampitakis/ciinfo v0.3.3 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
+	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -62,6 +64,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sahilm/fuzzy v0.1.1 // indirect
