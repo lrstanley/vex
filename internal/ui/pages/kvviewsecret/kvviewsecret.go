@@ -19,11 +19,14 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/confirmable"
 	"github.com/lrstanley/vex/internal/ui/components/viewport"
+	"github.com/lrstanley/vex/internal/ui/dialogs/confirm"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
 	"github.com/lrstanley/vex/internal/ui/dialogs/textarea"
 	"github.com/lrstanley/vex/internal/ui/styles"
 	"github.com/lrstanley/x/charm/formatter"
 )
+
+// TODO: change edit and delete to always be staged. i.e. edit (or delete) multiple things, then apply.
 
 type item struct {
 	model  *Model
@@ -46,22 +49,37 @@ func (i *item) FilterValue() string {
 }
 
 func (i *item) Title() string {
+	if slices.Contains(i.model.keysMarkedForDeletion, i.key) {
+		return lipgloss.NewStyle().
+			Foreground(styles.Theme.ErrorFg()).
+			Render(i.key)
+	}
 	return i.key
 }
 
 func (i *item) Description() string {
+	var styleFunc func(...string) string
+
+	switch {
+	case slices.Contains(i.model.keysMarkedForDeletion, i.key):
+		styleFunc = lipgloss.NewStyle().Foreground(styles.Theme.ErrorFg()).Bold(true).Render
+	case !i.masked:
+		styleFunc = lipgloss.NewStyle().Foreground(styles.Theme.AppFg()).Render
+	default:
+		styleFunc = func(v ...string) string {
+			return strings.Join(v, " ")
+		}
+	}
+
 	if i.IsMultiLine() {
-		return "<press 'x' to view full value>"
+		return styleFunc("<press 'x' to view full value>")
 	}
 
 	if i.masked {
-		return formatter.MaskReplacementValue
+		return styleFunc(formatter.MaskReplacementValue)
 	}
 
-	svalue := i.ValueString()
-	return lipgloss.NewStyle().
-		Foreground(styles.Theme.AppFg()).
-		Render(svalue)
+	return styleFunc(i.ValueString())
 }
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
@@ -73,18 +91,19 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	height          int
-	width           int
-	openedAsEditor  bool
-	mount           *types.Mount
-	path            string
-	version         int
-	data            map[string]any
-	filter          string
-	isFlat          bool
-	forceJSON       bool
-	isNonFlatMasked bool // If masking is enabled for non-flat (json) masking.
-	unmaskedKeys    []string
+	height                int
+	width                 int
+	openedAsEditor        bool
+	mount                 *types.Mount
+	path                  string
+	version               int
+	data                  map[string]any
+	filter                string
+	isFlat                bool
+	forceJSON             bool
+	isNonFlatMasked       bool // If masking is enabled for non-flat (json) masking.
+	unmaskedKeys          []string
+	keysMarkedForDeletion []string // Keys marked for deletion, flat-only.
 
 	// Child components.
 	delegate list.DefaultDelegate
@@ -111,6 +130,8 @@ func New(app types.AppState, mount *types.Mount, path string, version int, opene
 				types.KeyToggleMask,
 				types.KeyToggleMaskAll,
 				types.KeyRenderJSON,
+				types.KeyToggleDelete,
+				types.KeyDelete,
 			}},
 		},
 		app:             app,
@@ -278,6 +299,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			return m.edit()
 		case key.Matches(msg.Key(), types.KeyOpenEditor):
 			return m.editWithEditor()
+		case key.Matches(msg.Key(), types.KeyDelete):
+			return m.delete()
+		case msg.String() == "d" && m.isFlat && !m.forceJSON:
+			return m.toggleKeyDeletion()
 		}
 	case styles.ThemeUpdatedMsg:
 		m.setStyle()
@@ -313,6 +338,14 @@ func (m *Model) setFromData() tea.Cmd {
 	if !m.isFlat || m.forceJSON {
 		m.viewport.SetCode(formatter.ToJSON(m.data, m.isNonFlatMasked, 2), "json")
 	} else {
+		// Preserve marked keys, but remove any that no longer exist in the data
+		if len(m.keysMarkedForDeletion) > 0 {
+			m.keysMarkedForDeletion = slices.DeleteFunc(m.keysMarkedForDeletion, func(k string) bool {
+				_, exists := m.data[k]
+				return !exists
+			})
+		}
+
 		var values []list.Item
 		keys := slices.Collect(maps.Keys(m.data))
 		slices.Sort(keys)
@@ -485,6 +518,90 @@ func (m *Model) View() string {
 
 func (m *Model) GetTitle() string {
 	return m.mount.Path + m.path
+}
+
+func (m *Model) toggleKeyDeletion() tea.Cmd {
+	if !m.isFlat || m.forceJSON {
+		return nil
+	}
+
+	item := m.getSelectedItem()
+	if item == nil {
+		return nil
+	}
+
+	if slices.Contains(m.keysMarkedForDeletion, item.key) {
+		m.keysMarkedForDeletion = slices.DeleteFunc(m.keysMarkedForDeletion, func(k string) bool {
+			return k == item.key
+		})
+	} else {
+		m.keysMarkedForDeletion = append(m.keysMarkedForDeletion, item.key)
+	}
+
+	return m.setFromData()
+}
+
+func (m *Model) delete() tea.Cmd {
+	var title, message string
+	var confirmFn func() tea.Cmd
+
+	var all bool
+
+	switch {
+	case m.isFlat && !m.forceJSON:
+		if len(m.keysMarkedForDeletion) > 0 && len(m.keysMarkedForDeletion) < len(slices.Collect(maps.Keys(m.data))) {
+			var keys []string
+
+			for _, key := range m.keysMarkedForDeletion {
+				keys = append(keys, lipgloss.NewStyle().Foreground(styles.Theme.ErrorFg()).Bold(true).Render(styles.IconCaution()+" "+key))
+			}
+
+			title = fmt.Sprintf("Delete keys from %s", m.mount.Path+m.path)
+			message = fmt.Sprintf(
+				"Are you sure you want to delete the following keys?:\n%s\n\nThis cannot be undone.",
+				strings.Join(keys, "\n"),
+			)
+			confirmFn = func() tea.Cmd {
+				data := maps.Clone(m.data)
+				for _, key := range m.keysMarkedForDeletion {
+					delete(data, key)
+				}
+				return tea.Sequence(
+					m.app.Client().PutKVSecret(m.UUID(), m.mount, m.path, data),
+					types.CloseActiveDialog(),
+				)
+			}
+		} else {
+			all = true
+		}
+	case !m.isFlat:
+		all = true
+	}
+
+	if all {
+		title = fmt.Sprintf("Delete %s", m.mount.Path+m.path)
+		message = "Are you sure you want to delete this secret? This cannot be undone."
+		confirmFn = func() tea.Cmd {
+			return tea.Sequence(
+				m.app.Client().DeleteKVSecret(m.UUID(), m.mount, m.path),
+				types.CloseActiveDialog(),
+				types.CloseActivePage(),
+			)
+		}
+	}
+
+	if title == "" || message == "" || confirmFn == nil {
+		return nil
+	}
+
+	return types.OpenDialog(confirm.New(m.app, confirm.Config{
+		Title:         title,
+		Message:       message,
+		AllowsBlur:    true,
+		ConfirmStatus: types.Error,
+		ConfirmFn:     confirmFn,
+		CancelFn:      types.CloseActiveDialog,
+	}))
 }
 
 func (m *Model) TopRightBorder() string {

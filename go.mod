@@ -4,14 +4,14 @@ go 1.25.4
 
 require (
 	charm.land/bubbles/v2 v2.0.0-beta.1.0.20251106192719-c2b822795a69
-	charm.land/bubbletea/v2 v2.0.0-rc.1.0.20251106192006-06c0cda318b3
-	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251106192539-4b304240aab7
+	charm.land/bubbletea/v2 v2.0.0-rc.1.0.20251114215930-55b3503a2a7c
+	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251114164805-d267651963ad
 	github.com/Code-Hex/go-generics-cache v1.5.1
 	github.com/alecthomas/chroma/v2 v2.20.0
 	github.com/alecthomas/kong v1.12.1
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/colorprofile v0.3.3
-	github.com/charmbracelet/x/ansi v0.11.1-0.20251110210702-903592506081
+	github.com/charmbracelet/x/ansi v0.11.1
 	github.com/gkampitakis/go-snaps v0.5.15
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/joho/godotenv v1.5.1
@@ -31,7 +31,7 @@ require (
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.3.0.20250617194119-3f1d09f7d826 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20251110211939-d0eeadbd8712 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20251114211333-9deacb990ee7 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
 	github.com/charmbracelet/x/exp/golden v0.0.0-20251110210702-903592506081 // indirect
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20251110210702-903592506081 // indirect

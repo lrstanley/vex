@@ -116,6 +116,10 @@ var (
 		key.WithKeys("ctrl+x"),
 		key.WithHelp("ctrl+x", "unmask all"),
 	)
+	KeyToggleDelete = key.NewBinding(
+		key.WithKeys("d"),
+		key.WithHelp("d", "toggle delete"),
+	)
 	KeyRenderJSON = key.NewBinding(
 		key.WithKeys("z"),
 		key.WithHelp("z", "view json"),
