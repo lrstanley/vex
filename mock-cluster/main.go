@@ -15,29 +15,25 @@ import (
 	"sync"
 	"time"
 
-	"github.com/alecthomas/kong"
 	"github.com/go-faker/faker/v4"
 	vapi "github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/api/auth/userpass"
-	"github.com/lmittmann/tint"
+	"github.com/lrstanley/clix/v2"
 	"golang.org/x/sync/errgroup"
 )
 
 var (
-	cli    = &Flags{}
-	logger = slog.New(
-		tint.NewHandler(os.Stderr, &tint.Options{
-			Level:      slog.LevelDebug,
-			TimeFormat: time.TimeOnly,
-			AddSource:  true,
-		}),
-	)
+	cli = clix.NewWithDefaults(clix.WithAppInfo[Flags](clix.AppInfo{
+		Name:        "mock-cluster",
+		Description: "Mock cluster for testing",
+	}))
+	logger *slog.Logger
 )
 
 type Flags struct {
 	Init struct {
-		Image           string `default:"hashicorp/vault" help:"image to use for the mock cluster"`
-		Version         string `default:"latest" help:"version of the mock cluster"`
+		VaultImage      string `default:"hashicorp/vault" help:"image to use for the mock cluster"`
+		VaultVersion    string `default:"latest" help:"version of the mock cluster"`
 		NumNodes        int    `default:"3" help:"number of nodes in the mock cluster"`
 		UnsealKeys      int    `default:"1" help:"number of unseal keys to generate"`
 		UnsealThreshold int    `default:"1" help:"number of unseal keys required to unseal the cluster"`
@@ -57,18 +53,12 @@ type Flags struct {
 }
 
 func main() {
+	logger = cli.GetLogger()
 	LoadConfig()
-
-	cctx := kong.Parse(
-		cli,
-		kong.Name("mock-cluster"),
-		kong.Description("Mock cluster for testing"),
-		kong.UsageOnError(),
-	)
 
 	ctx := context.Background()
 
-	switch cctx.Command() {
+	switch cli.Context.Command() {
 	case "init":
 		err := create(ctx)
 		if err != nil {
@@ -77,7 +67,7 @@ func main() {
 		}
 		return
 	case "start":
-		if cli.Init.NumNodes < 3 {
+		if cli.Flags.Init.NumNodes < 3 {
 			logger.Error("number of nodes must be at least 3")
 			os.Exit(1)
 		}
@@ -110,13 +100,13 @@ func main() {
 		}
 		return
 	case "env":
-		fmt.Println("VAULT_ADDR=http://127.0.0.1:820" + strconv.Itoa(cli.Env.Node-1)) //nolint:forbidigo
-		if cli.Env.ID == "token" {
+		fmt.Println("VAULT_ADDR=http://127.0.0.1:820" + strconv.Itoa(cli.Flags.Env.Node-1)) //nolint:forbidigo
+		if cli.Flags.Env.ID == "token" {
 			fmt.Println("VAULT_TOKEN=" + config.RootToken) //nolint:forbidigo
 		} else {
 			vault := NewVaultClient(ctx, 1)
-			up, err := userpass.NewUserpassAuth(cli.Env.ID, &userpass.Password{
-				FromString: config.Users[cli.Env.ID],
+			up, err := userpass.NewUserpassAuth(cli.Flags.Env.ID, &userpass.Password{
+				FromString: config.Users[cli.Flags.Env.ID],
 			})
 			if err != nil {
 				logger.Error("failed to create userpass auth", "error", err)
@@ -137,9 +127,9 @@ func create(ctx context.Context) error {
 	dkr := NewDockerClient(ctx)
 	defer dkr.Close()
 
-	logger.InfoContext(ctx, "creating mock cluster", "num_nodes", cli.Init.NumNodes)
+	logger.InfoContext(ctx, "creating mock cluster", "num_nodes", cli.Flags.Init.NumNodes)
 
-	for i := range cli.Init.NumNodes {
+	for i := range cli.Flags.Init.NumNodes {
 		_, err := DockerGetNode(ctx, dkr, i+1)
 		if err == nil {
 			logger.InfoContext(ctx, "node already exists", "node", i+1)
@@ -169,8 +159,8 @@ func start(ctx context.Context) error {
 		ps = DockerGetContainers(ctx, dkr)
 	}
 
-	if len(ps) != cli.Init.NumNodes {
-		return fmt.Errorf("expected %d nodes, got %d (recreate the cluster)", cli.Init.NumNodes, len(ps))
+	if len(ps) != cli.Flags.Init.NumNodes {
+		return fmt.Errorf("expected %d nodes, got %d (recreate the cluster)", cli.Flags.Init.NumNodes, len(ps))
 	}
 
 	logger.InfoContext(ctx, "starting mock cluster", "num_nodes", len(ps))
@@ -192,7 +182,7 @@ func start(ctx context.Context) error {
 
 	var eg errgroup.Group
 
-	for i := range cli.Init.NumNodes {
+	for i := range cli.Flags.Init.NumNodes {
 		eg.Go(func() error {
 			return WaitVaultUnseal(ctx, 120*time.Second, i+1)
 		})
@@ -203,7 +193,7 @@ func start(ctx context.Context) error {
 		return fmt.Errorf("failed to wait for vault cluster to be unsealed: %w", err)
 	}
 
-	for i := range cli.Init.NumNodes {
+	for i := range cli.Flags.Init.NumNodes {
 		err = WaitVaultHealthy(ctx, 120*time.Second, i+1)
 		if err != nil {
 			return fmt.Errorf("failed to wait for vault cluster to be healthy: %w", err)
@@ -216,7 +206,7 @@ func start(ctx context.Context) error {
 func bootstrap(ctx context.Context) error { //nolint:funlen,unparam
 	var wg sync.WaitGroup
 
-	if !config.BootstrappedPolicies || cli.Bootstrap.Force {
+	if !config.BootstrappedPolicies || cli.Flags.Bootstrap.Force {
 		BootstrapVaultPolicy(ctx, "sudo-policy", `
 # Root policy with sudo permissions
 path "*" {
@@ -279,13 +269,13 @@ path "*" {
 		SaveConfig()
 	}
 
-	if !config.BootstrappedAuthEngines || cli.Bootstrap.Force {
+	if !config.BootstrappedAuthEngines || cli.Flags.Bootstrap.Force {
 		BootstrapVaultAuthEngines(ctx)
 		config.BootstrappedAuthEngines = true
 		SaveConfig()
 	}
 
-	if !config.BootstrappedUsers || cli.Bootstrap.Force {
+	if !config.BootstrappedUsers || cli.Flags.Bootstrap.Force {
 		BootstrapVaultUser(ctx, "root", "sudo-policy")
 		for range 10 {
 			wg.Go(func() {
@@ -301,7 +291,7 @@ path "*" {
 		SaveConfig()
 	}
 
-	if !config.BootstrappedMounts || cli.Bootstrap.Force {
+	if !config.BootstrappedMounts || cli.Flags.Bootstrap.Force {
 		for i := range 10 {
 			wg.Go(func() {
 				BootstrapVaultMount(ctx, "kv-v1-"+strconv.Itoa(i+1), vapi.MountInput{
@@ -340,7 +330,7 @@ path "*" {
 		SaveConfig()
 	}
 
-	if !config.BootstrappedKVSecrets || cli.Bootstrap.Force {
+	if !config.BootstrappedKVSecrets || cli.Flags.Bootstrap.Force {
 		certs := GetHostCertificates("github.com:443")
 
 		values := map[string]any{

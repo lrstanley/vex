@@ -53,7 +53,7 @@ func WaitVaultClusterAvailable(ctx context.Context, timeout time.Duration) error
 	tctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	for i := range cli.Init.NumNodes {
+	for i := range cli.Flags.Init.NumNodes {
 		success := false
 		for attempt := range 30 {
 			if tctx.Err() != nil {
@@ -100,8 +100,8 @@ func WaitVaultInitialize(ctx context.Context, timeout time.Duration) error {
 	logger.InfoContext(ctx, "initializing vault cluster", "node", 1)
 
 	resp, err := vault.Sys().InitWithContext(tctx, &vapi.InitRequest{
-		SecretShares:    cli.Init.UnsealKeys,
-		SecretThreshold: cli.Init.UnsealThreshold,
+		SecretShares:    cli.Flags.Init.UnsealKeys,
+		SecretThreshold: cli.Flags.Init.UnsealThreshold,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to initialize vault: %w", err)

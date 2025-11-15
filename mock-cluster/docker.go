@@ -59,7 +59,7 @@ func DockerClusterStart(ctx context.Context, dkr *client.Client, timeout time.Du
 	tctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	_, err := dkr.ImagePull(tctx, cli.Init.Image+":"+cli.Init.Version, image.PullOptions{
+	_, err := dkr.ImagePull(tctx, cli.Flags.Init.VaultImage+":"+cli.Flags.Init.VaultVersion, image.PullOptions{
 		All: true,
 	})
 	if err != nil {
@@ -278,13 +278,13 @@ func DockerCreateNode(ctx context.Context, dkr *client.Client, node int) error {
 	config := ExecTmpl("config.hcl.gotmpl", map[string]any{
 		"NodeHostname": alias,
 		"NodeID":       node,
-		"NumNodes":     cli.Init.NumNodes,
+		"NumNodes":     cli.Flags.Init.NumNodes,
 	})
 
 	resp, err := dkr.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: cli.Init.Image + ":" + cli.Init.Version,
+			Image: cli.Flags.Init.VaultImage + ":" + cli.Flags.Init.VaultVersion,
 			Env:   []string{},
 			Labels: map[string]string{
 				MockClusterLabel: "true",
