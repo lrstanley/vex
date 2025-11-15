@@ -376,6 +376,21 @@ func (c *client) GetKVSecret(uuid string, mount *types.Mount, path string, versi
 	})
 }
 
+func (c *client) PutKVSecret(uuid string, mount *types.Mount, path string, data map[string]any) tea.Cmd {
+	return wrapHandler(uuid, func() (*types.ClientSuccessMsg, error) {
+		var err error
+		if mount.KVVersion() == 1 {
+			err = c.api.KVv1(mount.Path).Put(context.Background(), path, data)
+		} else {
+			_, err = c.api.KVv2(mount.Path).Put(context.Background(), path, data, vapi.WithMergeMethod("rw"))
+		}
+		if err != nil {
+			return nil, fmt.Errorf("put secret: %w", err)
+		}
+		return &types.ClientSuccessMsg{Message: "updated secret"}, nil
+	})
+}
+
 func (c *client) DeleteKVSecret(uuid string, mount *types.Mount, path string, versions ...int) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientSuccessMsg, error) {
 		var err error
@@ -389,7 +404,7 @@ func (c *client) DeleteKVSecret(uuid string, mount *types.Mount, path string, ve
 		if err != nil {
 			return nil, fmt.Errorf("delete secret: %w", err)
 		}
-		return &types.ClientSuccessMsg{}, nil
+		return &types.ClientSuccessMsg{Message: "deleted secret"}, nil
 	})
 }
 
@@ -414,7 +429,7 @@ func (c *client) UndeleteKVSecret(uuid string, mount *types.Mount, path string, 
 		if err != nil {
 			return nil, fmt.Errorf("undelete secret: %w", err)
 		}
-		return &types.ClientSuccessMsg{}, nil
+		return &types.ClientSuccessMsg{Message: "undeleted secret"}, nil
 	})
 }
 
@@ -425,7 +440,7 @@ func (c *client) DestroyKVSecret(uuid string, mount *types.Mount, path string, v
 			if err != nil {
 				return nil, fmt.Errorf("destroy secret: %w", err)
 			}
-			return &types.ClientSuccessMsg{}, nil
+			return &types.ClientSuccessMsg{Message: "destroyed secret"}, nil
 		}
 
 		var err error
@@ -437,6 +452,6 @@ func (c *client) DestroyKVSecret(uuid string, mount *types.Mount, path string, v
 		if err != nil {
 			return nil, fmt.Errorf("destroy secret: %w", err)
 		}
-		return &types.ClientSuccessMsg{}, nil
+		return &types.ClientSuccessMsg{Message: "destroyed secret"}, nil
 	})
 }

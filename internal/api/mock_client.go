@@ -295,6 +295,10 @@ func (m *MockClient) GetKVv2Metadata(uuid string, mount *types.Mount, path strin
 	})
 }
 
+func (m *MockClient) PutKVSecret(uuid string, mount *types.Mount, path string, data map[string]any) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{Message: "updated secret"})
+}
+
 func (m *MockClient) ListKVv2Versions(uuid string, mount *types.Mount, path string) tea.Cmd {
 	return m.ErrorOr(uuid, types.ClientListKVv2VersionsMsg{
 		Mount: mount,
@@ -322,13 +326,13 @@ func (m *MockClient) GetKVSecret(uuid string, mount *types.Mount, path string, _
 }
 
 func (m *MockClient) DeleteKVSecret(uuid string, _ *types.Mount, _ string, _ ...int) tea.Cmd {
-	return m.ErrorOr(uuid, types.ClientSuccessMsg{})
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{Message: "deleted secret"})
 }
 
 func (m *MockClient) UndeleteKVSecret(uuid string, _ *types.Mount, _ string, _ ...int) tea.Cmd {
-	return m.ErrorOr(uuid, types.ClientSuccessMsg{})
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{Message: "undeleted secret"})
 }
 
 func (m *MockClient) DestroyKVSecret(uuid string, _ *types.Mount, _ string, _ ...int) tea.Cmd {
-	return m.ErrorOr(uuid, types.ClientSuccessMsg{})
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{Message: "destroyed secret"})
 }

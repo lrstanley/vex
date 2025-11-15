@@ -20,45 +20,71 @@ import (
 type Client interface {
 	Init() tea.Cmd
 	Update(msg tea.Msg) tea.Cmd
-	// GetHealth returns a command to get the health of the Vault server.
+
+	// GetHealth returns a command to get the health of the Vault server. Responds
+	// with a [ClientMsg] containing a [ClientConfigMsg] containing the health of
+	// the Vault server.
 	GetHealth(uuid string) tea.Cmd
-	// TokenLookupSelf returns a command to lookup the current token.
+	// TokenLookupSelf returns a command to lookup the current token. Responds with
+	// a [ClientMsg] containing a [ClientTokenLookupSelfMsg] containing the result
+	// of the token lookup.
 	TokenLookupSelf(uuid string) tea.Cmd
 
 	// ListMounts returns a command to list the mounts of the Vault server.
+	// Responds with a [ClientMsg] containing a [ClientListMountsMsg] containing
+	// the list of mounts of the Vault server.
 	ListMounts(uuid string) tea.Cmd
 	// ListSecrets returns a command to list the secrets of the Vault server,
 	// under a given mount and path. If path is empty, it will list all secrets
-	// under the mount.
+	// under the mount. Responds with a [ClientMsg] containing a [ClientListSecretsMsg]
+	// containing the list of secrets of the Vault server.
 	ListSecrets(uuid string, mount *Mount, path string) tea.Cmd
 	// ListAllSecretsRecursive returns a command to list all secrets of the Vault
 	// server. If mount is nil, it will list all secrets under all mounts.
+	// Responds with a [ClientMsg] containing a [ClientListAllSecretsRecursiveMsg]
+	// containing the list of secrets of the Vault server.
 	ListAllSecretsRecursive(uuid string, mount *Mount) tea.Cmd
 	// ListKVv2Versions returns a command to list the versions of a KVv2 secret
-	// under a given mount and path.
+	// under a given mount and path. Responds with a [ClientMsg] containing a [ClientListKVv2VersionsMsg] containing the versions of the KVv2 secret.
 	ListKVv2Versions(uuid string, mount *Mount, path string) tea.Cmd
 
 	// GetKVSecret returns a command to get a secret from the Vault server,
-	// under a given mount and path.
+	// under a given mount and path. Responds with a [ClientMsg] containing a
+	// [ClientGetSecretMsg] containing the data of the secret.
 	GetKVSecret(uuid string, mount *Mount, path string, version int) tea.Cmd
 	// GetKVv2Metadata returns a command to get the metadata of a KVv2 secret
-	// under a given mount and path.
+	// under a given mount and path. Responds with a [ClientMsg] containing a
+	// [ClientGetKVv2MetadataMsg] containing the metadata of the KVv2 secret.
 	GetKVv2Metadata(uuid string, mount *Mount, path string) tea.Cmd
 
-	// DeleteKVSecret deletes a secret, under a given mount and path.
+	// PutKVv1Secret puts a secret into the Vault server, under a given mount and path.
+	// Responds with a [ClientMsg] containing a [ClientSuccessMsg] containing the result
+	// of the operation.
+	PutKVSecret(uuid string, mount *Mount, path string, data map[string]any) tea.Cmd
+
+	// DeleteKVSecret deletes a secret, under a given mount and path. Responds with
+	// a [ClientMsg] containing a [ClientSuccessMsg] containing the result of the
+	// operation.
 	DeleteKVSecret(uuid string, mount *Mount, path string, versions ...int) tea.Cmd
-	// UndeleteKVSecret undeletes a secret, under a given mount and path.
+	// UndeleteKVSecret undeletes a secret, under a given mount and path. Responds
+	// with a [ClientMsg] containing a [ClientSuccessMsg] containing the result of
+	// the operation.
 	UndeleteKVSecret(uuid string, mount *Mount, path string, versions ...int) tea.Cmd
-	// DestroyKVSecret destroys a secret, under a given mount and path.
+	// DestroyKVSecret destroys a secret, under a given mount and path. Responds with
+	// a [ClientMsg] containing a [ClientSuccessMsg] containing the result of the operation.
 	DestroyKVSecret(uuid string, mount *Mount, path string, versions ...int) tea.Cmd
 
 	// ListACLPolicies returns a command to list the ACL policies of the Vault
-	// server.
+	// server. Responds with a [ClientMsg] containing a [ClientListACLPoliciesMsg]
+	// containing the list of ACL policies of the Vault server.
 	ListACLPolicies(uuid string) tea.Cmd
 	// GetACLPolicy returns a command to get an ACL policy of the Vault server.
+	// Responds with a [ClientMsg] containing a [ClientGetACLPolicyMsg] containing
+	// the data of the ACL policy.
 	GetACLPolicy(uuid string, policyName string) tea.Cmd
 	// GetConfigState returns a command to get the configuration of the Vault
-	// server.
+	// server. Responds with a [ClientMsg] containing a [ClientConfigStateMsg] containing
+	// the configuration of the Vault server.
 	GetConfigState(uuid string) tea.Cmd
 }
 
@@ -392,4 +418,6 @@ func (r *TokenLookupResult) WhenExpires() time.Duration {
 	return time.Until(r.ExpireTime)
 }
 
-type ClientSuccessMsg struct{}
+type ClientSuccessMsg struct {
+	Message string `json:"message,omitempty"`
+}

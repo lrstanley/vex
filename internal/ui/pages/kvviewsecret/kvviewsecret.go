@@ -6,7 +6,6 @@ package kvviewsecret
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -38,7 +37,7 @@ func (i *item) ValueString() string {
 }
 
 func (i *item) IsMultiLine() bool {
-	v := strings.TrimSpace(i.ValueString())
+	v := i.ValueString()
 	return styles.W(v) > i.model.width || styles.H(v) > 1
 }
 
@@ -249,6 +248,11 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 				m.setFromData(),
 				types.PageClearState(),
 			)...)
+		case types.ClientSuccessMsg:
+			return tea.Batch(
+				types.SendStatus(vmsg.Message, types.Success, 2*time.Second),
+				types.RefreshData(m.UUID()),
+			)
 		}
 	case tea.KeyMsg:
 		switch {
@@ -383,27 +387,42 @@ func (m *Model) toggleMasking(global bool) tea.Cmd {
 }
 
 func (m *Model) edit() tea.Cmd {
-	// TODO: handle non-flat values.
+	if !m.isFlat {
+		return types.OpenDialog(textarea.New(
+			m.app,
+			confirmable.Config[string]{
+				CancelText:  "cancel",
+				ConfirmText: "save",
+				ConfirmFn: func(v string) tea.Cmd {
+					data := map[string]any{}
+					err := json.Unmarshal([]byte(v), &data)
+					if err != nil {
+						return types.SendStatus("failed to unmarshal json", types.Error, 2*time.Second)
+					}
+					return m.app.Client().PutKVSecret(m.UUID(), m.mount, m.path, data)
+				},
+				PassthroughTab: true,
+			},
+			"Edit secret",
+			formatter.ToJSON(m.data, false, 2),
+		))
+	}
+
 	item := m.getSelectedItem()
 	if item == nil {
 		return nil
 	}
-
 	return types.OpenDialog(textarea.New(
 		m.app,
 		confirmable.Config[string]{
 			CancelText:  "cancel",
 			ConfirmText: "save",
-			ConfirmFn: func(_ string) tea.Cmd {
-				return types.SendStatus("key edited", types.Info, 2*time.Second)
+			ConfirmFn: func(v string) tea.Cmd {
+				data := maps.Clone(m.data)
+				data[item.key] = strings.TrimSuffix(v, "\n")
+				return m.app.Client().PutKVSecret(m.UUID(), m.mount, m.path, data)
 			},
 			PassthroughTab: item.IsMultiLine(),
-			Validator: func(value string) error {
-				if value == "" {
-					return errors.New("value cannot be empty")
-				}
-				return errors.New("this is a test")
-			},
 		},
 		fmt.Sprintf("Edit key: %q", item.key),
 		item.ValueString(),
@@ -414,16 +433,42 @@ func (m *Model) editWithEditor() tea.Cmd {
 	if m.data == nil {
 		return nil
 	}
+
+	if !m.isFlat {
+		return types.OpenTempEditor(
+			m.UUID(),
+			"update-secret-*.json",
+			formatter.ToJSON(m.data, false, 2),
+			func(msg types.EditorResultMsg) tea.Cmd {
+				if !msg.HasChanged {
+					return types.SendStatus("no changes detected", types.Info, 2*time.Second)
+				}
+				data := map[string]any{}
+				err := json.Unmarshal([]byte(msg.After), &data)
+				if err != nil {
+					return types.SendStatus("failed to unmarshal json", types.Error, 2*time.Second)
+				}
+				return m.app.Client().PutKVSecret(m.UUID(), m.mount, m.path, data)
+			},
+		)
+	}
+
+	item := m.getSelectedItem()
+	if item == nil {
+		return nil
+	}
+
 	return types.OpenTempEditor(
 		m.UUID(),
 		"update-secret-*.json",
-		formatter.ToJSON(m.data, false, 2),
+		item.ValueString(),
 		func(msg types.EditorResultMsg) tea.Cmd {
 			if !msg.HasChanged {
 				return types.SendStatus("no changes detected", types.Info, 2*time.Second)
 			}
-			// TODO: do JSON validation.
-			return types.SendStatus("key edited", types.Info, 2*time.Second)
+			data := maps.Clone(m.data)
+			data[item.key] = strings.TrimSuffix(msg.After, "\n")
+			return m.app.Client().PutKVSecret(m.UUID(), m.mount, m.path, data)
 		},
 	)
 }

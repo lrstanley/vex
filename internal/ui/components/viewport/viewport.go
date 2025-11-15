@@ -20,6 +20,10 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
+var replacer = strings.NewReplacer(
+	"\t", "    ",
+)
+
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
 
 type Model struct {
@@ -82,12 +86,12 @@ func (m *Model) GetContent() string {
 func (m *Model) SetContent(content string) {
 	m.code = ""
 	m.language = ""
-	m.viewport.SetContent(content)
+	m.viewport.SetContent(replacer.Replace(content))
 	m.ensureSize()
 }
 
 func (m *Model) SetCode(code, language string) {
-	m.code = strings.TrimSpace(code)
+	m.code = replacer.Replace(strings.TrimSpace(code))
 	m.language = language
 	m.renderCode()
 }
@@ -97,7 +101,7 @@ func (m *Model) SetJSON(obj any) error {
 	if err != nil {
 		return err
 	}
-	m.SetCode(string(out), "json")
+	m.SetCode(replacer.Replace(string(out)), "json")
 	return nil
 }
 
