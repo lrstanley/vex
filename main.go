@@ -21,6 +21,7 @@ import (
 	"github.com/lrstanley/vex/internal/logging"
 	"github.com/lrstanley/vex/internal/report"
 	"github.com/lrstanley/vex/internal/ui"
+	"github.com/lrstanley/x/logging/handlers"
 )
 
 var cli = clix.New(
@@ -88,7 +89,7 @@ func main() {
 		tea.WithFilter(ui.DownsampleMouseEvents),
 	)
 
-	panicCloser := logging.NewPanicLogger(cli.Flags.Logging)
+	panicCloser := handlers.NewPanicCatcher(handlers.PanicPathName(config.GetConfigPath(), config.AppName))
 	defer panicCloser(tui.Kill) //nolint:errcheck
 
 	_, err = tui.Run()

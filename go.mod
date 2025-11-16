@@ -60,6 +60,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lmittmann/tint v1.1.2 // indirect
+	github.com/lrstanley/x/logging/handlers v0.0.0-20251116075205-0c03d31b1b27 // indirect
 	github.com/maruel/natural v1.2.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

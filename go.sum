@@ -116,6 +116,8 @@ github.com/lrstanley/x/charm/testui v0.0.0-20251111034152-5b7382a402a8 h1:hieadu
 github.com/lrstanley/x/charm/testui v0.0.0-20251111034152-5b7382a402a8/go.mod h1:GZ8EF/FVyoUMpW9warSSVcShbr2SE/WoHfk6VZUO1y4=
 github.com/lrstanley/x/http/utils v0.0.0-20251116074005-f9ff0e9bdad4 h1:OTfe96ap5Oy/a78kYPf/0CaGcT2/OhUMjEcnAofyqtE=
 github.com/lrstanley/x/http/utils v0.0.0-20251116074005-f9ff0e9bdad4/go.mod h1:DUbVTHPPSt59V9LgapgCspUqQj81mm3fEiCqK59jaq0=
+github.com/lrstanley/x/logging/handlers v0.0.0-20251116075205-0c03d31b1b27 h1:HCN4qUA2OxqDV+nVMclJ/f5VUrk0p9F1XwMe7a2V5pE=
+github.com/lrstanley/x/logging/handlers v0.0.0-20251116075205-0c03d31b1b27/go.mod h1:1IPCD6oHyEoPyqfqpEcIIYY1bfuXjGVaExrzeb/VORI=
 github.com/lrstanley/x/text/fuzzy v0.0.0-20251111034152-5b7382a402a8 h1:oNiwG9RzghT9NC4dkYBojkvYgKpedwpveyLCynTplxA=
 github.com/lrstanley/x/text/fuzzy v0.0.0-20251111034152-5b7382a402a8/go.mod h1:e+EELJiZmxVinK+BmltueSdcLxqcaUN/YAKnA38b7lQ=
 github.com/lucasb-eyer/go-colorful v1.3.0 h1:2/yBRLdWBZKrf7gB40FoiKfAWYQ0lqNcbuQwVHXptag=
