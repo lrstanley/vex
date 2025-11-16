@@ -20,6 +20,7 @@ require (
 	github.com/lrstanley/clix/v2 v2.0.0-beta.0
 	github.com/lrstanley/x/charm/formatter v0.0.0-20251111034152-5b7382a402a8
 	github.com/lrstanley/x/charm/testui v0.0.0-20251111034152-5b7382a402a8
+	github.com/lrstanley/x/http/utils v0.0.0-20251116074005-f9ff0e9bdad4
 	github.com/lrstanley/x/text/fuzzy v0.0.0-20251111034152-5b7382a402a8
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/segmentio/ksuid v1.0.4

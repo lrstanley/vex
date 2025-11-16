@@ -92,7 +92,7 @@ func (m *MockClient) Init() tea.Cmd {
 	)
 }
 
-func (m *MockClient) Update(msg tea.Msg) tea.Cmd {
+func (m *MockClient) Update(msg tea.Msg) tea.Cmd { //nolint:dupl
 	vm, ok := msg.(types.ClientMsg)
 	if !ok {
 		return nil
@@ -295,7 +295,7 @@ func (m *MockClient) GetKVv2Metadata(uuid string, mount *types.Mount, path strin
 	})
 }
 
-func (m *MockClient) PutKVSecret(uuid string, mount *types.Mount, path string, data map[string]any) tea.Cmd {
+func (m *MockClient) PutKVSecret(uuid string, _ *types.Mount, _ string, _ map[string]any) tea.Cmd {
 	return m.ErrorOr(uuid, types.ClientSuccessMsg{Message: "updated secret"})
 }
 

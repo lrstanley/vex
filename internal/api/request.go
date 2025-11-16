@@ -103,7 +103,7 @@ func request[T any](c *client, method, path string, params map[string]any, data 
 			return v, fmt.Errorf("request failed: %w", err)
 		}
 	default:
-		slog.Warn("unhandled content type for request", "content-type", resp.Header.Get("Content-Type"))
+		slog.WarnContext(ctx, "unhandled content type for request", "content-type", resp.Header.Get("Content-Type")) //nolint:sloglint
 		var body []byte
 
 		body, err = io.ReadAll(resp.Body)
@@ -126,41 +126,4 @@ func request[T any](c *client, method, path string, params map[string]any, data 
 	}
 
 	return v, nil
-}
-
-// ConcurrentLimiter is an HTTP RoundTripper that limits the number of concurrent requests.
-// It wraps another RoundTripper and ensures that only a maximum number of requests
-// can be processed simultaneously, while allowing unlimited goroutines to queue up.
-type ConcurrentLimiter struct {
-	// The underlying RoundTripper to delegate requests to.
-	Transport http.RoundTripper
-	// Semaphore to limit concurrent requests.
-	semaphore chan struct{}
-}
-
-// NewConcurrentLimiter creates a new ConcurrentLimiter with the specified maximum
-// number of concurrent requests. If transport is nil, [http.DefaultTransport] is used.
-func NewConcurrentLimiter(maxConcurrent int, transport http.RoundTripper) *ConcurrentLimiter {
-	if transport == nil {
-		transport = http.DefaultTransport
-	}
-
-	return &ConcurrentLimiter{
-		Transport: transport,
-		semaphore: make(chan struct{}, maxConcurrent),
-	}
-}
-
-// RoundTrip implements [http.RoundTripper] interface. It acquires a semaphore slot
-// before making the request and releases it after the request completes.
-func (cl *ConcurrentLimiter) RoundTrip(req *http.Request) (*http.Response, error) {
-	// Acquire a semaphore slot to limit concurrent requests.
-	cl.semaphore <- struct{}{}
-	defer func() {
-		// Release the semaphore slot when the request completes.
-		<-cl.semaphore
-	}()
-
-	// Delegate the actual request to the underlying transport.
-	return cl.Transport.RoundTrip(req)
 }

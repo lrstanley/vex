@@ -6,14 +6,16 @@ package api
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync/atomic"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
 	vapi "github.com/hashicorp/vault/api"
-	"github.com/lrstanley/vex/internal/logging"
 	"github.com/lrstanley/vex/internal/types"
+	"github.com/lrstanley/x/http/utils/httpcconc"
+	"github.com/lrstanley/x/http/utils/httpclog"
 )
 
 const (
@@ -31,16 +33,34 @@ type client struct {
 	health             types.AtomicExpires[vapi.HealthResponse]
 }
 
-func NewClient() (types.Client, error) {
+func NewClient(logger *slog.Logger, maxConcurrentRequests int) (types.Client, error) {
 	c := &client{}
+
+	if maxConcurrentRequests <= 0 {
+		maxConcurrentRequests = 10
+	}
 
 	cfg := vapi.DefaultConfig()
 	cfg.MaxRetries = 5
 	cfg.DisableRedirects = false
 	cfg.Timeout = 5 * time.Second
-	cfg.HttpClient.Transport = NewConcurrentLimiter(10, &logging.HTTPRoundTripper{
-		RoundTripper: cfg.HttpClient.Transport,
-	})
+	cfg.HttpClient.Transport = httpcconc.NewTransport(maxConcurrentRequests, httpclog.NewTransport(&httpclog.Config{
+		BaseTransport: cfg.HttpClient.Transport,
+		Headers: []string{
+			"Content-Type",
+			"Content-Length",
+			"User-Agent",
+			"Host",
+			"Accept",
+			"Accept-Encoding",
+			"Connection",
+			"X-Vault-Namespace",
+			"X-Vault-Request",
+			"Request-Id",
+			"X-Request-Id",
+		},
+		Logger: logger,
+	}))
 
 	if cfg.Error != nil {
 		return nil, fmt.Errorf("failed to create vault client: %w", cfg.Error)
@@ -65,7 +85,7 @@ func (c *client) Init() tea.Cmd {
 	)
 }
 
-func (c *client) Update(msg tea.Msg) tea.Cmd {
+func (c *client) Update(msg tea.Msg) tea.Cmd { //nolint:dupl
 	vm, ok := msg.(types.ClientMsg)
 	if !ok {
 		return nil

@@ -41,8 +41,9 @@ var cli = clix.New(
 )
 
 type Flags struct {
-	Logging     logging.Flags `embed:""`
-	EnablePprof bool          `help:"enable pprof debugging server"`
+	Logging               logging.Flags `embed:""`
+	EnablePprof           bool          `help:"enable pprof debugging server"`
+	MaxConcurrentRequests int           `env:"MAX_CONCURRENT_REQUESTS" default:"10" help:"maximum number of concurrent requests to the vault server"`
 
 	Report struct{} `cmd:"" help:"print system information for issue reporting"`
 	UI     struct{} `cmd:"" default:"1" hidden:"" help:"start the terminal UI (default)"`
@@ -75,7 +76,7 @@ func main() {
 		}()
 	}
 
-	client, err := api.NewClient()
+	client, err := api.NewClient(slog.Default(), cli.Flags.MaxConcurrentRequests)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create vault client: %v\n", err)
 		returnCode = 1
