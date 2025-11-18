@@ -3,8 +3,8 @@ module github.com/lrstanley/vex
 go 1.25.4
 
 require (
-	charm.land/bubbles/v2 v2.0.0-beta.1.0.20251106192719-c2b822795a69
-	charm.land/bubbletea/v2 v2.0.0-rc.1.0.20251114215930-55b3503a2a7c
+	charm.land/bubbles/v2 v2.0.0-rc.1
+	charm.land/bubbletea/v2 v2.0.0-rc.2
 	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251114164805-d267651963ad
 	github.com/Code-Hex/go-generics-cache v1.5.1
 	github.com/alecthomas/chroma/v2 v2.20.0
@@ -21,6 +21,7 @@ require (
 	github.com/lrstanley/x/charm/formatter v0.0.0-20251111034152-5b7382a402a8
 	github.com/lrstanley/x/charm/testui v0.0.0-20251111034152-5b7382a402a8
 	github.com/lrstanley/x/http/utils v0.0.0-20251116074005-f9ff0e9bdad4
+	github.com/lrstanley/x/logging/handlers v0.0.0-20251116075205-0c03d31b1b27
 	github.com/lrstanley/x/text/fuzzy v0.0.0-20251111034152-5b7382a402a8
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/segmentio/ksuid v1.0.4
@@ -32,7 +33,7 @@ require (
 	github.com/aymanbagabas/go-udiff v0.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.3.0.20250617194119-3f1d09f7d826 // indirect
-	github.com/charmbracelet/ultraviolet v0.0.0-20251114211333-9deacb990ee7 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20251116181749-377898bcce38 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 // indirect
 	github.com/charmbracelet/x/exp/golden v0.0.0-20251110210702-903592506081 // indirect
 	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20251110210702-903592506081 // indirect
@@ -40,7 +41,7 @@ require (
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
-	github.com/clipperhouse/displaywidth v0.5.0 // indirect
+	github.com/clipperhouse/displaywidth v0.6.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
@@ -60,7 +61,6 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lmittmann/tint v1.1.2 // indirect
-	github.com/lrstanley/x/logging/handlers v0.0.0-20251116075205-0c03d31b1b27 // indirect
 	github.com/maruel/natural v1.2.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

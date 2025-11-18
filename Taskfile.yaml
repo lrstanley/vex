@@ -4,7 +4,9 @@ vars:
   PROJECT: "vex"
   PACKAGE: "github.com/lrstanley/vex"
 env:
+  CGO_ENABLED: 0
   GOEXPERIMENT: jsonv2,greenteagc
+
 dotenv: [".env"]
 method: timestamp
 tasks:
@@ -112,8 +114,6 @@ tasks:
   build:
     desc: build the application
     deps: [prepare]
-    env:
-      CGO_ENABLED: 0
     cmds:
       - |
         go build \

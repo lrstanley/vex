@@ -33,7 +33,7 @@ type Model struct {
 	needsScrollbar bool
 
 	// Child components.
-	textarea *bta.Model
+	textarea bta.Model
 }
 
 // New creates a new textarea component.

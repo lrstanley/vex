@@ -12,7 +12,7 @@ import (
 
 const (
 	AppName    = "vex"
-	AppVersion = "0.1.0"
+	AppVersion = "devel"
 )
 
 func AppTitle(subtitle string) string {
