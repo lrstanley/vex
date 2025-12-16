@@ -22,7 +22,7 @@ import (
 	"github.com/lrstanley/vex/internal/ui/pages/aclpolicies"
 	"github.com/lrstanley/vex/internal/ui/pages/configstate"
 	"github.com/lrstanley/vex/internal/ui/pages/mounts"
-	"github.com/lrstanley/vex/internal/ui/pages/secrets"
+	"github.com/lrstanley/vex/internal/ui/pages/recursivesecrets"
 	"github.com/lrstanley/vex/internal/ui/state"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
@@ -44,9 +44,9 @@ func pageInitializer(app types.AppState) []commander.PageRef {
 		},
 		{
 			Description: "View all secrets (recursively)",
-			Commands:    secrets.Commands,
+			Commands:    recursivesecrets.Commands,
 			New: func() types.Page {
-				return secrets.New(app, nil)
+				return recursivesecrets.New(app, nil)
 			},
 		},
 		{
@@ -98,6 +98,7 @@ type Model struct { //nolint:recvcheck
 	focused       types.FocusID
 	previousFocus types.FocusID
 	cmdConfig     commander.Config
+	canvas        *lipgloss.Canvas
 
 	// Sub-components.
 	titlebar  types.Component
@@ -118,6 +119,7 @@ func New(client types.Client) *Model {
 			Pages: pageInitializer(app),
 		},
 		focused:   types.FocusPage,
+		canvas:    lipgloss.NewCanvas(0, 0),
 		titlebar:  titlebar.New(app),
 		statusbar: statusbar.New(app),
 	}
@@ -253,32 +255,42 @@ func (m *Model) View() tea.View {
 	view.WindowTitle = m.appTitle() // TODO: https://github.com/charmbracelet/bubbletea/issues/1474
 	view.AltScreen = true
 
+	// canvas := lipgloss.NewCanvas(m.width, m.height)
+	var comp *lipgloss.Compositor
+
 	if m.width < MinWinWidth || m.height < MinWinHeight {
-		view.Content = lipgloss.NewCanvas(
-			lipgloss.NewLayer(lipgloss.NewStyle().
-				Align(lipgloss.Center, lipgloss.Center).
-				Height(m.height).
-				Width(m.width).
-				Render(styles.IconCaution() + " window too small, resize")),
+		comp = lipgloss.NewCompositor(
+			lipgloss.NewLayer(
+				lipgloss.NewStyle().
+					Align(lipgloss.Center, lipgloss.Center).
+					Height(m.height).
+					Width(m.width).
+					Render(styles.IconCaution() + " window too small, resize"),
+			).ID("too-small"),
 		)
-		return view
+	} else {
+		comp = lipgloss.NewCompositor(
+			m.app.Dialog().SetLayers(
+				lipgloss.NewLayer(
+					lipgloss.NewStyle().
+						Width(m.width).
+						Height(m.height).
+						Render(
+							lipgloss.JoinVertical(
+								lipgloss.Top,
+								m.titlebar.View(),
+								m.app.Page().View(),
+								m.statusbar.View(),
+							),
+						),
+				).Z(0).X(0).Y(0).ID("main"),
+			),
+		)
 	}
 
-	view.Content = lipgloss.NewCanvas(m.app.Dialog().SetLayers(
-		lipgloss.NewLayer(
-			lipgloss.NewStyle().
-				Width(m.width).
-				Height(m.height).
-				Render(
-					lipgloss.JoinVertical(
-						lipgloss.Top,
-						m.titlebar.View(),
-						m.app.Page().View(),
-						m.statusbar.View(),
-					),
-				),
-		).ID("main").Z(0).X(0).Y(0),
-	))
+	m.canvas.Clear()
+	m.canvas.Resize(m.width, m.height)
+	view.SetContent(m.canvas.Compose(comp).Render())
 
 	return view
 }

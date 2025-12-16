@@ -38,13 +38,6 @@ type Model struct {
 	table *table.Model[*table.StaticRow[api.KVVersionMetadata]]
 }
 
-var columns = []*table.Column{
-	{ID: "version", Title: "Version"},
-	{ID: "destroyed", Title: "Destroyed"},
-	{ID: "created", Title: "Created"},
-	{ID: "deleted", Title: "Deleted"},
-}
-
 func New(app types.AppState, mount *types.Mount, path string) *Model {
 	if mount.KVVersion() != 2 {
 		panic("mount is not a KV v2 mount")
@@ -67,6 +60,13 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		app:   app,
 		mount: mount,
 		path:  path,
+	}
+
+	columns := []*table.Column{
+		{ID: "version", Title: "Version"},
+		{ID: "destroyed", Title: "Destroyed"},
+		{ID: "created", Title: "Created"},
+		{ID: "deleted", Title: "Deleted"},
 	}
 
 	m.table = table.New(app, columns, table.Config[*table.StaticRow[api.KVVersionMetadata]]{

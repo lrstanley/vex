@@ -2,7 +2,7 @@
 // this source code is governed by the MIT license that can be found in
 // the LICENSE file.
 
-package secrets
+package recursivesecrets
 
 import (
 	"fmt"
@@ -23,14 +23,7 @@ import (
 	"github.com/lrstanley/x/charm/formatter"
 )
 
-var (
-	Commands = []string{"secrets", "secret"}
-	columns  = []*table.Column{
-		{ID: "full_path", Title: "Full Path"},
-		{ID: "mount_type", Title: "Mount Type"},
-		{ID: "capabilities", Title: "Capabilities"},
-	}
-)
+var Commands = []string{"secrets", "secret"}
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
@@ -72,6 +65,12 @@ func New(app types.AppState, mount *types.Mount) *Model {
 		},
 		app:   app,
 		mount: mount,
+	}
+
+	columns := []*table.Column{
+		{ID: "full_path", Title: "Full Path"},
+		{ID: "mount_type", Title: "Mount Type"},
+		{ID: "capabilities", Title: "Capabilities"},
 	}
 
 	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.ClientSecretTreeRef]]{

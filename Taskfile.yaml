@@ -29,6 +29,11 @@ tasks:
     dir: mock-cluster
     cmds:
       - go run . rm
+  vault:bootstrap:
+    desc: bootstrap mock cluster
+    dir: mock-cluster
+    cmds:
+      - go run . bootstrap --force
   vault:env:
     desc: update .env file with mock cluster credentials -- use "task vault:env -- <user-id>" to change users
     dir: mock-cluster

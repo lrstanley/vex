@@ -15,22 +15,12 @@ import (
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
-	"github.com/lrstanley/vex/internal/ui/pages/secrets"
+	"github.com/lrstanley/vex/internal/ui/pages/recursivesecrets"
 	"github.com/lrstanley/vex/internal/ui/pages/secretwalker"
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-var (
-	Commands = []string{"mounts", "mount"}
-	columns  = []*table.Column{
-		{ID: "path", Title: "Path"},
-		{ID: "type", Title: "Type", MaxWidth: 15},
-		{ID: "description", Title: "Description", MaxWidth: 40},
-		{ID: "capabilities", Title: "Capabilities"},
-		{ID: "deprecated", Title: "Deprecated"},
-		{ID: "plugin_version", Title: "Plugin Version"},
-	}
-)
+var Commands = []string{"mounts", "mount"}
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
@@ -67,6 +57,15 @@ func New(app types.AppState) *Model {
 			}},
 		},
 		app: app,
+	}
+
+	columns := []*table.Column{
+		{ID: "path", Title: "Path"},
+		{ID: "type", Title: "Type", MaxWidth: 15},
+		{ID: "description", Title: "Description", MaxWidth: 40},
+		{ID: "capabilities", Title: "Capabilities"},
+		{ID: "deprecated", Title: "Deprecated"},
+		{ID: "plugin_version", Title: "Plugin Version"},
 	}
 
 	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.Mount]]{
@@ -161,7 +160,7 @@ func (m *Model) openDetails(row *table.StaticRow[*types.Mount]) tea.Cmd {
 }
 
 func (m *Model) openRecursive(row *table.StaticRow[*types.Mount]) tea.Cmd {
-	return types.OpenPage(secrets.New(m.app, row.Value), false)
+	return types.OpenPage(recursivesecrets.New(m.app, row.Value), false)
 }
 
 func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {

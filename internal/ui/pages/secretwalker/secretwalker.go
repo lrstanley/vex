@@ -21,12 +21,6 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-var columns = []*table.Column{
-	{ID: "mount", Title: "Mount"},
-	{ID: "key", Title: "Key"},
-	{ID: "capabilities", Title: "Capabilities"},
-}
-
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
 type Model struct {
@@ -57,6 +51,12 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		app:   app,
 		mount: mount,
 		path:  path,
+	}
+
+	columns := []*table.Column{
+		{ID: "mount", Title: "Mount"},
+		{ID: "key", Title: "Key"},
+		{ID: "capabilities", Title: "Capabilities"},
 	}
 
 	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.SecretListRef]]{

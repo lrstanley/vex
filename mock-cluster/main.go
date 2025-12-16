@@ -129,6 +129,11 @@ func create(ctx context.Context) error {
 
 	logger.InfoContext(ctx, "creating mock cluster", "num_nodes", cli.Flags.Init.NumNodes)
 
+	err := DockerPullImage(ctx, dkr, cli.Flags.Init.VaultImage+":"+cli.Flags.Init.VaultVersion)
+	if err != nil {
+		return fmt.Errorf("failed to pull image: %w", err)
+	}
+
 	for i := range cli.Flags.Init.NumNodes {
 		_, err := DockerGetNode(ctx, dkr, i+1)
 		if err == nil {

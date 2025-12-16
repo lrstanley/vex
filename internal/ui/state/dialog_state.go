@@ -316,10 +316,10 @@ func (s *dialogState) SetLayers(base *lipgloss.Layer) *lipgloss.Layer {
 					embeddedText,
 				),
 			).
-				ID(dialog.UUID()).
 				Z(base.GetZ() + i + 1).
 				X(dx).
-				Y(dy),
+				Y(dy).
+				ID(dialog.UUID()),
 		)
 	}
 	return base

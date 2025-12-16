@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -55,15 +56,27 @@ func DockerGetContainers(ctx context.Context, dkr *client.Client) []container.Su
 	}))
 }
 
+func DockerPullImage(ctx context.Context, dkr *client.Client, img string) error {
+	logger.InfoContext(ctx, "pulling image", "image", img)
+	f, err := dkr.ImagePull(ctx, img, image.PullOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to pull image: %w", err)
+	}
+
+	_, err = io.Copy(io.Discard, f)
+	if err != nil {
+		return fmt.Errorf("failed to copy image: %w", err)
+	}
+	return nil
+}
+
 func DockerClusterStart(ctx context.Context, dkr *client.Client, timeout time.Duration) error {
 	tctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	_, err := dkr.ImagePull(tctx, cli.Flags.Init.VaultImage+":"+cli.Flags.Init.VaultVersion, image.PullOptions{
-		All: true,
-	})
+	err := DockerPullImage(tctx, dkr, cli.Flags.Init.VaultImage+":"+cli.Flags.Init.VaultVersion)
 	if err != nil {
-		return fmt.Errorf("failed to pull latest version of image: %w", err)
+		return fmt.Errorf("failed to pull image: %w", err)
 	}
 
 	containers := DockerGetContainers(tctx, dkr)
