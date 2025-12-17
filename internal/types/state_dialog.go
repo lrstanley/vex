@@ -32,8 +32,8 @@ type DialogState interface {
 	// FullHelp returns the full help for the dialog state.
 	FullHelp() [][]key.Binding
 
-	// SetLayers adds the layers for the dialog state to the base layer.
-	SetLayers(baseLayer *lipgloss.Layer) *lipgloss.Layer
+	// View returns a layer for the dialog state.
+	View() *lipgloss.Layer
 }
 
 type DialogSize string

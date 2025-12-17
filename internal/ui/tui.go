@@ -269,23 +269,24 @@ func (m *Model) View() tea.View {
 			).ID("too-small"),
 		)
 	} else {
-		comp = lipgloss.NewCompositor(
-			m.app.Dialog().SetLayers(
-				lipgloss.NewLayer(
-					lipgloss.NewStyle().
-						Width(m.width).
-						Height(m.height).
-						Render(
-							lipgloss.JoinVertical(
-								lipgloss.Top,
-								m.titlebar.View(),
-								m.app.Page().View(),
-								m.statusbar.View(),
-							),
-						),
-				).Z(0).X(0).Y(0).ID("main"),
-			),
-		)
+		main := lipgloss.NewLayer(
+			lipgloss.NewStyle().
+				Width(m.width).
+				Height(m.height).
+				Render(
+					lipgloss.JoinVertical(
+						lipgloss.Top,
+						m.titlebar.View(),
+						m.app.Page().View(),
+						m.statusbar.View(),
+					),
+				),
+		).Z(0).X(0).Y(0).ID("main")
+
+		if dialogs := m.app.Dialog().View(); dialogs != nil {
+			main.AddLayers(dialogs)
+		}
+		comp = lipgloss.NewCompositor(main)
 	}
 
 	m.canvas.Clear()

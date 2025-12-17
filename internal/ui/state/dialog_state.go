@@ -167,7 +167,7 @@ func (s *dialogState) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (s *dialogState) sendDialogSize(dialog types.Dialog) tea.Cmd {
-	h, w := s.calcDialogSize(
+	h, w := s.suggestedDialogSize(
 		s.windowHeight,
 		s.windowWidth,
 		dialog.GetSize(),
@@ -266,15 +266,17 @@ func (s *dialogState) FullHelp() [][]key.Binding {
 	return append(keys, appended)
 }
 
-func (s *dialogState) SetLayers(base *lipgloss.Layer) *lipgloss.Layer {
+func (s *dialogState) View() *lipgloss.Layer {
 	dialogs := s.dialogs.Values()
 	if len(dialogs) == 0 {
-		return base
+		return nil
 	}
 
 	var view string
 	var dx, dy, maxTitleWidth int
 	var embeddedText map[styles.BorderPosition]string
+
+	base := lipgloss.NewLayer("").Z(1)
 
 	for i, dialog := range dialogs {
 		view = dialog.View()
@@ -296,36 +298,37 @@ func (s *dialogState) SetLayers(base *lipgloss.Layer) *lipgloss.Layer {
 
 		maxTitleWidth = max(0, dialog.GetWidth()-s.titleStyle.GetHorizontalFrameSize())
 
-		base.AddLayers(
-			lipgloss.NewLayer(
-				styles.Border(
-					lipgloss.JoinVertical(
-						lipgloss.Top,
-						s.titleStyle.Render(styles.Title(
-							// Give a little extra padding.
-							formatter.TruncMaybePath(dialog.GetTitle(), maxTitleWidth-2),
-							maxTitleWidth,
-							styles.IconTitleGradientDivider,
-							styles.Theme.TitleFg(),
-							styles.Theme.TitleFromFg(),
-							styles.Theme.TitleToFg(),
-						)),
-						view,
-					),
-					nil,
-					embeddedText,
+		base.AddLayers(lipgloss.NewLayer(
+			styles.Border(
+				lipgloss.JoinVertical(
+					lipgloss.Top,
+					s.titleStyle.Render(styles.Title(
+						// Give a little extra padding.
+						formatter.TruncMaybePath(dialog.GetTitle(), maxTitleWidth-2),
+						maxTitleWidth,
+						styles.IconTitleGradientDivider,
+						styles.Theme.TitleFg(),
+						styles.Theme.TitleFromFg(),
+						styles.Theme.TitleToFg(),
+					)),
+					view,
 				),
-			).
-				Z(base.GetZ() + i + 1).
-				X(dx).
-				Y(dy).
-				ID(dialog.UUID()),
+				nil,
+				embeddedText,
+			),
+		).
+			Z(i + 2).
+			X(dx).
+			Y(dy).
+			ID(dialog.UUID()),
 		)
 	}
 	return base
 }
 
-func (s *dialogState) calcDialogSize(wh, ww int, size types.DialogSize) (height, width int) {
+// suggestedDialogSize returns a suggested size for a dialog based on the window size and the dialog
+// size preset.
+func (s *dialogState) suggestedDialogSize(wh, ww int, size types.DialogSize) (height, width int) {
 	if size == "" {
 		size = types.DialogSizeMedium
 	}
@@ -356,8 +359,8 @@ func (s *dialogState) calcDialogSize(wh, ww int, size types.DialogSize) (height,
 }
 
 func (s *dialogState) calcDialogPosition(wh, ww, height, width int) (x, y int) {
-	height += 2 + s.titleStyle.GetHeight() // + s.dialogStyle.GetVerticalFrameSize() -- +2 for x.Borderize()
-	width += 2                             // s.dialogStyle.GetHorizontalFrameSize() -- +2 for x.Borderize()
+	height += 2 + s.titleStyle.GetHeight() // -- +2 for x.Borderize()
+	width += 2                             // -- +2 for x.Borderize()
 
 	if wh == 0 || ww == 0 || height == 0 || width == 0 {
 		return 0, 0

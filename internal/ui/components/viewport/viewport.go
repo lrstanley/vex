@@ -24,6 +24,17 @@ var replacer = strings.NewReplacer(
 	"\t", "    ",
 )
 
+type Styles struct {
+	Base lipgloss.Style
+}
+
+func DefaultStyles() Styles {
+	return Styles{
+		Base: lipgloss.NewStyle().
+			Padding(0, 1),
+	}
+}
+
 var _ types.Component = (*Model)(nil) // Ensure we implement the component interface.
 
 type Model struct {
@@ -33,6 +44,7 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
+	styles       Styles
 	code         string // Code content. Stored so we can re-render styled code on theme change.
 	language     string // Code language. Stored so we can re-render styled code on theme change.
 	content      string // Non-code focused content. Stored so we can copy it.
@@ -51,13 +63,17 @@ func New(app types.AppState) *Model {
 
 	m.viewport.FillHeight = true
 	m.viewport.SoftWrap = true
-	m.setStyles()
+	m.SetStyles(DefaultStyles())
 	return m
 }
 
-func (m *Model) setStyles() {
-	m.viewport.Style = lipgloss.NewStyle().
-		Padding(0, 1)
+func (m *Model) SetStyles(s Styles) {
+	m.styles = s
+	m.viewport.Style = s.Base
+}
+
+func (m *Model) Styles() Styles {
+	return m.styles
 }
 
 func (m *Model) GotoTop() {
@@ -161,7 +177,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		m.SetDimensions(msg.Width, msg.Height)
 		return nil
 	case styles.ThemeUpdatedMsg:
-		m.setStyles()
+		m.SetStyles(m.styles)
 		if m.code != "" {
 			m.renderCode()
 		}
