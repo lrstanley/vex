@@ -41,16 +41,12 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
+		columns := []*Column[testRow]{
 			{ID: "name", Title: "Name"},
 			{ID: "description", Title: "Description"},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
 
@@ -68,15 +64,11 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 		m.loading = true
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(40, 5))
@@ -88,15 +80,13 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
+		m := New(app, Config[testRow]{
+			Columns:      columns,
 			NoResultsMsg: "no items found",
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
 		})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(40, 5))
@@ -109,15 +99,13 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
+		m := New(app, Config[testRow]{
+			Columns:            columns,
 			NoResultsFilterMsg: "no results for %q",
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
 		})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(60, 5))
@@ -136,15 +124,11 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(0, 0))
 
@@ -164,16 +148,12 @@ func TestTableScrolling(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "value", Title: "Value"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "value", Title: "Value", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, testui.DefaultTermHeight))
 
@@ -207,17 +187,13 @@ func TestTableScrolling(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "description", Title: "Very Long Description Column"},
-			{ID: "value", Title: "Value"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "description", Title: "Very Long Description Column", AccessorFn: func(row testRow) string { return row.data[1] }},
+			{ID: "value", Title: "Value", AccessorFn: func(row testRow) string { return row.data[2] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		// Set small width to force horizontal scrolling
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(55, 5))
@@ -245,17 +221,13 @@ func TestTableScrolling(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "description", Title: "Very Long Description Column"},
-			{ID: "value", Title: "Value"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "description", Title: "Very Long Description Column", AccessorFn: func(row testRow) string { return row.data[1] }},
+			{ID: "value", Title: "Value", AccessorFn: func(row testRow) string { return row.data[2] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		// Set small dimensions to force both scrollbars
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(55, 10))
@@ -286,17 +258,13 @@ func TestTableTruncation(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name", MaxWidth: 10},
-			{ID: "description", Title: "Description", MaxWidth: 15},
-			{ID: "value", Title: "Value", MaxWidth: 8},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", MaxWidth: 10, AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "description", Title: "Description", MaxWidth: 15, AccessorFn: func(row testRow) string { return row.data[1] }},
+			{ID: "value", Title: "Value", MaxWidth: 8, AccessorFn: func(row testRow) string { return row.data[2] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(60, 5))
 
@@ -315,16 +283,12 @@ func TestTableTruncation(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "description", Title: "Description"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "description", Title: "Description", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(20, 4))
 
@@ -344,16 +308,12 @@ func TestTableFiltering(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "category", Title: "Category"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "category", Title: "Category", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 6))
 
@@ -390,16 +350,12 @@ func TestTableSelection(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "value", Title: "Value"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "value", Title: "Value", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
 
@@ -437,16 +393,12 @@ func TestTableSelection(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "category", Title: "Category"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "category", Title: "Category", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
 
@@ -487,17 +439,13 @@ func TestTableColumns(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "description", Title: "Description"},
-			{ID: "value", Title: "Value"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "description", Title: "Description", AccessorFn: func(row testRow) string { return row.data[1] }},
+			{ID: "value", Title: "Value", AccessorFn: func(row testRow) string { return row.data[2] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
 
@@ -536,16 +484,12 @@ func TestTableData(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "value", Title: "Value"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "value", Title: "Value", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(60, 8))
 
@@ -608,16 +552,12 @@ func TestTableStyles(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*Column{
-			{ID: "name", Title: "Name"},
-			{ID: "value", Title: "Value"},
+		columns := []*Column[testRow]{
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "value", Title: "Value", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
-		m := New(app, columns, Config[testRow]{
-			RowFn: func(row testRow) []string {
-				return row.data
-			},
-		})
+		m := New(app, Config[testRow]{Columns: columns})
 
 		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
 

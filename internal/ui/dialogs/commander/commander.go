@@ -16,7 +16,7 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-var columns = []*table.Column{
+var columns = []*table.Column[*table.StaticRow[[]string]]{
 	{ID: "active", Title: "", MinWidth: 1},
 	{ID: "command", Title: "Command"},
 	{ID: "aliases", Title: "Aliases"},

@@ -22,7 +22,7 @@ type Styles struct {
 }
 
 type Config struct {
-	Columns           []*table.Column
+	Columns           []*table.Column[*table.StaticRow[[]string]]
 	FilterPlaceholder string
 	SelectFunc        func(id string) tea.Cmd
 }
@@ -66,11 +66,11 @@ func New(app types.AppState, config Config) *Model {
 	m.input.SetVirtualCursor(true)
 	m.input.ShowSuggestions = true
 
-	m.table = table.New(app, config.Columns, table.Config[*table.StaticRow[[]string]]{
+	m.table = table.New(app, table.Config[*table.StaticRow[[]string]]{
+		Columns: config.Columns,
 		SelectFn: func(row *table.StaticRow[[]string]) tea.Cmd {
 			return config.SelectFunc(string(row.ID()))
 		},
-		RowFn: func(row *table.StaticRow[[]string]) []string { return row.Value },
 	})
 
 	m.initStyles()

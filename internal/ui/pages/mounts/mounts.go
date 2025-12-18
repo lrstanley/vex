@@ -35,10 +35,6 @@ type Model struct {
 
 	// Child components.
 	table *table.Model[*table.StaticRow[*types.Mount]]
-
-	// Styles.
-	supportedFg  lipgloss.Style
-	deprecatedFg lipgloss.Style
 }
 
 func New(app types.AppState) *Model {
@@ -59,34 +55,86 @@ func New(app types.AppState) *Model {
 		app: app,
 	}
 
-	columns := []*table.Column{
-		{ID: "path", Title: "Path"},
-		{ID: "type", Title: "Type", MaxWidth: 15},
-		{ID: "description", Title: "Description", MaxWidth: 40},
-		{ID: "capabilities", Title: "Capabilities"},
-		{ID: "deprecated", Title: "Deprecated"},
-		{ID: "plugin_version", Title: "Plugin Version"},
-	}
-
-	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.Mount]]{
+	m.table = table.New(app, table.Config[*table.StaticRow[*types.Mount]]{
+		Columns: []*table.Column[*table.StaticRow[*types.Mount]]{
+			{
+				ID:    "path",
+				Title: "Path",
+				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
+					return styles.IconFolder() + " " + row.Value.Path
+				},
+				StyleFn: func(_ *table.StaticRow[*types.Mount], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					return baseStyle.Bold(true).Foreground(styles.Theme.InfoFg())
+				},
+			},
+			{
+				ID:       "type",
+				Title:    "Type",
+				MaxWidth: 15,
+				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
+					var opts []string
+					for k, v := range row.Value.Options {
+						switch k {
+						case "version":
+							opts = append(opts, "v"+v)
+						}
+					}
+					if len(opts) > 0 {
+						return row.Value.Type + " (" + strings.Join(opts, ",") + ")"
+					}
+					return row.Value.Type
+				},
+			},
+			{
+				ID:       "description",
+				Title:    "Description",
+				MaxWidth: 40,
+				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
+					return row.Value.Description
+				},
+			},
+			{
+				ID:    "capabilities",
+				Title: "Capabilities",
+				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
+					return string(row.Value.Capabilities.Highest(row.Value.Path))
+				},
+				StyleFn: func(row *table.StaticRow[*types.Mount], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					return styles.ClientCapabilities(baseStyle, row.Value.Capabilities, row.Value.Path)
+				},
+			},
+			{
+				ID:    "deprecated",
+				Title: "Deprecated",
+				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
+					if row.Value.DeprecationStatus == "" {
+						return "unknown"
+					}
+					return row.Value.DeprecationStatus
+				},
+				StyleFn: func(row *table.StaticRow[*types.Mount], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					if row.Value.DeprecationStatus == "supported" {
+						return baseStyle.Foreground(styles.Theme.SuccessFg())
+					}
+					return baseStyle.Foreground(styles.Theme.WarningFg())
+				},
+			},
+			{
+				ID:    "plugin_version",
+				Title: "Plugin Version",
+				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
+					return row.Value.RunningVersion
+				},
+			},
+		},
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListMounts(m.UUID())
 		},
 		SelectFn: func(value *table.StaticRow[*types.Mount]) tea.Cmd {
 			return m.openMount(value)
 		},
-		RowFn: m.rowFn,
 	})
-
-	m.initStyles()
 	return m
-}
-
-func (m *Model) initStyles() {
-	m.supportedFg = lipgloss.NewStyle().
-		Foreground(styles.Theme.SuccessFg())
-	m.deprecatedFg = lipgloss.NewStyle().
-		Foreground(styles.Theme.WarningFg())
 }
 
 func (m *Model) Init() tea.Cmd {
@@ -130,8 +178,6 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 				return table.ID(m.Path)
 			}))
 		}
-	case styles.ThemeUpdatedMsg:
-		m.initStyles()
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, types.KeyDetails):
@@ -161,44 +207,6 @@ func (m *Model) openDetails(row *table.StaticRow[*types.Mount]) tea.Cmd {
 
 func (m *Model) openRecursive(row *table.StaticRow[*types.Mount]) tea.Cmd {
 	return types.OpenPage(recursivesecrets.New(m.app, row.Value), false)
-}
-
-func (m *Model) rowFn(row *table.StaticRow[*types.Mount]) []string {
-	var opts []string
-
-	for k, v := range row.Value.Options {
-		switch k {
-		case "version":
-			opts = append(opts, "v"+v)
-		}
-	}
-
-	sopts := strings.Join(opts, ",")
-	if sopts != "" {
-		sopts = " (" + sopts + ")"
-	}
-
-	deprecationStatus := row.Value.DeprecationStatus
-	if deprecationStatus == "" {
-		deprecationStatus = "unknown"
-	}
-	if row.Value.DeprecationStatus == "supported" {
-		deprecationStatus = m.supportedFg.Render(deprecationStatus)
-	} else {
-		deprecationStatus = m.deprecatedFg.Render(deprecationStatus)
-	}
-
-	return []string{
-		lipgloss.NewStyle().
-			Bold(true).
-			Foreground(styles.Theme.InfoFg()).
-			Render(styles.IconFolder() + " " + row.Value.Path),
-		row.Value.Type + sopts,
-		row.Value.Description,
-		styles.ClientCapabilities(row.Value.Capabilities, row.Value.Path),
-		deprecationStatus,
-		row.Value.RunningVersion,
-	}
 }
 
 func (m *Model) View() string {

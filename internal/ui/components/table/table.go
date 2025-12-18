@@ -20,25 +20,15 @@ import (
 	"github.com/lrstanley/x/charm/formatter"
 )
 
-type Styles struct {
-	Base                      lipgloss.Style
-	NoResults                 lipgloss.Style
-	Header                    lipgloss.Style
-	Cell                      lipgloss.Style
-	SelectedRow               lipgloss.Style
-	HighlightedRow            lipgloss.Style
-	HighlightedAndSelectedRow lipgloss.Style
-}
-
 type ID string
 
 type Config[T Row] struct {
-	SelectFn           func(value T) tea.Cmd
-	RowFn              func(value T) []string
-	FetchFn            func() tea.Cmd
-	NoResultsMsg       string
-	NoResultsFilterMsg string
-	AllowHighlighting  bool
+	Columns            []*Column[T]          // Columns to display in the table. Should not be modified after initialization.
+	SelectFn           func(value T) tea.Cmd // Function to call when a row is selected.
+	FetchFn            func() tea.Cmd        // Function to call when fetching data.
+	NoResultsMsg       string                // Message to display when no results are found.
+	NoResultsFilterMsg string                // Message to display when no results are found for a filter.
+	AllowHighlighting  bool                  // Whether to allow highlighting rows.
 }
 
 type exampleRow struct{}
@@ -61,8 +51,6 @@ type Model[T Row] struct {
 	// filter is the current filter string.
 	filter string
 
-	// columns contains all of the columns (enabled or disabled).
-	columns []*Column
 	// columnIDMap is a map of column IDs to their index in the columns slice.
 	columnIDMap map[ID]int
 
@@ -102,7 +90,7 @@ type Model[T Row] struct {
 }
 
 // New returns a new table component. it will by default be in a loading state.
-func New[T Row](app types.AppState, columns []*Column, config Config[T]) *Model[T] {
+func New[T Row](app types.AppState, config Config[T]) *Model[T] {
 	m := &Model[T]{
 		ComponentModel:  &types.ComponentModel{},
 		app:             app,
@@ -119,97 +107,9 @@ func New[T Row](app types.AppState, columns []*Column, config Config[T]) *Model[
 		m.config.NoResultsFilterMsg = "no results found for %q"
 	}
 
-	m.SetColumns(columns)
+	m.validateColumns()
 	m.initStyles()
 	return m
-}
-
-func (m *Model[T]) initStyles() {
-	m.styles.Base = m.providedStyles.Base.
-		Inherit(
-			lipgloss.NewStyle().
-				Foreground(styles.Theme.AppFg()),
-		)
-
-	m.styles.NoResults = m.providedStyles.NoResults.
-		Inherit(
-			lipgloss.NewStyle().
-				Foreground(styles.Theme.ErrorFg()).
-				Background(styles.Theme.ErrorBg()),
-		).
-		Padding(0, 1).
-		Align(lipgloss.Center)
-
-	m.styles.Cell = m.providedStyles.Cell.
-		Inherit(
-			lipgloss.NewStyle().
-				Foreground(styles.Theme.AppFg()),
-		).
-		Padding(0, 1).
-		UnsetMarginTop().
-		UnsetMarginBottom().
-		UnsetBorderTop().
-		UnsetBorderRight().
-		UnsetBorderBottom().
-		UnsetBorderLeft()
-
-	m.styles.Header = m.providedStyles.Header.
-		Inherit(
-			lipgloss.NewStyle().
-				Foreground(styles.Theme.AppFg()).
-				Bold(true),
-		).
-		Padding(m.styles.Cell.GetPadding()).
-		Margin(m.styles.Cell.GetMargin()).
-		UnsetBorderTop().
-		UnsetBorderLeft().
-		UnsetBorderRight()
-
-	m.styles.SelectedRow = m.providedStyles.SelectedRow.
-		Inherit(
-			lipgloss.NewStyle().
-				Foreground(styles.Theme.AppFg()).
-				Background(styles.Theme.InfoBg()).
-				Bold(true),
-		).
-		Padding(m.styles.Cell.GetPadding()).
-		Margin(m.styles.Cell.GetMargin()).
-		UnsetBorderTop().
-		UnsetBorderRight().
-		UnsetBorderBottom().
-		UnsetBorderLeft()
-
-	m.styles.HighlightedRow = m.providedStyles.HighlightedRow.
-		Inherit(
-			lipgloss.NewStyle().
-				Foreground(styles.Theme.SuccessFg()).
-				Background(styles.Theme.SuccessBg()),
-		).
-		Padding(m.styles.Cell.GetPadding()).
-		Margin(m.styles.Cell.GetMargin()).
-		UnsetBorderTop().
-		UnsetBorderRight().
-		UnsetBorderBottom().
-		UnsetBorderLeft()
-
-	m.styles.HighlightedAndSelectedRow = m.providedStyles.HighlightedAndSelectedRow.
-		Inherit(
-			lipgloss.NewStyle().
-				Foreground(styles.Theme.SuccessFg()).
-				Background(styles.Theme.InfoBg()).
-				Bold(true),
-		).
-		Padding(m.styles.Cell.GetPadding()).
-		Margin(m.styles.Cell.GetMargin()).
-		UnsetBorderTop().
-		UnsetBorderRight().
-		UnsetBorderBottom().
-		UnsetBorderLeft()
-}
-
-func (m *Model[T]) SetStyles(s Styles) {
-	m.providedStyles = s
-	m.initStyles()
 }
 
 func (m *Model[T]) Init() tea.Cmd {
@@ -319,7 +219,7 @@ func (m *Model[T]) SetLoading() tea.Cmd {
 
 // renderHeader renders the header of the table.
 func (m *Model[T]) renderHeader(maxWidth int, hasScrollbar bool) string {
-	out := make([]string, 0, len(m.columns))
+	out := make([]string, 0, len(m.config.Columns))
 	available := maxWidth
 	xoffset := m.xoffset
 
@@ -344,24 +244,24 @@ func (m *Model[T]) renderHeader(maxWidth int, hasScrollbar bool) string {
 
 	var s string
 	var w, neww, cw int
-	for i := range m.columns {
-		if m.columns[i].Disabled {
+	for i := range m.config.Columns {
+		if m.config.Columns[i].Disabled {
 			continue
 		}
 
-		cw = m.maxColumnWidths[m.columns[i].ID]
+		cw = m.maxColumnWidths[m.config.Columns[i].ID]
 
 		// If the table has a scrollbar, and this is the last column, then we can actually
 		// use the extra space above the scrollbar, specifically when it's a header.
-		if hasScrollbar && i == len(m.columns)-1 {
+		if hasScrollbar && i == len(m.config.Columns)-1 {
 			cw++
 		}
 
 		s = m.styles.Header.
 			Height(1 + hhvs).
 			Width(cw + hhfs).
-			Align(m.columns[i].Align).
-			Render(formatter.Trunc(m.columns[i].Title, cw))
+			Align(m.config.Columns[i].Align).
+			Render(formatter.Trunc(m.config.Columns[i].Title, cw))
 
 		w = ansi.StringWidth(strings.Split(s, "\n")[0]) // Split to account for multiline headers.
 
@@ -397,39 +297,45 @@ func (m *Model[T]) renderBody(maxWidth int) string {
 	var s string
 	var style lipgloss.Style
 	var w, neww, cw, available, xoffset int
+	var cellHighlighted, cellSelected bool
 	for row := range m.GetVisibleRows() { // TODO: this needs to get ONLY active rows.
 		rowOut = rowOut[:0]
 		available = maxWidth
 		xoffset = m.xoffset
-		values = m.config.RowFn(row)
+		values = m.getRowValues(row, false)
 
 		if m.xoffset > 0 {
 			rowOut = append(rowOut, formatter.TruncateEllipsis)
 			available--
 		}
 
-		for i := range m.columns {
-			if m.columns[i].Disabled {
+		for i := range m.config.Columns {
+			if m.config.Columns[i].Disabled {
 				continue
 			}
 
-			cw = m.maxColumnWidths[m.columns[i].ID]
+			cw = m.maxColumnWidths[m.config.Columns[i].ID] // TODO: add styler to column definition?
 
-			switch {
-			case slices.Contains(m.highlighted, row.ID()) && hasSelected && selected.ID() == row.ID():
-				style = m.styles.HighlightedAndSelectedRow
-			case slices.Contains(m.highlighted, row.ID()):
-				style = m.styles.HighlightedRow
-			case hasSelected && selected.ID() == row.ID(): // TODO: need something to cover both highlighted and selected.
-				style = m.styles.SelectedRow
-			default:
-				style = m.styles.Cell
+			cellHighlighted = slices.Contains(m.highlighted, row.ID())
+			cellSelected = hasSelected && selected.ID() == row.ID()
+
+			style = m.defaultStyleFn(style, cellHighlighted, cellSelected)
+
+			if m.config.Columns[i].StyleFn != nil {
+				style = m.config.Columns[i].StyleFn(row, style, cellHighlighted, cellSelected)
+			}
+
+			if styles.Theme.TableShading() {
+				distance := m.distanceFromSelected(row.ID())
+				if distance > 0 {
+					style = style.Foreground(lipgloss.Darken(style.GetForeground(), min(float64(distance)*0.025, 0.5)))
+				}
 			}
 
 			s = style.
 				Height(1).
 				Width(cw + m.styles.Cell.GetHorizontalFrameSize()).
-				Align(m.columns[i].Align).
+				Align(m.config.Columns[i].Align).
 				Render(formatter.Trunc(values[i], cw))
 
 			w = ansi.StringWidth(s)
@@ -445,7 +351,7 @@ func (m *Model[T]) renderBody(maxWidth int) string {
 			// Right side truncation.
 			if w > available {
 				s = formatter.Trunc(s, available)
-			} else if w == available && i < len(m.columns)-1 {
+			} else if w == available && i < len(m.config.Columns)-1 {
 				s = formatter.Trunc(s+" ", available)
 			}
 			available -= w

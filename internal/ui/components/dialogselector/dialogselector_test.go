@@ -29,7 +29,7 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
 		m := New(app, Config{
-			Columns: []*table.Column{
+			Columns: []*table.Column[*table.StaticRow[[]string]]{
 				{ID: "name", Title: "Name"},
 				{ID: "description", Title: "Description"},
 			},
@@ -53,7 +53,7 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
 		m := New(app, Config{
-			Columns: []*table.Column{
+			Columns: []*table.Column[*table.StaticRow[[]string]]{
 				{ID: "name", Title: "Name"},
 				{ID: "description", Title: "Description"},
 			},
@@ -72,7 +72,7 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
 		m := New(app, Config{
-			Columns: []*table.Column{
+			Columns: []*table.Column[*table.StaticRow[[]string]]{
 				{ID: "name", Title: "Name"},
 				{ID: "description", Title: "Description"},
 			},
@@ -95,7 +95,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*table.Column{
+		columns := []*table.Column[*table.StaticRow[[]string]]{
 			{ID: "name", Title: "Name"},
 			{ID: "category", Title: "Category"},
 		}
@@ -130,7 +130,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*table.Column{
+		columns := []*table.Column[*table.StaticRow[[]string]]{
 			{ID: "name", Title: "Name"},
 		}
 
@@ -156,7 +156,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*table.Column{
+		columns := []*table.Column[*table.StaticRow[[]string]]{
 			{ID: "name", Title: "Name"},
 			{ID: "value", Title: "Value"},
 		}
@@ -190,7 +190,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
-		columns := []*table.Column{
+		columns := []*table.Column[*table.StaticRow[[]string]]{
 			{ID: "name", Title: "Name"},
 			{ID: "description", Title: "Description"},
 		}

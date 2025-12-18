@@ -62,22 +62,76 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		path:  path,
 	}
 
-	columns := []*table.Column{
-		{ID: "version", Title: "Version"},
-		{ID: "destroyed", Title: "Destroyed"},
-		{ID: "created", Title: "Created"},
-		{ID: "deleted", Title: "Deleted"},
-	}
+	m.table = table.New(app, table.Config[*table.StaticRow[api.KVVersionMetadata]]{
+		Columns: []*table.Column[*table.StaticRow[api.KVVersionMetadata]]{
+			{
+				ID:    "version",
+				Title: "Version",
+				AccessorFn: func(row *table.StaticRow[api.KVVersionMetadata]) string {
+					var icon string
+					switch {
+					case row.Value.Destroyed:
+						icon = styles.IconProhibited()
+					case !row.Value.DeletionTime.IsZero():
+						icon = styles.IconCaution()
+					default:
+						icon = styles.IconSecret()
+					}
 
-	m.table = table.New(app, columns, table.Config[*table.StaticRow[api.KVVersionMetadata]]{
+					if row.Value.Version == m.latestVersion {
+						return icon + " " + strconv.Itoa(row.Value.Version) + lipgloss.NewStyle().
+							Foreground(styles.Theme.SuccessFg()).
+							Bold(true).
+							Render(" (latest)")
+					}
+					return icon + " " + strconv.Itoa(row.Value.Version)
+				},
+			},
+			{
+				ID:    "destroyed",
+				Title: "Destroyed",
+				AccessorFn: func(row *table.StaticRow[api.KVVersionMetadata]) string {
+					if row.Value.Destroyed {
+						return "true"
+					}
+					return "false"
+				},
+				StyleFn: func(row *table.StaticRow[api.KVVersionMetadata], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					if row.Value.Destroyed {
+						return baseStyle.Foreground(styles.Theme.ErrorFg()).Bold(true)
+					}
+					return baseStyle
+				},
+			},
+			{
+				ID:    "created",
+				Title: "Created",
+				AccessorFn: func(row *table.StaticRow[api.KVVersionMetadata]) string {
+					return formatter.TimeRelative(row.Value.CreatedTime, true)
+				},
+			},
+			{
+				ID:    "deleted",
+				Title: "Deleted",
+				AccessorFn: func(row *table.StaticRow[api.KVVersionMetadata]) string {
+					if row.Value.DeletionTime.IsZero() {
+						return "false"
+					}
+					return formatter.TimeRelative(row.Value.DeletionTime, true)
+				},
+				StyleFn: func(row *table.StaticRow[api.KVVersionMetadata], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					if !row.Value.DeletionTime.IsZero() {
+						return baseStyle.Foreground(styles.Theme.ErrorFg()).Bold(true)
+					}
+					return baseStyle
+				},
+			},
+		},
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListKVv2Versions(m.UUID(), m.mount, m.path)
 		},
 		SelectFn: func(value *table.StaticRow[api.KVVersionMetadata]) tea.Cmd {
 			return m.selectVersion(value.Value)
-		},
-		RowFn: func(row *table.StaticRow[api.KVVersionMetadata]) []string {
-			return m.rowFn(row)
 		},
 	})
 
@@ -237,43 +291,6 @@ func (m *Model) selectVersion(version api.KVVersionMetadata) tea.Cmd {
 	}
 
 	return types.OpenPage(kvviewsecret.New(m.app, m.mount, m.path, version.Version, false), false)
-}
-
-func (m *Model) rowFn(row *table.StaticRow[api.KVVersionMetadata]) []string {
-	var latest, destroyed, deleted string
-
-	if row.Value.Version == m.latestVersion {
-		latest = lipgloss.NewStyle().
-			Foreground(styles.Theme.SuccessFg()).
-			Bold(true).
-			Render(" (latest)")
-	}
-
-	icon := styles.IconSecret()
-
-	if row.Value.Destroyed {
-		icon = styles.IconProhibited()
-		destroyed = lipgloss.NewStyle().Foreground(styles.Theme.ErrorFg()).Bold(true).Render("true")
-	} else {
-		destroyed = "false"
-	}
-
-	if row.Value.DeletionTime.IsZero() {
-		deleted = "false"
-	} else {
-		icon = styles.IconCaution()
-		deleted = lipgloss.NewStyle().
-			Foreground(styles.Theme.ErrorFg()).
-			Bold(true).
-			Render(formatter.TimeRelative(row.Value.DeletionTime, true))
-	}
-
-	return []string{
-		icon + " " + strconv.Itoa(row.Value.Version) + latest,
-		destroyed,
-		formatter.TimeRelative(row.Value.CreatedTime, true),
-		deleted,
-	}
 }
 
 func (m *Model) View() string {

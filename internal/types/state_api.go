@@ -232,6 +232,11 @@ var (
 	CapabilityCreate ClientCapability = "create" // POST/PUT.
 	CapabilityUpdate ClientCapability = "update" // POST/PUT.
 	CapabilityPatch  ClientCapability = "patch"  // PATCH.
+
+	// CapabilityNone is a special vex-only pseudo-capability that indicates no permissions.
+	CapabilityNone ClientCapability = "no-perms"
+	// CapabilityUnknown is a special vex-only pseudo-capability that indicates an unknown capability.
+	CapabilityUnknown ClientCapability = "unknown"
 )
 
 type ClientCapabilities []ClientCapability
@@ -261,6 +266,41 @@ func (c ClientCapabilities) String() string {
 		values = append(values, string(v))
 	}
 	return strings.Join(values, ", ")
+}
+
+// Highest returns the highest capability or permission for a given path based on
+// the provided list of capabilities.
+func (c ClientCapabilities) Highest(path string) ClientCapability {
+	isSingular := !strings.HasSuffix(path, "/")
+
+	switch {
+	case len(c) == 0:
+		return CapabilityNone
+	case c.Contains(CapabilityRoot):
+		return CapabilityRoot
+	case c.Contains(CapabilityDeny):
+		return CapabilityDeny
+	case c.Contains(CapabilitySudo):
+		return CapabilitySudo
+	case isSingular && c.Contains(CapabilityRead):
+		return CapabilityRead
+	case !isSingular && c.Contains(CapabilityList):
+		return CapabilityList
+	case isSingular && c.Contains(CapabilityDelete):
+		return CapabilityDelete
+	case !isSingular && c.Contains(CapabilityCreate):
+		return CapabilityCreate
+	case isSingular && c.Contains(CapabilityUpdate):
+		return CapabilityUpdate
+	case isSingular && c.Contains(CapabilityPatch):
+		return CapabilityPatch
+	case c.Contains(CapabilitySubscribe):
+		return CapabilitySubscribe
+	case c.Contains(CapabilityRecover):
+		return CapabilityRecover
+	}
+
+	return CapabilityUnknown
 }
 
 type ClientSecretTree []*ClientSecretTreeRef

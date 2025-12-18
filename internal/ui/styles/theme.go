@@ -51,6 +51,7 @@ type ThemeConfig struct {
 
 	profile                colorprofile.Profile
 	supportsAdvancedColors bool `accessor:"getter"`
+	tableShading           bool `accessor:"getter"`
 
 	chroma *chroma.Style
 
@@ -141,6 +142,7 @@ func (tc *ThemeConfig) lighten(c color.Color, v float64) color.Color {
 }
 
 func (tc *ThemeConfig) useFallback() {
+	tc.tableShading = false
 	tc.appCursor = lipgloss.White
 	tc.appFg = lipgloss.White
 	tc.appBrightFg = lipgloss.White
@@ -207,6 +209,8 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 		borderGradientCache.DeleteAll()
 		return tc
 	}
+
+	tc.tableShading = true
 
 	if cs, _ := chroma.NewStyle("vex", chromatint.StyleEntry(t, false)); cs != nil {
 		tc.chroma = cs

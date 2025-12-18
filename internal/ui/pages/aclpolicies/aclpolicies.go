@@ -14,12 +14,7 @@ import (
 	"github.com/lrstanley/vex/internal/ui/styles"
 )
 
-var (
-	Commands = []string{"aclpolicies", "aclpolicy"}
-	columns  = []*table.Column{
-		{ID: "name", Title: "Name"},
-	}
-)
+var Commands = []string{"aclpolicies", "aclpolicy"}
 
 var _ types.Page = (*Model)(nil) // Ensure we implement the page interface.
 
@@ -45,15 +40,21 @@ func New(app types.AppState) *Model {
 		},
 		app: app,
 	}
-	m.table = table.New(app, columns, table.Config[*table.StaticRow[string]]{
+	m.table = table.New(app, table.Config[*table.StaticRow[string]]{
+		Columns: []*table.Column[*table.StaticRow[string]]{
+			{
+				ID:    "name",
+				Title: "Name",
+				AccessorFn: func(row *table.StaticRow[string]) string {
+					return row.Value
+				},
+			},
+		},
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListACLPolicies(m.UUID())
 		},
 		SelectFn: func(value *table.StaticRow[string]) tea.Cmd {
 			return m.app.Client().GetACLPolicy(m.UUID(), value.Value)
-		},
-		RowFn: func(value *table.StaticRow[string]) []string {
-			return []string{value.Value}
 		},
 	})
 

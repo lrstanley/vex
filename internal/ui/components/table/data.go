@@ -11,6 +11,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
+	"github.com/lrstanley/vex/internal/utils"
 	"github.com/lrstanley/x/text/fuzzy"
 )
 
@@ -49,20 +50,9 @@ func (m *Model[T]) applyFiltering() {
 	}
 
 	ids := m.AllIDs()
-	var values []string
-	filterable := make([]string, 0, len(m.columns))
 
 	m.filtered = fuzzy.FindRankedRow(m.filter, ids, func(id ID) []string {
-		i := m.dataIDMap[id]
-		values = m.config.RowFn(m.data[i])
-		filterable = filterable[:0]
-		for i := range m.columns {
-			if m.columns[i].DisableFiltering {
-				continue
-			}
-			filterable = append(filterable, values[i])
-		}
-		return filterable
+		return m.getRowValues(m.GetRowByID(id), true)
 	}, func(s string) string {
 		return ansi.Strip(strings.ToLower(s))
 	})
@@ -277,6 +267,20 @@ func (m *Model[T]) GetVisibleRows() iter.Seq[T] {
 			}
 		}
 	}
+}
+
+// distanceFromSelected returns the distance between the given ID and the selected ID,
+// as a positive number, 0+.
+func (m *Model[T]) distanceFromSelected(id ID) int {
+	var v int
+	if m.filter != "" {
+		v = slices.Index(m.filtered, id) - m.selectedIndex
+	} else {
+		v = slices.IndexFunc(m.data, func(row T) bool {
+			return row.ID() == id
+		}) - m.selectedIndex
+	}
+	return utils.Abs(v)
 }
 
 // GetFilteredRows returns an iterator of rows that are filtered.

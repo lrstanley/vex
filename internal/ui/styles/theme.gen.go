@@ -15,6 +15,15 @@ func (tc *ThemeConfig) SupportsAdvancedColors() bool {
 	return tc.supportsAdvancedColors
 }
 
+func (tc *ThemeConfig) TableShading() bool {
+	if tc == nil {
+		return false
+	}
+	tc.mu.RLock()
+	defer tc.mu.RUnlock()
+	return tc.tableShading
+}
+
 func (tc *ThemeConfig) AppCursor() color.Color {
 	if tc == nil {
 		return nil

@@ -67,25 +67,38 @@ func New(app types.AppState, mount *types.Mount) *Model {
 		mount: mount,
 	}
 
-	columns := []*table.Column{
-		{ID: "full_path", Title: "Full Path"},
-		{ID: "mount_type", Title: "Mount Type"},
-		{ID: "capabilities", Title: "Capabilities"},
-	}
-
-	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.ClientSecretTreeRef]]{
+	m.table = table.New(app, table.Config[*table.StaticRow[*types.ClientSecretTreeRef]]{
+		Columns: []*table.Column[*table.StaticRow[*types.ClientSecretTreeRef]]{
+			{
+				ID:    "full_path",
+				Title: "Full Path",
+				AccessorFn: func(row *table.StaticRow[*types.ClientSecretTreeRef]) string {
+					return styles.IconSecret() + " " + row.Value.GetFullPath(true)
+				},
+			},
+			{
+				ID:    "mount_type",
+				Title: "Mount Type",
+				AccessorFn: func(row *table.StaticRow[*types.ClientSecretTreeRef]) string {
+					return row.Value.Mount.Type
+				},
+			},
+			{
+				ID:    "capabilities",
+				Title: "Capabilities",
+				AccessorFn: func(row *table.StaticRow[*types.ClientSecretTreeRef]) string {
+					return string(row.Value.Capabilities.Highest(row.Value.GetFullPath(true)))
+				},
+				StyleFn: func(row *table.StaticRow[*types.ClientSecretTreeRef], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					return styles.ClientCapabilities(baseStyle, row.Value.Capabilities, row.Value.GetFullPath(true))
+				},
+			},
+		},
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListAllSecretsRecursive(m.UUID(), m.mount)
 		},
 		SelectFn: func(value *table.StaticRow[*types.ClientSecretTreeRef]) tea.Cmd {
 			return m.selectSecret(value.Value)
-		},
-		RowFn: func(value *table.StaticRow[*types.ClientSecretTreeRef]) []string {
-			return []string{
-				styles.IconSecret() + " " + value.Value.GetFullPath(true),
-				value.Value.Mount.Type,
-				styles.ClientCapabilities(value.Value.Capabilities, value.Value.GetFullPath(true)),
-			}
 		},
 	})
 

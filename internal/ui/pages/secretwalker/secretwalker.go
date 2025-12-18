@@ -53,36 +53,47 @@ func New(app types.AppState, mount *types.Mount, path string) *Model {
 		path:  path,
 	}
 
-	columns := []*table.Column{
-		{ID: "mount", Title: "Mount"},
-		{ID: "key", Title: "Key"},
-		{ID: "capabilities", Title: "Capabilities"},
-	}
-
-	m.table = table.New(app, columns, table.Config[*table.StaticRow[*types.SecretListRef]]{
+	m.table = table.New(app, table.Config[*table.StaticRow[*types.SecretListRef]]{
+		Columns: []*table.Column[*table.StaticRow[*types.SecretListRef]]{
+			{
+				ID:    "mount",
+				Title: "Mount",
+				AccessorFn: func(row *table.StaticRow[*types.SecretListRef]) string {
+					return row.Value.Mount.Path
+				},
+			},
+			{
+				ID:    "key",
+				Title: "Key",
+				AccessorFn: func(row *table.StaticRow[*types.SecretListRef]) string {
+					if strings.HasSuffix(row.Value.Path, "/") {
+						return styles.IconFolder() + " " + row.Value.Path
+					}
+					return styles.IconSecret() + " " + row.Value.Path
+				},
+				StyleFn: func(row *table.StaticRow[*types.SecretListRef], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					if strings.HasSuffix(row.Value.Path, "/") {
+						return baseStyle.Bold(true).Foreground(styles.Theme.InfoFg())
+					}
+					return baseStyle
+				},
+			},
+			{
+				ID:    "capabilities",
+				Title: "Capabilities",
+				AccessorFn: func(row *table.StaticRow[*types.SecretListRef]) string {
+					return string(row.Value.Capabilities.Highest(row.Value.FullPath()))
+				},
+				StyleFn: func(row *table.StaticRow[*types.SecretListRef], baseStyle lipgloss.Style, _, _ bool) lipgloss.Style {
+					return styles.ClientCapabilities(baseStyle, row.Value.Capabilities, row.Value.FullPath())
+				},
+			},
+		},
 		FetchFn: func() tea.Cmd {
 			return app.Client().ListSecrets(m.UUID(), m.mount, m.path)
 		},
 		SelectFn: func(value *table.StaticRow[*types.SecretListRef]) tea.Cmd {
 			return m.selectSecret(value.Value)
-		},
-		RowFn: func(row *table.StaticRow[*types.SecretListRef]) []string {
-			var pathValue string
-
-			if strings.HasSuffix(row.Value.Path, "/") {
-				pathValue = lipgloss.NewStyle().
-					Bold(true).
-					Foreground(styles.Theme.InfoFg()).
-					Render(styles.IconFolder() + " " + row.Value.Path)
-			} else {
-				pathValue = styles.IconSecret() + " " + row.Value.Path
-			}
-
-			return []string{
-				row.Value.Mount.Path,
-				pathValue,
-				styles.ClientCapabilities(row.Value.Capabilities, row.Value.FullPath()),
-			}
 		},
 	})
 

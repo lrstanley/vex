@@ -4,48 +4,47 @@
 
 package table
 
-import "charm.land/lipgloss/v2"
+import (
+	"fmt"
 
-type Column struct { // TODO: add width.
-	ID               ID
-	Disabled         bool
-	Title            string
-	MinWidth         int
-	MaxWidth         int
-	Align            lipgloss.Position
-	DisableFiltering bool
+	"charm.land/lipgloss/v2"
+)
+
+// Column is a column in the table.
+type Column[T Row] struct {
+	ID               ID                 // Unique identifier for the column.
+	Title            string             // Display name for the column.
+	Disabled         bool               // Whether the column is disabled. When disabled, will not be used for filtering.
+	MinWidth         int                // Optional minimum width for the column.
+	MaxWidth         int                // Optional maximum width for the column.
+	Align            lipgloss.Position  // Optional alignment for the column. Defaults to left.
+	DisableFiltering bool               // Whether the column is disabled for filtering.
+	StyleFn          CellStyleFunc[T]   // Optional function to style the column.
+	AccessorFn       func(row T) string // Function which is used to access the value for the column. Must provide unless using StaticRow[[]string].
 }
 
-// GetColumnByID returns a column by its ID, if it exists.
-func (m *Model[T]) GetColumnByID(id ID) *Column {
-	i, ok := m.columnIDMap[id]
-	if !ok {
-		return nil
-	}
-	return m.columns[i]
-}
-
-// ToggleColumn toggles a specific column on or off.
-func (m *Model[T]) ToggleColumn(id ID, enabled bool) {
-	m.columns[m.columnIDMap[id]].Disabled = !enabled
-	m.applyFiltering()
-	m.sanitizeHighlighted()
-	m.updateCalculations()
-}
-
-// SetColumns updates the columns, does some basic validation (at least 1 enabled,
-// correct min/max widths, etc), panics if invalid, and updates internal caches.
-func (m *Model[T]) SetColumns(columns []*Column) {
-	m.columns = columns
-
-	if len(m.columns) == 0 {
+// validateColumns validates the columns and panics if they are invalid.
+func (m *Model[T]) validateColumns() {
+	if len(m.config.Columns) == 0 {
 		panic("no columns provided")
 	}
 
+	var empty T
+
 	var hasEnabledColumn bool
-	for _, c := range m.columns {
+	for i, c := range m.config.Columns {
 		if c.ID == "" {
-			panic("column ID is required")
+			panic(fmt.Sprintf("ID is required for column with title %q", c.Title))
+		}
+
+		if _, ok := any(empty).(*StaticRow[[]string]); ok && c.AccessorFn == nil {
+			c.AccessorFn = func(row T) string {
+				return any(row).(*StaticRow[[]string]).Value[i]
+			}
+		}
+
+		if c.AccessorFn == nil {
+			panic(fmt.Sprintf("AccessorFn is required for column with title %q", c.Title))
 		}
 		if c.MinWidth < 0 {
 			c.MinWidth = 0
@@ -70,10 +69,39 @@ func (m *Model[T]) SetColumns(columns []*Column) {
 		panic("no enabled columns provided")
 	}
 
-	m.columnIDMap = make(map[ID]int, len(m.columns))
-	for i := range m.columns {
-		m.columnIDMap[m.columns[i].ID] = i
+	m.columnIDMap = make(map[ID]int, len(m.config.Columns))
+	for i := range m.config.Columns {
+		m.columnIDMap[m.config.Columns[i].ID] = i
 	}
 
+	m.updateCalculations()
+}
+
+// getRowValues returns the values for a row, not including disabled columns.
+func (m *Model[T]) getRowValues(row T, onlyFilterable bool) []string {
+	values := make([]string, len(m.config.Columns))
+	for i := range m.config.Columns {
+		if m.config.Columns[i].Disabled || (onlyFilterable && m.config.Columns[i].DisableFiltering) {
+			continue
+		}
+		values[i] = m.config.Columns[i].AccessorFn(row)
+	}
+	return values
+}
+
+// GetColumnByID returns a column by its ID, if it exists.
+func (m *Model[T]) GetColumnByID(id ID) *Column[T] {
+	i, ok := m.columnIDMap[id]
+	if !ok {
+		return nil
+	}
+	return m.config.Columns[i]
+}
+
+// ToggleColumn toggles a specific column on or off.
+func (m *Model[T]) ToggleColumn(id ID, enabled bool) {
+	m.config.Columns[m.columnIDMap[id]].Disabled = !enabled
+	m.applyFiltering()
+	m.sanitizeHighlighted()
 	m.updateCalculations()
 }

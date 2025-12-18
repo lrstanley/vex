@@ -124,37 +124,37 @@ func (m *Model[T]) updateCalculations() {
 	var lastEnabledColumn int
 
 	// Pre-seed the column width calculations using the title of the column.
-	for i := range m.columns {
-		if m.columns[i].Disabled {
-			delete(m.maxColumnWidths, m.columns[i].ID)
+	for i := range m.config.Columns {
+		if m.config.Columns[i].Disabled {
+			delete(m.maxColumnWidths, m.config.Columns[i].ID)
 			continue
 		}
-		w = ansi.StringWidth(m.columns[i].Title)
-		if mw := m.columns[i].MinWidth; mw > 0 && w < mw {
+		w = ansi.StringWidth(m.config.Columns[i].Title)
+		if mw := m.config.Columns[i].MinWidth; mw > 0 && w < mw {
 			w = mw
 		}
-		if mw := m.columns[i].MaxWidth; mw > 0 && w > mw {
+		if mw := m.config.Columns[i].MaxWidth; mw > 0 && w > mw {
 			w = mw
 		}
-		m.maxColumnWidths[m.columns[i].ID] = w
+		m.maxColumnWidths[m.config.Columns[i].ID] = w
 		lastEnabledColumn = i
 	}
 
 	// If there is a row cell that is larger than the pre-seeded width, then
 	// update the column width to the larger value.
 	for row := range m.GetRows() {
-		values = m.config.RowFn(row)
-		for i := range m.columns {
-			if m.columns[i].Disabled {
+		values = m.getRowValues(row, false)
+		for i := range m.config.Columns {
+			if m.config.Columns[i].Disabled {
 				continue
 			}
 			w = ansi.StringWidth(values[i])
-			if mw := m.columns[i].MaxWidth; mw > 0 && w > mw {
+			if mw := m.config.Columns[i].MaxWidth; mw > 0 && w > mw {
 				w = mw
 			}
-			m.maxColumnWidths[m.columns[i].ID] = max(
+			m.maxColumnWidths[m.config.Columns[i].ID] = max(
 				w,
-				m.maxColumnWidths[m.columns[i].ID],
+				m.maxColumnWidths[m.config.Columns[i].ID],
 			)
 		}
 	}
@@ -163,7 +163,7 @@ func (m *Model[T]) updateCalculations() {
 	// additional spacing to the last column.
 	available := m.maxInnerTableWidth() - m.innerTableWidth()
 	if available > 0 {
-		m.maxColumnWidths[m.columns[lastEnabledColumn].ID] += available
+		m.maxColumnWidths[m.config.Columns[lastEnabledColumn].ID] += available
 	}
 }
 
