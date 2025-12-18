@@ -25,6 +25,7 @@ Vex (**V**ault **Ex**plorer) is a **Work in Progress** HashiCorp Vault TUI (Term
   </a>
 
 
+
   <a href="https://codecov.io/gh/lrstanley/vex">
     <img title="Code Coverage" src="https://img.shields.io/codecov/c/github/lrstanley/vex/master?style=flat-square">
   </a>
