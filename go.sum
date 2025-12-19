@@ -1,7 +1,7 @@
 charm.land/bubbles/v2 v2.0.0-rc.1 h1:EiIFVAc3Zi/yY86td+79mPhHR7AqZ1OxF+6ztpOCRaM=
 charm.land/bubbles/v2 v2.0.0-rc.1/go.mod h1:5AbN6cEd/47gkEf8TgiQ2O3RZ5QxMS14l9W+7F9fPC4=
-charm.land/bubbletea/v2 v2.0.0-rc.2.0.20251212194116-6348bd4b7475 h1:73ohAau8fvq3d54i1bQxVKhBf/vmPYDtV3JZgb+SIQk=
-charm.land/bubbletea/v2 v2.0.0-rc.2.0.20251212194116-6348bd4b7475/go.mod h1:pDM18flq3Z4njKZPA3zCvyVSSIJbMcoqlE82BdGUtL8=
+charm.land/bubbletea/v2 v2.0.0-rc.2.0.20251217174709-64b15728bac9 h1:C6TJAFcxtJ0zByWSxE254FirSITecmaDmN/qUj8zHHw=
+charm.land/bubbletea/v2 v2.0.0-rc.2.0.20251217174709-64b15728bac9/go.mod h1:pDM18flq3Z4njKZPA3zCvyVSSIJbMcoqlE82BdGUtL8=
 charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251205162909-7869489d8971 h1:xZFcNsJMiIDbFtWRyDmkKNk1sjojfaom4Zoe0cyH/8c=
 charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251205162909-7869489d8971/go.mod h1:i61Y3FmdbcBNSKa+pKB3DaE4uVQmBLMs/xlvRyHcXAE=
 github.com/Code-Hex/go-generics-cache v1.5.1 h1:6vhZGc5M7Y/YD8cIUcY8kcuQLB4cHR7U+0KMqAA0KcU=
@@ -26,8 +26,8 @@ github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.3.0.20250617194119-3f1d09f7d82
 github.com/charmbracelet/bubbletea/v2 v2.0.0-beta.3.0.20250617194119-3f1d09f7d826/go.mod h1:bfzSaUDPMKrWDjD6wo/ato9lfDdEX83rZgwcXHYWJ98=
 github.com/charmbracelet/colorprofile v0.4.1 h1:a1lO03qTrSIRaK8c3JRxJDZOvhvIeSco3ej+ngLk1kk=
 github.com/charmbracelet/colorprofile v0.4.1/go.mod h1:U1d9Dljmdf9DLegaJ0nGZNJvoXAhayhmidOdcBwAvKk=
-github.com/charmbracelet/ultraviolet v0.0.0-20251215102126-8518113293e1 h1:0uVEMbe5L80n1fbNAz+WSO9mEWIau6iEo6umDMstzis=
-github.com/charmbracelet/ultraviolet v0.0.0-20251215102126-8518113293e1/go.mod h1:Ns3cOzzY9hEFFeGxB6VpfgRnqOJZJFhQAPfRxPqflQs=
+github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9 h1:dsDBRP9Iyco0EjVpCsAzl8VGbxk04fP3sa80ySJSAZw=
+github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9/go.mod h1:Ns3cOzzY9hEFFeGxB6VpfgRnqOJZJFhQAPfRxPqflQs=
 github.com/charmbracelet/x/ansi v0.11.3 h1:6DcVaqWI82BBVM/atTyq6yBoRLZFBsnoDoX9GCu2YOI=
 github.com/charmbracelet/x/ansi v0.11.3/go.mod h1:yI7Zslym9tCJcedxz5+WBq+eUGMJT0bM06Fqy1/Y4dI=
 github.com/charmbracelet/x/cellbuf v0.0.14-0.20250505150409-97991a1f17d1 h1:MTSs/nsZNfZPbYk/r9hluK2BtwoqvEYruAujNVwgDv0=

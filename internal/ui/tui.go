@@ -12,6 +12,7 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/lrstanley/vex/internal/config"
 	"github.com/lrstanley/vex/internal/debouncer"
 	"github.com/lrstanley/vex/internal/types"
@@ -98,7 +99,6 @@ type Model struct { //nolint:recvcheck
 	focused       types.FocusID
 	previousFocus types.FocusID
 	cmdConfig     commander.Config
-	canvas        *lipgloss.Canvas
 
 	// Sub-components.
 	titlebar  types.Component
@@ -119,7 +119,6 @@ func New(client types.Client) *Model {
 			Pages: pageInitializer(app),
 		},
 		focused:   types.FocusPage,
-		canvas:    lipgloss.NewCanvas(0, 0),
 		titlebar:  titlebar.New(app),
 		statusbar: statusbar.New(app),
 	}
@@ -255,21 +254,19 @@ func (m *Model) View() tea.View {
 	view.WindowTitle = m.appTitle() // TODO: https://github.com/charmbracelet/bubbletea/issues/1474
 	view.AltScreen = true
 
-	// canvas := lipgloss.NewCanvas(m.width, m.height)
-	var comp *lipgloss.Compositor
+	var base *lipgloss.Layer
+	var dialogs []*lipgloss.Layer
 
 	if m.width < MinWinWidth || m.height < MinWinHeight {
-		comp = lipgloss.NewCompositor(
-			lipgloss.NewLayer(
-				lipgloss.NewStyle().
-					Align(lipgloss.Center, lipgloss.Center).
-					Height(m.height).
-					Width(m.width).
-					Render(styles.IconCaution() + " window too small, resize"),
-			).ID("too-small"),
-		)
+		base = lipgloss.NewLayer(
+			lipgloss.NewStyle().
+				Align(lipgloss.Center, lipgloss.Center).
+				Height(m.height).
+				Width(m.width).
+				Render(styles.IconCaution() + " window too small, resize"),
+		).ID("too-small")
 	} else {
-		main := lipgloss.NewLayer(
+		base = lipgloss.NewLayer(
 			lipgloss.NewStyle().
 				Width(m.width).
 				Height(m.height).
@@ -281,17 +278,55 @@ func (m *Model) View() tea.View {
 						m.statusbar.View(),
 					),
 				),
-		).Z(0).X(0).Y(0).ID("main")
+		).ID("main")
 
-		if dialogs := m.app.Dialog().View(); dialogs != nil {
-			main.AddLayers(dialogs)
+		dialogs = m.app.Dialog().View()
+		if len(dialogs) > 0 {
+			base.AddLayers(dialogs...)
 		}
-		comp = lipgloss.NewCompositor(main)
 	}
 
-	m.canvas.Clear()
-	m.canvas.Resize(m.width, m.height)
-	view.SetContent(m.canvas.Compose(comp).Render())
+	comp := lipgloss.NewCompositor(base)
+	cbounds := comp.Bounds()
+	canvas := lipgloss.NewCanvas(cbounds.Dx(), cbounds.Dy()).Compose(comp)
+
+	if len(dialogs) > 0 {
+		var cell *uv.Cell
+		var lx, ly, lh, lw int
+
+		afg := lipgloss.Darken(styles.Theme.AppFg(), 0.6)
+		abg := styles.Theme.AppBg()
+
+		for y := 0; y < cbounds.Dy(); y++ {
+			for x := 0; x < cbounds.Dx(); x++ {
+				var withinDialog bool
+				for _, l := range dialogs {
+					lx, ly, lh, lw = l.GetX(), l.GetY(), l.Height(), l.Width()
+					if x >= lx && x < lx+lw && y >= ly && y < ly+lh {
+						withinDialog = true
+						break
+					}
+				}
+				if withinDialog {
+					continue
+				}
+
+				cell = canvas.CellAt(x, y)
+				if cell == nil || cell.IsZero() {
+					continue
+				}
+
+				cell = cell.Clone()
+				// cell.Style.Fg = lipgloss.Darken(cell.Style.Fg, 0.6)
+				// cell.Style.Bg = lipgloss.Darken(cell.Style.Bg, 0.6)
+				cell.Style.Fg = afg
+				cell.Style.Bg = abg
+				canvas.SetCell(x, y, cell)
+			}
+		}
+	}
+
+	view.ContentDrawable = canvas
 
 	return view
 }
