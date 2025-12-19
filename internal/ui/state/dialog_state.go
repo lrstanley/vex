@@ -5,6 +5,7 @@
 package state
 
 import (
+	"image"
 	"slices"
 
 	"charm.land/bubbles/v2/key"
@@ -248,7 +249,9 @@ func (s *dialogState) FullHelp() [][]key.Binding {
 	var prepended, appended []key.Binding
 	keys := dialog.FullHelp()
 
-	prepended = append(prepended, types.KeyCancel)
+	if !types.KeyBindingContainsFull(keys, types.KeyCancel) {
+		prepended = append(prepended, types.KeyCancel)
+	}
 
 	if !types.KeyBindingContainsFull(keys, types.KeyHelp) {
 		appended = append(appended, types.KeyHelp)
@@ -266,24 +269,24 @@ func (s *dialogState) FullHelp() [][]key.Binding {
 	return append(keys, appended)
 }
 
-func (s *dialogState) View() *lipgloss.Layer {
+func (s *dialogState) View() (layers []*lipgloss.Layer) {
 	dialogs := s.dialogs.Values()
 	if len(dialogs) == 0 {
 		return nil
 	}
 
 	var view string
-	var dx, dy, maxTitleWidth int
+	var maxTitleWidth int
+	var bounds image.Rectangle
 	var embeddedText map[styles.BorderPosition]string
-
-	base := lipgloss.NewLayer("").Z(1)
 
 	for i, dialog := range dialogs {
 		view = dialog.View()
 		if view == "" {
 			panic("dialog view is empty")
 		}
-		dx, dy = s.calcDialogPosition(
+
+		bounds = s.calcDialogPosition(
 			s.windowHeight,
 			s.windowWidth,
 			dialog.GetHeight(),
@@ -296,9 +299,10 @@ func (s *dialogState) View() *lipgloss.Layer {
 			embeddedText[styles.BottomMiddleBorder] = s.shorthelp.View()
 		}
 
+		// TODO: replace dialog.GetWidth() with bounds.Dx()
 		maxTitleWidth = max(0, dialog.GetWidth()-s.titleStyle.GetHorizontalFrameSize())
 
-		base.AddLayers(lipgloss.NewLayer(
+		layers = append(layers, lipgloss.NewLayer(
 			styles.Border(
 				lipgloss.JoinVertical(
 					lipgloss.Top,
@@ -316,14 +320,9 @@ func (s *dialogState) View() *lipgloss.Layer {
 				nil,
 				embeddedText,
 			),
-		).
-			Z(i + 2).
-			X(dx).
-			Y(dy).
-			ID(dialog.UUID()),
-		)
+		).Z(i+1).X(bounds.Min.X).Y(bounds.Min.Y).ID(dialog.UUID()))
 	}
-	return base
+	return layers
 }
 
 // suggestedDialogSize returns a suggested size for a dialog based on the window size and the dialog
@@ -358,12 +357,19 @@ func (s *dialogState) suggestedDialogSize(wh, ww int, size types.DialogSize) (he
 	return ch, cw
 }
 
-func (s *dialogState) calcDialogPosition(wh, ww, height, width int) (x, y int) {
+func (s *dialogState) calcDialogPosition(wh, ww, height, width int) image.Rectangle {
 	height += 2 + s.titleStyle.GetHeight() // -- +2 for x.Borderize()
 	width += 2                             // -- +2 for x.Borderize()
 
 	if wh == 0 || ww == 0 || height == 0 || width == 0 {
-		return 0, 0
+		return image.Rectangle{}
 	}
-	return max((ww-width)/2, DialogWindowPadding), max((wh-height)/2, DialogWindowPadding)
+
+	x := max((ww-width)/2, DialogWindowPadding)
+	y := max((wh-height)/2, DialogWindowPadding)
+
+	return image.Rectangle{
+		Min: image.Pt(x, y),
+		Max: image.Pt(x+width, y+height),
+	}
 }

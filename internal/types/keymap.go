@@ -159,10 +159,8 @@ type KeyBindingGroup struct {
 
 func KeyBindingContains(keys []key.Binding, against key.Binding) bool {
 	in := against.Keys()
-	var s []string
 	for _, k := range keys {
-		s = k.Keys()
-		for _, v := range s {
+		for _, v := range k.Keys() {
 			if slices.Contains(in, v) {
 				return true
 			}
