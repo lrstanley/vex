@@ -92,6 +92,8 @@ type ThemeConfig struct {
 	dialogBorderFg             color.Color `accessor:"getter"`
 	dialogBorderGradientFromFg color.Color `accessor:"getter"`
 	dialogBorderGradientToFg   color.Color `accessor:"getter"`
+	dialogBackdropFg           color.Color `accessor:"getter"`
+	dialogBackdropBg           color.Color `accessor:"getter"`
 
 	titleFg     color.Color `accessor:"getter"`
 	titleFromFg color.Color `accessor:"getter"`
@@ -180,6 +182,8 @@ func (tc *ThemeConfig) useFallback() {
 	tc.dialogBorderFg = lipgloss.BrightMagenta
 	tc.dialogBorderGradientFromFg = lipgloss.BrightMagenta
 	tc.dialogBorderGradientToFg = lipgloss.BrightMagenta
+	tc.dialogBackdropFg = tc.appFg
+	tc.dialogBackdropBg = tc.appBg
 
 	tc.titleFg = lipgloss.BrightRed
 	tc.titleFromFg = lipgloss.BrightMagenta
@@ -262,6 +266,8 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.dialogBorderFg = t.Purple
 	tc.dialogBorderGradientFromFg = tc.AdaptAuto(t.BrightPurple, 0.2)
 	tc.dialogBorderGradientToFg = tc.AdaptAuto(t.BrightBlue, 0.2)
+	tc.dialogBackdropFg = tc.AdaptAuto(tc.appBg, 0.4)
+	tc.dialogBackdropBg = tc.appBg
 
 	tc.titleFg = tc.adapt(tc.darken(t.BrightRed, 0.5), tc.lighten(t.BrightRed, 0.5))
 	tc.titleFromFg = tc.adapt(tc.darken(t.BrightPurple, 0.2), tc.lighten(t.BrightPurple, 0.2))

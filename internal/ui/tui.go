@@ -294,8 +294,8 @@ func (m *Model) View() tea.View {
 		var cell *uv.Cell
 		var lx, ly, lh, lw int
 
-		afg := lipgloss.Darken(styles.Theme.AppFg(), 0.6)
-		abg := styles.Theme.AppBg()
+		fg := styles.Theme.DialogBackdropFg()
+		bg := styles.Theme.DialogBackdropBg()
 
 		for y := 0; y < cbounds.Dy(); y++ {
 			for x := 0; x < cbounds.Dx(); x++ {
@@ -317,10 +317,8 @@ func (m *Model) View() tea.View {
 				}
 
 				cell = cell.Clone()
-				// cell.Style.Fg = lipgloss.Darken(cell.Style.Fg, 0.6)
-				// cell.Style.Bg = lipgloss.Darken(cell.Style.Bg, 0.6)
-				cell.Style.Fg = afg
-				cell.Style.Bg = abg
+				cell.Style.Fg = fg
+				cell.Style.Bg = bg
 				canvas.SetCell(x, y, cell)
 			}
 		}
