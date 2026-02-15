@@ -251,7 +251,7 @@ func (m *Model) View() tea.View {
 	var view tea.View
 	view.BackgroundColor = styles.Theme.AppBg()
 	view.ForegroundColor = styles.Theme.AppFg()
-	view.WindowTitle = m.appTitle() // TODO: https://github.com/charmbracelet/bubbletea/issues/1474
+	view.WindowTitle = m.appTitle()
 	view.AltScreen = true
 
 	var base *lipgloss.Layer
@@ -290,6 +290,8 @@ func (m *Model) View() tea.View {
 	cbounds := comp.Bounds()
 	canvas := lipgloss.NewCanvas(cbounds.Dx(), cbounds.Dy()).Compose(comp)
 
+	// TODO: workaround right now to achieve backdrops, since we don't have access
+	// to the individual bounds of children layers.
 	if len(dialogs) > 0 {
 		var cell *uv.Cell
 		var lx, ly, lh, lw int
@@ -324,7 +326,7 @@ func (m *Model) View() tea.View {
 		}
 	}
 
-	view.ContentDrawable = canvas
-
+	// view.ContentDrawable = canvas // TODO: v2-drawable branch is still WIP.
+	view.Content = canvas.Render()
 	return view
 }

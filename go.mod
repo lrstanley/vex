@@ -1,29 +1,28 @@
 module github.com/lrstanley/vex
 
-go 1.25.4
+go 1.26.0
 
 require (
-	charm.land/bubbles/v2 v2.0.0-rc.1
-	charm.land/bubbletea/v2 v2.0.0-rc.2.0.20251217174709-64b15728bac9
-	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20251205162909-7869489d8971
+	charm.land/bubbles/v2 v2.0.0-rc.1.0.20260213124548-d004225e8c3b
+	charm.land/bubbletea/v2 v2.0.0-rc.2.0.20260213123647-742b944f78af
+	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20260212100304-e18737634dea
 	github.com/Code-Hex/go-generics-cache v1.5.1
-	github.com/alecthomas/chroma/v2 v2.20.0
-	github.com/alecthomas/kong v1.12.1
+	github.com/alecthomas/chroma/v2 v2.23.1
+	github.com/alecthomas/kong v1.14.0
 	github.com/atotto/clipboard v0.1.4
-	github.com/charmbracelet/colorprofile v0.4.1
-	github.com/charmbracelet/ultraviolet v0.0.0-20251217160852-6b0c0e26fad9
-	github.com/charmbracelet/x/ansi v0.11.3
+	github.com/charmbracelet/colorprofile v0.4.2
+	github.com/charmbracelet/ultraviolet v0.0.0-20260213120247-99b01dfd139c
+	github.com/charmbracelet/x/ansi v0.11.6
 	github.com/gkampitakis/go-snaps v0.5.15
-	github.com/hashicorp/vault/api v1.20.0
-	github.com/joho/godotenv v1.5.1
-	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.0
-	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.8
-	github.com/lrstanley/clix/v2 v2.0.0-beta.0
-	github.com/lrstanley/x/charm/formatter v0.0.0-20251111034152-5b7382a402a8
-	github.com/lrstanley/x/charm/testui v0.0.0-20251111034152-5b7382a402a8
-	github.com/lrstanley/x/http/utils v0.0.0-20251116074005-f9ff0e9bdad4
-	github.com/lrstanley/x/logging/handlers v0.0.0-20251116075205-0c03d31b1b27
-	github.com/lrstanley/x/text/fuzzy v0.0.0-20251111034152-5b7382a402a8
+	github.com/hashicorp/vault/api v1.22.0
+	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.0-alpha.1
+	github.com/lrstanley/bubbletint/v2 v2.0.0-alpha.10
+	github.com/lrstanley/clix/v2 v2.0.0-beta.1
+	github.com/lrstanley/x/charm/formatter v0.0.0-20260211071134-b7dbd6471eca
+	github.com/lrstanley/x/charm/testui v0.0.0-20260211071134-b7dbd6471eca
+	github.com/lrstanley/x/http/utils v0.0.0-20260211071134-b7dbd6471eca
+	github.com/lrstanley/x/logging/handlers v0.0.0-20260211071134-b7dbd6471eca
+	github.com/lrstanley/x/text/fuzzy v0.0.0-20260211071134-b7dbd6471eca
 	github.com/lucasb-eyer/go-colorful v1.3.0
 	github.com/segmentio/ksuid v1.0.4
 	golang.org/x/sync v0.19.0
@@ -41,14 +40,13 @@ require (
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
-	github.com/clipperhouse/displaywidth v0.6.2 // indirect
-	github.com/clipperhouse/stringish v0.1.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
+	github.com/clipperhouse/displaywidth v0.10.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.6.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/gkampitakis/ciinfo v0.3.3 // indirect
 	github.com/gkampitakis/go-diff v1.3.2 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.2 // indirect
-	github.com/goccy/go-yaml v1.18.0 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
+	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -60,7 +58,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lmittmann/tint v1.1.2 // indirect
+	github.com/lmittmann/tint v1.1.3 // indirect
 	github.com/maruel/natural v1.2.1 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -75,10 +73,9 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	golang.org/x/crypto v0.41.0 // indirect
 	golang.org/x/exp v0.0.0-20250819193227-8b4c13bb791b // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/time v0.12.0 // indirect
+	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
+	golang.org/x/time v0.14.0 // indirect
 )

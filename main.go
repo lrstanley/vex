@@ -14,7 +14,6 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/alecthomas/kong"
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/lrstanley/clix/v2"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/config"
