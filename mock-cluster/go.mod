@@ -1,6 +1,6 @@
 module github.com/lrstanley/vex/mock-cluster
 
-go 1.25.1
+go 1.26.0
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.1
@@ -11,10 +11,10 @@ require (
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/hashicorp/vault/api/auth/userpass v0.10.0
 	github.com/lrstanley/clix/v2 v2.0.0-beta.0
+	github.com/lrstanley/x/sync v0.0.0-20260328223243-6b6d78d19e44
 	github.com/moby/moby/api v1.52.0-alpha.1
 	github.com/moby/moby/client v0.1.0-alpha.0
 	github.com/opencontainers/image-spec v1.1.1
-	golang.org/x/sync v0.18.0
 	golang.org/x/time v0.12.0
 )
 

@@ -5,15 +5,18 @@
 package styles
 
 import (
+	"context"
 	"fmt"
 	"image/color"
 	"slices"
 	"strings"
+	"time"
 
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
-	"github.com/lrstanley/vex/internal/cache"
 	"github.com/lrstanley/x/charm/formatter"
+	"github.com/lrstanley/x/sync/cache"
+	"github.com/lrstanley/x/sync/cache/policy/lfu"
 )
 
 // TODO: all of this logic is kinda a mess, but it solves the issue for now.
@@ -64,7 +67,11 @@ type BorderGradient struct {
 	BottomLeftCorner  color.Color
 }
 
-var borderGradientCache = cache.New[string, *BorderGradient](10)
+var borderGradientCache = cache.New[string, *BorderGradient](
+	context.Background(),
+	cache.WithLFU[string, *BorderGradient](lfu.WithCapacity(10)),
+	cache.WithJanitorInterval[string, *BorderGradient](10*time.Second),
+)
 
 // GetBorderGradient returns a border gradient for the given height and width.
 func GetBorderGradient(height, width int) *BorderGradient {

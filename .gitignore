@@ -12,6 +12,7 @@ tmp
 *.prof
 *.conf
 vex
+mock-cluster/mock-cluster
 **/.env
 **/.mock-cluster.json
 TODO.md

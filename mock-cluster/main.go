@@ -19,7 +19,7 @@ import (
 	vapi "github.com/hashicorp/vault/api"
 	"github.com/hashicorp/vault/api/auth/userpass"
 	"github.com/lrstanley/clix/v2"
-	"golang.org/x/sync/errgroup"
+	"github.com/lrstanley/x/sync/conc"
 )
 
 var (
@@ -185,10 +185,10 @@ func start(ctx context.Context) error {
 		return fmt.Errorf("failed to wait for vault cluster to be initialized: %w", err)
 	}
 
-	var eg errgroup.Group
+	eg := conc.NewErrorGroup(ctx, 0)
 
 	for i := range cli.Flags.Init.NumNodes {
-		eg.Go(func() error {
+		eg.Go(func(_ context.Context) error {
 			return WaitVaultUnseal(ctx, 120*time.Second, i+1)
 		})
 	}

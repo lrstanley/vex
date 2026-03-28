@@ -16,7 +16,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	vapi "github.com/hashicorp/vault/api"
 	"github.com/lrstanley/vex/internal/types"
-	"golang.org/x/sync/errgroup"
+	"github.com/lrstanley/x/sync/conc"
 )
 
 const MaxRecursiveRequests = 300
@@ -80,7 +80,7 @@ func (c *client) listAllSecretsRecursive(
 	}
 
 	var mu sync.Mutex
-	var eg errgroup.Group
+	eg := conc.NewErrorGroup(context.Background(), 0)
 	var reqAttempts, actualRequests atomic.Int64
 
 	for _, mount := range mounts {
@@ -88,7 +88,7 @@ func (c *client) listAllSecretsRecursive(
 			continue
 		}
 
-		eg.Go(func() error {
+		eg.Go(func(_ context.Context) error {
 			inner, eerr := c.listMountSecretsRecursive(
 				&reqAttempts,
 				&actualRequests,
@@ -130,7 +130,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	paths ...string,
 ) (tree types.ClientSecretTree, err error) {
 	var mu sync.Mutex
-	var eg errgroup.Group
+	eg := conc.NewErrorGroup(context.Background(), 0)
 
 	wasMountLevel := false
 
@@ -157,7 +157,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	for _, path := range paths {
 		switch {
 		case strings.HasSuffix(path, "/"): // Folder.
-			eg.Go(func() error {
+			eg.Go(func(_ context.Context) error {
 				if v := reqAttempts.Add(1); v > maxRequests {
 					ref := &types.ClientSecretTreeRef{
 						Mount:      mount,

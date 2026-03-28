@@ -210,7 +210,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	if !tc.supportsAdvancedColors {
 		t = tint.TintITerm2Default
 		tc.useFallback()
-		borderGradientCache.DeleteAll()
+		borderGradientCache.Clear()
 		return tc
 	}
 
@@ -284,7 +284,7 @@ func (tc *ThemeConfig) set() *ThemeConfig {
 	tc.activeButtonFg = white
 	tc.activeButtonBg = tc.AdaptAuto(t.Cyan, -0.3)
 
-	borderGradientCache.DeleteAll()
+	borderGradientCache.Clear()
 	return tc
 }
 
