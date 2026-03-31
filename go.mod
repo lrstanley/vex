@@ -10,19 +10,19 @@ require (
 	github.com/alecthomas/kong v1.14.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/colorprofile v0.4.3
-	github.com/charmbracelet/ultraviolet v0.0.0-20260316091819-b93f6a3b8502
+	github.com/charmbracelet/ultraviolet v0.0.0-20260330092749-0f94982c930b
 	github.com/charmbracelet/x/ansi v0.11.6
 	github.com/gkampitakis/go-snaps v0.5.21
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/lrstanley/bubbletint/chromatint/v2 v2.0.1
 	github.com/lrstanley/bubbletint/v2 v2.0.1
-	github.com/lrstanley/clix/v2 v2.0.0-beta.1
-	github.com/lrstanley/x/charm/formatter v0.0.0-20260328231422-13f8130b07ff
+	github.com/lrstanley/clix/v2 v2.0.0
+	github.com/lrstanley/x/charm/formatter v0.0.0-20260331013828-98de5249208d
 	github.com/lrstanley/x/charm/testui v0.0.0-20260328231422-13f8130b07ff
-	github.com/lrstanley/x/http/utils v0.0.0-20260328231422-13f8130b07ff
-	github.com/lrstanley/x/logging/handlers v0.0.0-20260328231422-13f8130b07ff
-	github.com/lrstanley/x/sync v0.0.0-20260328231422-13f8130b07ff
-	github.com/lrstanley/x/text/fuzzy v0.0.0-20260328025304-fe0396d65897
+	github.com/lrstanley/x/http/utils v0.0.0-20260331013828-98de5249208d
+	github.com/lrstanley/x/logging/handlers v0.0.0-20260331013828-98de5249208d
+	github.com/lrstanley/x/sync v0.0.0-20260331013828-98de5249208d
+	github.com/lrstanley/x/text/fuzzy v0.0.0-20260331013828-98de5249208d
 	github.com/lucasb-eyer/go-colorful v1.4.0
 	github.com/segmentio/ksuid v1.0.4
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1

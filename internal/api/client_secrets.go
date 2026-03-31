@@ -80,7 +80,7 @@ func (c *client) listAllSecretsRecursive(
 	}
 
 	var mu sync.Mutex
-	eg := conc.NewErrorGroup(context.Background(), 0)
+	eg := conc.NewGroup().WithErrors()
 	var reqAttempts, actualRequests atomic.Int64
 
 	for _, mount := range mounts {
@@ -88,7 +88,7 @@ func (c *client) listAllSecretsRecursive(
 			continue
 		}
 
-		eg.Go(func(_ context.Context) error {
+		eg.Go(func() error {
 			inner, eerr := c.listMountSecretsRecursive(
 				&reqAttempts,
 				&actualRequests,
@@ -120,7 +120,7 @@ func (c *client) listAllSecretsRecursive(
 }
 
 // listMountSecretsRecursive lists the secrets for a given mount.
-func (c *client) listMountSecretsRecursive( //nolint:gocognit
+func (c *client) listMountSecretsRecursive( //nolint:gocognit,funlen
 	reqAttempts *atomic.Int64,
 	actualRequests *atomic.Int64,
 	maxRequests int64,
@@ -130,7 +130,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	paths ...string,
 ) (tree types.ClientSecretTree, err error) {
 	var mu sync.Mutex
-	eg := conc.NewErrorGroup(context.Background(), 0)
+	eg := conc.NewGroup().WithErrors()
 
 	wasMountLevel := false
 
@@ -157,7 +157,7 @@ func (c *client) listMountSecretsRecursive( //nolint:gocognit
 	for _, path := range paths {
 		switch {
 		case strings.HasSuffix(path, "/"): // Folder.
-			eg.Go(func(_ context.Context) error {
+			eg.Go(func() error {
 				if v := reqAttempts.Add(1); v > maxRequests {
 					ref := &types.ClientSecretTreeRef{
 						Mount:      mount,

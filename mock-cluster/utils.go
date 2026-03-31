@@ -61,12 +61,12 @@ func CertChainString(certs ...*x509.Certificate) string {
 }
 
 func GenerateSlug(maxn int, sep string) (slug string) {
+	var builder strings.Builder
 	for i := range rand.IntN(maxn) + 1 { //nolint:gosec
 		if i > 0 {
-			slug += sep
+			builder.WriteString(sep)
 		}
-		slug += faker.Word()
+		builder.WriteString(faker.Word())
 	}
-
-	return slug
+	return builder.String()
 }

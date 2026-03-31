@@ -10,8 +10,8 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/hashicorp/vault/api v1.20.0
 	github.com/hashicorp/vault/api/auth/userpass v0.10.0
-	github.com/lrstanley/clix/v2 v2.0.0-beta.0
-	github.com/lrstanley/x/sync v0.0.0-20260328223243-6b6d78d19e44
+	github.com/lrstanley/clix/v2 v2.0.0
+	github.com/lrstanley/x/sync v0.0.0-20260331013828-98de5249208d
 	github.com/moby/moby/api v1.52.0-alpha.1
 	github.com/moby/moby/client v0.1.0-alpha.0
 	github.com/opencontainers/image-spec v1.1.1
@@ -22,7 +22,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.1.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/alecthomas/kong v1.12.1 // indirect
+	github.com/alecthomas/kong v1.14.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
-	github.com/lmittmann/tint v1.1.2 // indirect
+	github.com/lmittmann/tint v1.1.3 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

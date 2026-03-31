@@ -135,7 +135,7 @@ func create(ctx context.Context) error {
 	}
 
 	for i := range cli.Flags.Init.NumNodes {
-		_, err := DockerGetNode(ctx, dkr, i+1)
+		_, err = DockerGetNode(ctx, dkr, i+1)
 		if err == nil {
 			logger.InfoContext(ctx, "node already exists", "node", i+1)
 			continue
@@ -185,7 +185,9 @@ func start(ctx context.Context) error {
 		return fmt.Errorf("failed to wait for vault cluster to be initialized: %w", err)
 	}
 
-	eg := conc.NewErrorGroup(ctx, 0)
+	eg := conc.NewGroup().
+		WithContext(ctx).
+		WithFailFast()
 
 	for i := range cli.Flags.Init.NumNodes {
 		eg.Go(func(_ context.Context) error {
