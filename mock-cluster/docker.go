@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/netip"
 	"os"
 	"strconv"
 	"strings"
@@ -16,11 +17,8 @@ import (
 
 	"github.com/docker/go-connections/nat"
 	"github.com/moby/moby/api/types/container"
-	"github.com/moby/moby/api/types/filters"
-	"github.com/moby/moby/api/types/image"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/api/types/network"
-	"github.com/moby/moby/api/types/volume"
 	"github.com/moby/moby/client"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -30,35 +28,44 @@ const (
 	MockNodeLabel    = "com.lrstanley.vex.mock-cluster.node"
 )
 
+func natPortBindingToNetwork(b nat.PortBinding) network.PortBinding {
+	var addr netip.Addr
+	if b.HostIP != "" {
+		var err error
+		addr, err = netip.ParseAddr(b.HostIP)
+		if err != nil {
+			addr = netip.Addr{}
+		}
+	}
+	return network.PortBinding{HostIP: addr, HostPort: b.HostPort}
+}
+
 func NewDockerClient(ctx context.Context) *client.Client {
-	dkr := Must(client.NewClientWithOpts(
-		client.FromEnv,
-		client.WithAPIVersionNegotiation(),
-	))
-	info := Must(dkr.Info(ctx))
+	dkr := Must(client.New(client.FromEnv))
+	info := Must(dkr.Info(ctx, client.InfoOptions{}))
 	logger.InfoContext(ctx,
 		"docker client created",
-		"version", info.ServerVersion,
-		"os", info.OperatingSystem,
-		"arch", info.Architecture,
+		"version", info.Info.ServerVersion,
+		"os", info.Info.OperatingSystem,
+		"arch", info.Info.Architecture,
 	)
 	return dkr
 }
 
 func DockerGetContainers(ctx context.Context, dkr *client.Client) []container.Summary {
-	return Must(dkr.ContainerList(ctx, container.ListOptions{
+	res := Must(dkr.ContainerList(ctx, client.ContainerListOptions{
 		All:   true,
 		Limit: 100,
-		Filters: filters.NewArgs(
-			filters.Arg("name", "vex-vault-"),
-			filters.Arg("label", MockClusterLabel+"=true"),
-		),
+		Filters: client.Filters{}.
+			Add("name", "vex-vault-").
+			Add("label", MockClusterLabel+"=true"),
 	}))
+	return res.Items
 }
 
 func DockerPullImage(ctx context.Context, dkr *client.Client, img string) error {
 	logger.InfoContext(ctx, "pulling image", "image", img)
-	f, err := dkr.ImagePull(ctx, img, image.PullOptions{})
+	f, err := dkr.ImagePull(ctx, img, client.ImagePullOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to pull image: %w", err)
 	}
@@ -92,7 +99,7 @@ func DockerClusterStart(ctx context.Context, dkr *client.Client, timeout time.Du
 
 		logger.InfoContext(ctx, "starting container", "id", c.ID, "name", strings.Join(c.Names, ", "))
 
-		err = dkr.ContainerStart(tctx, c.ID, container.StartOptions{})
+		_, err = dkr.ContainerStart(tctx, c.ID, client.ContainerStartOptions{})
 		if err != nil {
 			return fmt.Errorf("failed to start container: %w", err)
 		}
@@ -126,7 +133,7 @@ func DockerClusterStop(ctx context.Context, dkr *client.Client, timeout time.Dur
 
 		logger.InfoContext(ctx, "stopping container", "id", c.ID, "name", strings.Join(c.Names, ", "))
 
-		err := dkr.ContainerStop(tctx, c.ID, container.StopOptions{
+		_, err := dkr.ContainerStop(tctx, c.ID, client.ContainerStopOptions{
 			Timeout: stopTimeout,
 		})
 		if err != nil {
@@ -145,7 +152,7 @@ func DockerClusterRemove(ctx context.Context, dkr *client.Client, timeout time.D
 	for _, c := range DockerGetContainers(tctx, dkr) {
 		logger.InfoContext(ctx, "removing container", "id", c.ID, "name", strings.Join(c.Names, ", "))
 
-		err := dkr.ContainerRemove(tctx, c.ID, container.RemoveOptions{
+		_, err := dkr.ContainerRemove(tctx, c.ID, client.ContainerRemoveOptions{
 			Force:         true,
 			RemoveVolumes: true,
 		})
@@ -154,18 +161,16 @@ func DockerClusterRemove(ctx context.Context, dkr *client.Client, timeout time.D
 		}
 	}
 
-	volumes, err := dkr.VolumeList(tctx, volume.ListOptions{
-		Filters: filters.NewArgs(
-			filters.Arg("label", MockClusterLabel+"=true"),
-		),
+	volumes, err := dkr.VolumeList(tctx, client.VolumeListOptions{
+		Filters: client.Filters{}.Add("label", MockClusterLabel+"=true"),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to list volumes: %w", err)
 	}
 
-	for _, v := range volumes.Volumes {
+	for _, v := range volumes.Items {
 		logger.InfoContext(ctx, "removing volume", "name", v.Name)
-		err = dkr.VolumeRemove(tctx, v.Name, true)
+		_, err = dkr.VolumeRemove(tctx, v.Name, client.VolumeRemoveOptions{Force: true})
 		if err != nil {
 			return fmt.Errorf("failed to remove volume: %w", err)
 		}
@@ -176,33 +181,31 @@ func DockerClusterRemove(ctx context.Context, dkr *client.Client, timeout time.D
 }
 
 func DockerGetNetwork(ctx context.Context, dkr *client.Client) (*network.Summary, error) {
-	nets, err := dkr.NetworkList(ctx, network.ListOptions{
-		Filters: filters.NewArgs(
-			filters.Arg("label", MockClusterLabel+"=true"),
-		),
+	nets, err := dkr.NetworkList(ctx, client.NetworkListOptions{
+		Filters: client.Filters{}.Add("label", MockClusterLabel+"=true"),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list networks: %w", err)
 	}
 
-	if len(nets) > 1 {
-		names := make([]string, 0, len(nets))
-		for _, net := range nets {
+	if len(nets.Items) > 1 {
+		names := make([]string, 0, len(nets.Items))
+		for _, net := range nets.Items {
 			names = append(names, net.Name)
 		}
 		return nil, fmt.Errorf("multiple networks found: %s", strings.Join(names, ", "))
 	}
 
-	if len(nets) == 0 {
+	if len(nets.Items) == 0 {
 		return nil, errors.New("no network found")
 	}
 
-	return &nets[0], nil
+	return &nets.Items[0], nil
 }
 
 func DockerCreateNetwork(ctx context.Context, dkr *client.Client) *network.Summary {
 	logger.InfoContext(ctx, "creating network")
-	_, err := dkr.NetworkCreate(ctx, "vex-vault", network.CreateOptions{
+	_, err := dkr.NetworkCreate(ctx, "vex-vault", client.NetworkCreateOptions{
 		Driver:     "bridge",
 		Scope:      "local",
 		EnableIPv4: Ptr(true),
@@ -239,7 +242,7 @@ func DockerDeleteNetwork(ctx context.Context, dkr *client.Client) error {
 		return fmt.Errorf("failed to get network: %w", err)
 	}
 
-	err = dkr.NetworkRemove(ctx, net.ID)
+	_, err = dkr.NetworkRemove(ctx, net.ID, client.NetworkRemoveOptions{})
 	if err != nil {
 		return fmt.Errorf("failed to delete network: %w", err)
 	}
@@ -264,7 +267,7 @@ func DockerGetNode(ctx context.Context, dkr *client.Client, node int) (*containe
 func DockerCreateNode(ctx context.Context, dkr *client.Client, node int) error {
 	logger.InfoContext(ctx, "creating container for node", "node", node)
 
-	vol, err := dkr.VolumeCreate(ctx, volume.CreateOptions{
+	vol, err := dkr.VolumeCreate(ctx, client.VolumeCreateOptions{
 		Name:   "vex-vault-" + strconv.Itoa(node),
 		Driver: "local",
 		Labels: map[string]string{
@@ -278,12 +281,36 @@ func DockerCreateNode(ctx context.Context, dkr *client.Client, node int) error {
 
 	net := DockerGetOrCreateNetwork(ctx, dkr)
 
-	_, ports, err := nat.ParsePortSpecs([]string{
+	natExposed, natBindings, err := nat.ParsePortSpecs([]string{
 		fmt.Sprintf("%d:8200/tcp", 8200+node-1),
 		"8201/tcp",
 	})
 	if err != nil {
 		return fmt.Errorf("failed to parse port specs: %w", err)
+	}
+
+	exposedPorts := network.PortSet{}
+	for np := range natExposed {
+		p, perr := network.ParsePort(string(np))
+		if perr != nil {
+			return fmt.Errorf("parse container port: %w", perr)
+		}
+		exposedPorts[p] = struct{}{}
+	}
+	portBindings := network.PortMap{}
+	for np, binds := range natBindings {
+		p, perr := network.ParsePort(string(np))
+		if perr != nil {
+			return fmt.Errorf("parse container port: %w", perr)
+		}
+		if len(binds) == 0 {
+			continue
+		}
+		nb := make([]network.PortBinding, len(binds))
+		for i, b := range binds {
+			nb[i] = natPortBindingToNetwork(b)
+		}
+		portBindings[p] = nb
 	}
 
 	alias := "vault" + strconv.Itoa(node)
@@ -294,9 +321,8 @@ func DockerCreateNode(ctx context.Context, dkr *client.Client, node int) error {
 		"NumNodes":     cli.Flags.Init.NumNodes,
 	})
 
-	resp, err := dkr.ContainerCreate(
-		ctx,
-		&container.Config{
+	resp, err := dkr.ContainerCreate(ctx, client.ContainerCreateOptions{
+		Config: &container.Config{
 			Image: cli.Flags.Init.VaultImage + ":" + cli.Flags.Init.VaultVersion,
 			Env:   []string{},
 			Labels: map[string]string{
@@ -316,13 +342,11 @@ func DockerCreateNode(ctx context.Context, dkr *client.Client, node int) error {
 					config,
 				),
 			},
-			ExposedPorts: map[nat.Port]struct{}{
-				"8200/tcp": {},
-			},
+			ExposedPorts: exposedPorts,
 		},
-		&container.HostConfig{
+		HostConfig: &container.HostConfig{
 			NetworkMode:  container.NetworkMode(net.ID),
-			PortBindings: ports,
+			PortBindings: portBindings,
 			RestartPolicy: container.RestartPolicy{
 				Name: container.RestartPolicyUnlessStopped,
 			},
@@ -330,14 +354,14 @@ func DockerCreateNode(ctx context.Context, dkr *client.Client, node int) error {
 			Mounts: []mount.Mount{
 				{
 					Type:        mount.TypeVolume,
-					Source:      vol.Name,
+					Source:      vol.Volume.Name,
 					Target:      "/vault/data",
 					ReadOnly:    false,
 					Consistency: mount.ConsistencyDefault,
 				},
 			},
 		},
-		&network.NetworkingConfig{
+		NetworkingConfig: &network.NetworkingConfig{
 			EndpointsConfig: map[string]*network.EndpointSettings{
 				net.ID: {
 					Aliases:  []string{alias},
@@ -345,9 +369,9 @@ func DockerCreateNode(ctx context.Context, dkr *client.Client, node int) error {
 				},
 			},
 		},
-		&ocispec.Platform{},
-		"vex-vault-"+strconv.Itoa(node),
-	)
+		Platform: &ocispec.Platform{},
+		Name:     "vex-vault-" + strconv.Itoa(node),
+	})
 	if err != nil {
 		return fmt.Errorf("failed to create container: %w", err)
 	}

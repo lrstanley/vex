@@ -7,7 +7,7 @@ require (
 	charm.land/bubbletea/v2 v2.0.2
 	charm.land/lipgloss/v2 v2.0.2
 	github.com/alecthomas/chroma/v2 v2.23.1
-	github.com/alecthomas/kong v1.14.0
+	github.com/alecthomas/kong v1.15.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/colorprofile v0.4.3
 	github.com/charmbracelet/ultraviolet v0.0.0-20260330092749-0f94982c930b
@@ -18,7 +18,7 @@ require (
 	github.com/lrstanley/bubbletint/v2 v2.0.1
 	github.com/lrstanley/clix/v2 v2.0.0
 	github.com/lrstanley/x/charm/formatter v0.0.0-20260331013828-98de5249208d
-	github.com/lrstanley/x/charm/testui v0.0.0-20260328231422-13f8130b07ff
+	github.com/lrstanley/x/charm/testui v0.0.0-20260331013828-98de5249208d
 	github.com/lrstanley/x/http/utils v0.0.0-20260331013828-98de5249208d
 	github.com/lrstanley/x/logging/handlers v0.0.0-20260331013828-98de5249208d
 	github.com/lrstanley/x/sync v0.0.0-20260331013828-98de5249208d
@@ -31,8 +31,8 @@ require (
 require (
 	github.com/aymanbagabas/go-udiff v0.4.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/charmbracelet/x/exp/golden v0.0.0-20260323091123-df7b1bcffcca // indirect
-	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20260323091123-df7b1bcffcca // indirect
+	github.com/charmbracelet/x/exp/golden v0.0.0-20260330094520-2dce04b6f8a4 // indirect
+	github.com/charmbracelet/x/exp/teatest/v2 v2.0.0-20260330094520-2dce04b6f8a4 // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
 	github.com/charmbracelet/x/termios v0.1.1 // indirect
 	github.com/charmbracelet/x/windows v0.2.2 // indirect
@@ -40,7 +40,7 @@ require (
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/gkampitakis/ciinfo v0.3.4 // indirect
-	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
+	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -55,7 +55,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lmittmann/tint v1.1.3 // indirect
 	github.com/maruel/natural v1.3.0 // indirect
-	github.com/mattn/go-runewidth v0.0.21 // indirect
+	github.com/mattn/go-runewidth v0.0.22 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
