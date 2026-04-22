@@ -6,6 +6,7 @@ package ui
 
 import (
 	"fmt"
+	"image"
 	"log/slog"
 	"time"
 
@@ -94,6 +95,7 @@ type Model struct { //nolint:recvcheck
 	debouncer *debouncer.Service
 
 	// UI state.
+	canvas        *lipgloss.Canvas
 	height        int
 	width         int
 	focused       types.FocusID
@@ -114,6 +116,7 @@ func New(client types.Client) *Model {
 	return &Model{
 		app:       app,
 		debouncer: debouncer.New(),
+		canvas:    lipgloss.NewCanvas(0, 0),
 		cmdConfig: commander.Config{
 			App:   app,
 			Pages: pageInitializer(app),
@@ -254,79 +257,77 @@ func (m *Model) View() tea.View {
 	view.WindowTitle = m.appTitle()
 	view.AltScreen = true
 
-	var base *lipgloss.Layer
-	var dialogs []*lipgloss.Layer
-
 	if m.width < MinWinWidth || m.height < MinWinHeight {
-		base = lipgloss.NewLayer(
-			lipgloss.NewStyle().
-				Align(lipgloss.Center, lipgloss.Center).
-				Height(m.height).
-				Width(m.width).
-				Render(styles.IconCaution() + " window too small, resize"),
-		).ID("too-small")
-	} else {
-		base = lipgloss.NewLayer(
-			lipgloss.NewStyle().
-				Width(m.width).
-				Height(m.height).
-				Render(
-					lipgloss.JoinVertical(
-						lipgloss.Top,
-						m.titlebar.View(),
-						m.app.Page().View(),
-						m.statusbar.View(),
-					),
-				),
-		).ID("main")
-
-		dialogs = m.app.Dialog().View()
-		if len(dialogs) > 0 {
-			base.AddLayers(dialogs...)
-		}
+		view.Content = lipgloss.NewCanvas(m.width, m.height).Compose(
+			lipgloss.NewLayer(
+				lipgloss.NewStyle().
+					Align(lipgloss.Center, lipgloss.Center).
+					Height(m.height).
+					Width(m.width).
+					Render(styles.IconCaution() + " window too small, resize"),
+			).ID("too-small"),
+		).Render()
+		return view
 	}
 
-	comp := lipgloss.NewCompositor(base)
-	cbounds := comp.Bounds()
-	canvas := lipgloss.NewCanvas(cbounds.Dx(), cbounds.Dy()).Compose(comp)
+	base := lipgloss.NewLayer(
+		lipgloss.NewStyle().
+			Width(m.width).
+			Height(m.height).
+			Render(
+				lipgloss.JoinVertical(
+					lipgloss.Top,
+					m.titlebar.View(),
+					m.app.Page().View(),
+					m.statusbar.View(),
+				),
+			),
+	).ID("main")
 
-	// TODO: workaround right now to achieve backdrops, since we don't have access
-	// to the individual bounds of children layers.
+	dialogs := m.app.Dialog().View()
+
+	// General approach:
+	//   1. Add all layers to a compositor.
+	//   2. Compose it onto our reusable canvas.
+	//   3. If there are dialogs, iterate over canvas cells, applying the backdrop style
+	//      to the cells that are not within the dialog bounds.
+	//   4. Render the canvas and apply to the view.
+
+	comp := lipgloss.NewCompositor(base.AddLayers(dialogs...))
+	bounds := comp.Bounds()
+
+	m.canvas.Clear()
+	m.canvas.Resize(bounds.Dx(), bounds.Dy())
+	m.canvas.Compose(comp)
+
 	if len(dialogs) > 0 {
-		var cell *uv.Cell
-		var lx, ly, lh, lw int
+		m.applyBackdrop(bounds, dialogs[len(dialogs)-1])
+	}
 
-		fg := styles.Theme.DialogBackdropFg()
-		bg := styles.Theme.DialogBackdropBg()
+	view.Content = m.canvas.Render()
+	return view
+}
 
-		for y := 0; y < cbounds.Dy(); y++ {
-			for x := 0; x < cbounds.Dx(); x++ {
-				var withinDialog bool
-				for _, l := range dialogs {
-					lx, ly, lh, lw = l.GetX(), l.GetY(), l.Height(), l.Width()
-					if x >= lx && x < lx+lw && y >= ly && y < ly+lh {
-						withinDialog = true
-						break
-					}
-				}
-				if withinDialog {
-					continue
-				}
+func (m *Model) applyBackdrop(bounds image.Rectangle, skip *lipgloss.Layer) {
+	fg := styles.Theme.DialogBackdropFg()
+	bg := styles.Theme.DialogBackdropBg()
 
-				cell = canvas.CellAt(x, y)
-				if cell == nil || cell.IsZero() {
-					continue
-				}
+	skipx := skip.GetX()
+	skipy := skip.GetY()
+	skipw := skipx + skip.Width()
+	skiph := skipy + skip.Height()
 
-				cell = cell.Clone()
+	var cell *uv.Cell
+	for y := 0; y < bounds.Dy(); y++ {
+		for x := 0; x < bounds.Dx(); x++ {
+			if x >= skipx && x < skipw && y >= skipy && y < skiph {
+				continue
+			}
+			cell = m.canvas.CellAt(x, y)
+			if cell != nil {
 				cell.Style.Fg = fg
 				cell.Style.Bg = bg
-				canvas.SetCell(x, y, cell)
 			}
 		}
 	}
-
-	// view.ContentDrawable = canvas // TODO: v2-drawable branch is still WIP.
-	view.Content = canvas.Render()
-	return view
 }

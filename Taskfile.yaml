@@ -7,7 +7,7 @@ env:
   CGO_ENABLED: 0
   GOEXPERIMENT: jsonv2,greenteagc
 
-dotenv: [".env"]
+dotenv: [ ".env" ]
 method: timestamp
 tasks:
   default:
@@ -35,7 +35,8 @@ tasks:
     cmds:
       - go run . bootstrap --force
   vault:env:
-    desc: update .env file with mock cluster credentials -- use "task vault:env -- <user-id>" to change users
+    desc: update .env file with mock cluster credentials -- use "task vault:env --
+      <user-id>" to change users
     dir: mock-cluster
     cmds:
       - go run . env --id {{ or .CLI_ARGS "token" }} > ../.env
@@ -49,33 +50,34 @@ tasks:
       - rm -rfv {{.PROJECT}}
   fetch:
     desc: tidy go modules
-    aliases: [tidy, download]
+    aliases: [ tidy, download ]
     cmds:
       - go mod tidy
   up:
     desc: update dependencies
-    aliases: [update, upgrade]
+    aliases: [ update, upgrade ]
     cmds:
-      - go get -u ./...
-      - go get -u -t ./...
+      - go get -u ./... && go get -u -t ./...
+      - cd mock-cluster && go get -u ./... && go get -u -t ./... && go mod tidy
       - task: fetch
   prepare:
     desc: prepare build environment
-    deps: [fetch]
-    aliases: [init, generate, gen]
+    deps: [ fetch ]
+    aliases: [ init, generate, gen ]
     sources:
       - internal/ui/styles/theme.go
     generates:
       - internal/ui/styles/theme.gen.go
     cmds:
       - go generate -x ./...
-  profile:cpu: go tool pprof -http :6061 'http://127.0.0.1:6060/debug/pprof/profile?seconds=15'
+  profile:cpu: go tool pprof -http :6061
+    'http://127.0.0.1:6060/debug/pprof/profile?seconds=15'
   profile:heap: go tool pprof -http :6061 'http://127.0.0.1:6060/debug/pprof/heap'
   profile:allocs: go tool pprof -http :6061 'http://127.0.0.1:6060/debug/pprof/allocs'
   dlv:
     desc: run with delve debugger
-    deps: [prepare]
-    aliases: [delve, debugger]
+    deps: [ prepare ]
+    aliases: [ delve, debugger ]
     cmds:
       - |
         dlv debug \
@@ -87,8 +89,8 @@ tasks:
           {{.PACKAGE}} -- --logging.level=debug {{.CLI_ARGS}}
   debug:
     desc: run in debug mode
-    deps: [prepare]
-    aliases: [dev, run]
+    deps: [ prepare ]
+    aliases: [ dev, run ]
     interactive: true
     env:
       HTTP_TRACE: true
@@ -100,7 +102,7 @@ tasks:
           {{.CLI_ARGS}}
   debug:basic:
     desc: run in debug mode
-    deps: [prepare]
+    deps: [ prepare ]
     interactive: true
     cmds:
       - |
@@ -118,7 +120,7 @@ tasks:
           {{.CLI_ARGS}}
   build:
     desc: build the application
-    deps: [prepare]
+    deps: [ prepare ]
     cmds:
       - |
         go build \
@@ -129,31 +131,32 @@ tasks:
           -o {{.PROJECT}} {{.PACKAGE}}
   test:
     desc: run tests
-    deps: [prepare]
+    deps: [ prepare ]
     cmds:
       - go test -count 5 -p 3 {{ or .CLI_ARGS "./..." }}
   test:update:
     desc: run tests and update snapshots
-    deps: [prepare]
+    deps: [ prepare ]
     cmds:
       - UPDATE_SNAPS=always go test -count 2 -p 3 {{ or .CLI_ARGS "./..." }}
   lint:
     desc: run linter
-    deps: [prepare]
+    deps: [ prepare ]
     cmds:
       - golangci-lint run
   fmt:
     desc: format code
-    deps: [prepare]
-    aliases: [format]
+    deps: [ prepare ]
+    aliases: [ format ]
     cmds:
       - gofumpt -w .
   tape:
     desc: record demo GIFs
-    deps: [build]
-    aliases: [demo]
+    deps: [ build ]
+    aliases: [ demo ]
     cmds:
       - mkdir -p tmp/
       - go run github.com/charmbracelet/vhs@latest demo.tape
-      - gifsicle -O3 --colors 256 --lossy=30 -o tmp/demo-optimized-$(date +%Y-%m-%d-%H-%M-%S).gif tmp/demo.gif
+      - gifsicle -O3 --colors 256 --lossy=30 -o tmp/demo-optimized-$(date
+        +%Y-%m-%d-%H-%M-%S).gif tmp/demo.gif
       - task: clean

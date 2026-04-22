@@ -3,7 +3,7 @@ module github.com/lrstanley/vex/mock-cluster
 go 1.26.0
 
 require (
-	github.com/docker/go-connections v0.6.0
+	github.com/docker/go-connections v0.7.0
 	github.com/go-faker/faker/v4 v4.7.0
 	github.com/go-task/slim-sprig/v3 v3.0.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
@@ -11,9 +11,9 @@ require (
 	github.com/hashicorp/vault/api v1.23.0
 	github.com/hashicorp/vault/api/auth/userpass v0.12.0
 	github.com/lrstanley/clix/v2 v2.0.0
-	github.com/lrstanley/x/sync v0.0.0-20260331013828-98de5249208d
-	github.com/moby/moby/api v1.54.1
-	github.com/moby/moby/client v0.4.0
+	github.com/lrstanley/x/sync v0.0.0-20260418212558-96c5cf679e1d
+	github.com/moby/moby/api v1.54.2
+	github.com/moby/moby/client v0.4.1
 	github.com/opencontainers/image-spec v1.1.1
 	golang.org/x/time v0.15.0
 )
@@ -45,11 +45,11 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
-	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.67.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.68.0 // indirect
 	go.opentelemetry.io/otel v1.43.0 // indirect
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	golang.org/x/net v0.52.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
 )
