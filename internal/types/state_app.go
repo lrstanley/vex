@@ -75,11 +75,12 @@ func SetClipboard(content string) tea.Cmd {
 		// Use OSC 52 where possible, but native clipboard for fallback (and if available
 		// e.g. would need xclip or xsel on linux).
 		tea.SetClipboard(content),
+		SendStatus("copied to clipboard", Info, 1*time.Second),
 		func() tea.Msg {
+			time.Sleep(150 * time.Millisecond)
 			_ = clipboard.WriteAll(content)
 			return nil
 		},
-		SendStatus("copied to clipboard", Info, 1*time.Second),
 	)
 }
 
