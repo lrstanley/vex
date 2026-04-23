@@ -33,6 +33,10 @@ type client struct {
 	health             types.AtomicExpires[vapi.HealthResponse]
 }
 
+func (c *client) TokenType() types.TokenType {
+	return types.TokenTypeFromRaw(c.api.Token())
+}
+
 func NewClient(logger *slog.Logger, maxConcurrentRequests int) (types.Client, error) {
 	c := &client{}
 

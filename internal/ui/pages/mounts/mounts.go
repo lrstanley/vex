@@ -14,6 +14,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/components/table"
+	"github.com/lrstanley/vex/internal/ui/dialogs/alert"
 	"github.com/lrstanley/vex/internal/ui/dialogs/genericcode"
 	"github.com/lrstanley/vex/internal/ui/pages/recursivesecrets"
 	"github.com/lrstanley/vex/internal/ui/pages/secretwalker"
@@ -195,10 +196,23 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *Model) openMount(row *table.StaticRow[*types.Mount]) tea.Cmd {
-	if row.Value.Type != "kv" {
+	switch {
+	case row.Value.IsCubbyhole():
+		if tt := m.app.Client().TokenType(); tt != types.TokenTypeService {
+			return types.OpenDialog(alert.New(m.app, alert.Config{
+				Title: "Unsupported token type",
+				Message: fmt.Sprintf(
+					"Cubbyhole only supports service token auth methods (current: %s)",
+					tt,
+				),
+			}))
+		}
+		return types.OpenPage(secretwalker.New(m.app, row.Value, ""), false)
+	case row.Value.Type == "kv":
+		return types.OpenPage(secretwalker.New(m.app, row.Value, ""), false)
+	default:
 		return m.openDetails(row)
 	}
-	return types.OpenPage(secretwalker.New(m.app, row.Value, ""), false)
 }
 
 func (m *Model) openDetails(row *table.StaticRow[*types.Mount]) tea.Cmd {

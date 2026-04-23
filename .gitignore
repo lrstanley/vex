@@ -2,7 +2,6 @@ dist
 bin
 tmp
 !/.github/**
-.cursor
 .task
 *.log
 ~*

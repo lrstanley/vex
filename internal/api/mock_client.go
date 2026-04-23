@@ -43,6 +43,14 @@ var mockMounts = []*types.Mount{
 			},
 		},
 	},
+	{
+		Path: "cubbyhole/",
+		MountOutput: &vapi.MountOutput{
+			Description: "per-token private secret storage",
+			UUID:        "abc-123-3",
+			Type:        "cubbyhole",
+		},
+	},
 }
 
 var mockPolicyList = []string{
@@ -79,6 +87,17 @@ var _ types.Client = &MockClient{}
 type MockClient struct {
 	ShouldError        bool
 	firstHealthChecked atomic.Bool
+
+	// MockTokenType, if set, overrides the token type reported by
+	// [MockClient.TokenType]. Defaults to [types.TokenTypeService].
+	MockTokenType types.TokenType
+}
+
+func (m *MockClient) TokenType() types.TokenType {
+	if m.MockTokenType != "" {
+		return m.MockTokenType
+	}
+	return types.TokenTypeService
 }
 
 func NewMockClient() *MockClient {

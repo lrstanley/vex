@@ -86,6 +86,7 @@ func main() {
 	tui := tea.NewProgram(
 		ui.New(client),
 		tea.WithFilter(ui.DownsampleMouseEvents),
+		tea.WithFPS(30),
 	)
 
 	panicCloser := handlers.NewPanicCatcher(handlers.PanicPathName(config.GetConfigPath(), config.AppName))

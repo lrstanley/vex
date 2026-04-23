@@ -379,10 +379,11 @@ func (c *client) GetKVSecret(uuid string, mount *types.Mount, path string, versi
 func (c *client) PutKVSecret(uuid string, mount *types.Mount, path string, data map[string]any) tea.Cmd {
 	return wrapHandler(uuid, func() (*types.ClientSuccessMsg, error) {
 		var err error
-		if mount.KVVersion() == 1 {
-			err = c.api.KVv1(mount.Path).Put(context.Background(), path, data)
-		} else {
+		if mount.KVVersion() == 2 {
 			_, err = c.api.KVv2(mount.Path).Put(context.Background(), path, data, vapi.WithMergeMethod("rw"))
+		} else {
+			// KV v1 and cubbyhole share the same write semantics.
+			err = c.api.KVv1(mount.Path).Put(context.Background(), path, data)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("put secret: %w", err)

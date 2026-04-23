@@ -29,6 +29,10 @@ type Client interface {
 	// a [ClientMsg] containing a [ClientTokenLookupSelfMsg] containing the result
 	// of the token lookup.
 	TokenLookupSelf(uuid string) tea.Cmd
+	// TokenType returns the type of the currently configured Vault token as
+	// inferred from its prefix (see [TokenTypeFromRaw]). Returns [TokenTypeUnknown]
+	// if no token is set or the prefix is not recognized.
+	TokenType() TokenType
 
 	// ListMounts returns a command to list the mounts of the Vault server.
 	// Responds with a [ClientMsg] containing a [ClientListMountsMsg] containing
@@ -135,6 +139,22 @@ func (m *Mount) KVVersion() int {
 		return -1
 	}
 	return v
+}
+
+// IsCubbyhole returns true if the mount is a cubbyhole mount. Cubbyhole is a
+// per-token secret storage namespace that behaves like KV v1 but is scoped to
+// the current token (and is only available for service-type tokens).
+func (m *Mount) IsCubbyhole() bool {
+	return m.MountOutput != nil && m.Type == "cubbyhole"
+}
+
+// IsKVLike returns true if the mount stores secrets using a KV-compatible API
+// (KV v1, KV v2, or cubbyhole).
+func (m *Mount) IsKVLike() bool {
+	if m.MountOutput == nil {
+		return false
+	}
+	return m.Type == "kv" || m.Type == "cubbyhole"
 }
 
 // PrefixPaths prefixes the given paths with the mount path.
@@ -430,6 +450,36 @@ type ClientListAllSecretsRecursiveMsg struct {
 // ClientTokenLookupSelfMsg is a message containing the result of a token lookup.
 type ClientTokenLookupSelfMsg struct {
 	Result *TokenLookupResult `json:"result"`
+}
+
+// TokenType represents the type of a Vault token, as inferred from its prefix.
+//
+// See: https://developer.hashicorp.com/vault/docs/concepts/tokens#token-prefixes
+type TokenType string
+
+const (
+	TokenTypeUnknown  TokenType = ""
+	TokenTypeService  TokenType = "service"
+	TokenTypeBatch    TokenType = "batch"
+	TokenTypeRecovery TokenType = "recovery"
+)
+
+// TokenTypeFromRaw returns the [TokenType] of the given raw Vault token,
+// determined solely by its prefix. Recognizes both the legacy (pre-1.10)
+// and current (>=1.10) prefix formats. Returns [TokenTypeUnknown] for empty
+// or unrecognized tokens.
+func TokenTypeFromRaw(token string) TokenType {
+	switch {
+	case token == "":
+		return TokenTypeUnknown
+	case strings.HasPrefix(token, "hvs.") || strings.HasPrefix(token, "s."):
+		return TokenTypeService
+	case strings.HasPrefix(token, "hvb.") || strings.HasPrefix(token, "b."):
+		return TokenTypeBatch
+	case strings.HasPrefix(token, "hvr.") || strings.HasPrefix(token, "r."):
+		return TokenTypeRecovery
+	}
+	return TokenTypeUnknown
 }
 
 // TokenLookupResult is the result of a token lookup.
