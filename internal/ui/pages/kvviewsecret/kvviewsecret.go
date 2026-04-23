@@ -420,7 +420,7 @@ func (m *Model) toggleMasking(global bool) tea.Cmd {
 }
 
 func (m *Model) edit() tea.Cmd {
-	if !m.isFlat {
+	if !m.isFlat || m.forceJSON {
 		return types.OpenDialog(textarea.New(
 			m.app,
 			confirmable.Config[string]{
@@ -467,7 +467,7 @@ func (m *Model) editWithEditor() tea.Cmd {
 		return nil
 	}
 
-	if !m.isFlat {
+	if !m.isFlat || m.forceJSON {
 		return types.OpenTempEditor(
 			m.UUID(),
 			"update-secret-*.json",
@@ -491,10 +491,16 @@ func (m *Model) editWithEditor() tea.Cmd {
 		return nil
 	}
 
+	content := item.ValueString()
+	pattern := "update-secret-*"
+	if json.Valid([]byte(content)) {
+		pattern = "update-secret-*.json"
+	}
+
 	return types.OpenTempEditor(
 		m.UUID(),
-		"update-secret-*.json",
-		item.ValueString(),
+		pattern,
+		content,
 		func(msg types.EditorResultMsg) tea.Cmd {
 			if !msg.HasChanged {
 				return types.SendStatus("no changes detected", types.Info, 2*time.Second)
