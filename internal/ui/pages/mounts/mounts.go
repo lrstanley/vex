@@ -89,9 +89,17 @@ func New(app types.AppState) *Model {
 			{
 				ID:       "description",
 				Title:    "Description",
-				MaxWidth: 40,
+				MaxWidth: 35,
 				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
 					return row.Value.Description
+				},
+			},
+			{
+				ID:       "accessor",
+				Title:    "Accessor",
+				MaxWidth: 20,
+				AccessorFn: func(row *table.StaticRow[*types.Mount]) string {
+					return row.Value.Accessor
 				},
 			},
 			{
