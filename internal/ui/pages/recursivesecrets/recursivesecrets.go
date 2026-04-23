@@ -186,7 +186,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 		switch {
 		case key.Matches(msg, types.KeyDetails):
 			if v, ok := m.table.GetSelectedRow(); ok && !strings.HasSuffix(v.Value.Path, "/") && v.Value.Mount.KVVersion() == 2 {
-				return m.app.Client().GetKVv2Metadata(m.UUID(), v.Value.Mount, v.Value.Path)
+				return m.app.Client().GetKVv2Metadata(m.UUID(), v.Value.Mount, v.Value.GetFullPath(false))
 			}
 		case key.Matches(msg, types.KeyOpenEditor):
 			if v, ok := m.table.GetSelectedRow(); ok {
