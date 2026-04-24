@@ -32,6 +32,7 @@ const (
 var (
 	IconExpires      = iconFallback("⌛", "⏱")
 	IconCaution      = iconFallback("⚠️", "⚠")
+	IconInsecure     = iconFallback("🔓", "⚠")
 	IconFilter       = iconFallback("🔍", "⌕")
 	IconUnderWeather = iconFallback("☔", "⛈")
 	IconFlag         = iconFallback("🚩", "⚑")

@@ -32,9 +32,10 @@ type Model struct {
 	app types.AppState
 
 	// UI state.
-	Address string
-	health  *vapi.HealthResponse
-	token   *types.TokenLookupResult
+	Address  string
+	insecure bool
+	health   *vapi.HealthResponse
+	token    *types.TokenLookupResult
 
 	// Styles.
 	addrStyle       lipgloss.Style
@@ -95,8 +96,10 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 			uri, err := url.Parse(msg.Address)
 			if err == nil {
 				m.Address = fmt.Sprintf("%s:%s", uri.Hostname(), uri.Port())
+				m.insecure = strings.EqualFold(uri.Scheme, "http")
 			} else {
 				m.Address = msg.Address
+				m.insecure = false // Unknown.
 			}
 		case types.ClientTokenLookupSelfMsg:
 			m.token = msg.Result
@@ -115,10 +118,18 @@ func (m *Model) View() string {
 		}
 	}
 
+	addrStyle := m.addrStyle
+	var addrIcon string
+	if m.insecure {
+		fg, bg := styles.Theme.ByStatus(types.Warning)
+		addrStyle = addrStyle.Foreground(fg).Background(bg)
+		addrIcon = styles.IconInsecure() + " "
+	}
+
 	if m.health != nil && m.health.ClusterName != "" && !strings.HasPrefix(m.health.ClusterName, "vault-cluster-") {
-		add(m.addrStyle.Render(formatter.Trunc(m.health.ClusterName, MaxAddrWidth)))
+		add(addrStyle.Render(formatter.Trunc(addrIcon+m.health.ClusterName, MaxAddrWidth)))
 	} else if m.Address != "" {
-		add(m.addrStyle.Render(formatter.Trunc(m.Address, MaxAddrWidth)))
+		add(addrStyle.Render(formatter.Trunc(addrIcon+m.Address, MaxAddrWidth)))
 	}
 
 	if m.health != nil {
