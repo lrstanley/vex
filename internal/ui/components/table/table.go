@@ -169,9 +169,9 @@ func (m *Model[T]) Update(msg tea.Msg) tea.Cmd {
 		case key.Matches(msg, types.KeyRight):
 			m.MoveRight(1)
 		case key.Matches(msg, types.KeyPageUp):
-			m.MoveUp(m.maxInnerTableHeight())
+			m.MoveUp(max(1, m.maxInnerTableHeight()-1))
 		case key.Matches(msg, types.KeyPageDown):
-			m.MoveDown(m.maxInnerTableHeight())
+			m.MoveDown(max(1, m.maxInnerTableHeight()-1))
 		case key.Matches(msg, types.KeyGoToTop):
 			m.GoToTop()
 		case key.Matches(msg, types.KeyGoToBottom):
