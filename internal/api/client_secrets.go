@@ -84,7 +84,7 @@ func (c *client) listAllSecretsRecursive(
 	var reqAttempts, actualRequests atomic.Int64
 
 	for _, mount := range mounts {
-		if mount.Type != "kv" {
+		if !mount.IsKVLike() {
 			continue
 		}
 
