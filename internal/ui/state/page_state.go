@@ -195,6 +195,21 @@ func (s *pageState) Update(msg tea.Msg) tea.Cmd { //nolint:gocognit,funlen
 		s.filter = msg.Text
 		active = true
 	case tea.KeyMsg:
+		if s.errored.Load() || s.loading.Load() {
+			if !s.focused.Load() {
+				return nil
+			}
+			switch {
+			case key.Matches(msg, types.KeyRefresh):
+				return types.RefreshData(s.Get().UUID())
+			case key.Matches(msg, types.KeyCancel):
+				return types.PageClearState()
+			case key.Matches(msg, types.KeyQuit):
+				return types.AppQuit()
+			default:
+				return nil
+			}
+		}
 		if !s.Get().HasInputFocus() && s.focused.Load() {
 			switch {
 			case key.Matches(msg, types.KeyCancel):
@@ -222,7 +237,9 @@ func (s *pageState) Update(msg tea.Msg) tea.Cmd { //nolint:gocognit,funlen
 		}
 		return tea.Batch(cmds...)
 	case tea.PasteStartMsg, tea.PasteMsg, tea.PasteEndMsg:
-		active = true
+		if !s.errored.Load() && !s.loading.Load() {
+			active = true
+		}
 	default:
 		all = true
 	}
