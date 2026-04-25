@@ -90,6 +90,12 @@ type Client interface {
 	// server. Responds with a [ClientMsg] containing a [ClientConfigStateMsg] containing
 	// the configuration of the Vault server.
 	GetConfigState(uuid string) tea.Cmd
+	// GetRaftConfig returns a command to read integrated storage raft
+	// configuration. Responds with a [ClientMsg] containing a [ClientRaftConfigMsg].
+	GetRaftConfig(uuid string) tea.Cmd
+	// RemoveRaftPeer removes a raft peer by server ID. Responds with a [ClientMsg]
+	// containing a [ClientSuccessMsg].
+	RemoveRaftPeer(uuid string, serverID string) tea.Cmd
 }
 
 // ClientMsg is a wrapper for any message relating to Vault API/client/etc responses.
@@ -222,6 +228,20 @@ type ClientGetACLPolicyMsg struct {
 // cluster.
 type ClientConfigStateMsg struct {
 	Data json.RawMessage `json:"data"`
+}
+
+// RaftConfigPeer is one node in a Vault integrated storage raft configuration.
+type RaftConfigPeer struct {
+	NodeID          string `json:"node_id"`
+	Address         string `json:"address"`
+	Leader          bool   `json:"leader"`
+	Voter           bool   `json:"voter"`
+	ProtocolVersion string `json:"protocol_version"`
+}
+
+// ClientRaftConfigMsg contains integrated storage raft configuration peers.
+type ClientRaftConfigMsg struct {
+	Peers []*RaftConfigPeer `json:"peers"`
 }
 
 // ClientCapability contains the capabilities of a given identity, meant to

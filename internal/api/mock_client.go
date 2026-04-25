@@ -355,3 +355,35 @@ func (m *MockClient) UndeleteKVSecret(uuid string, _ *types.Mount, _ string, _ .
 func (m *MockClient) DestroyKVSecret(uuid string, _ *types.Mount, _ string, _ ...int) tea.Cmd {
 	return m.ErrorOr(uuid, types.ClientSuccessMsg{Message: "destroyed secret"})
 }
+
+func (m *MockClient) GetRaftConfig(uuid string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientRaftConfigMsg{
+		Peers: []*types.RaftConfigPeer{
+			{
+				NodeID:          "raft-1",
+				Address:         "10.0.0.1:8201",
+				Leader:          true,
+				Voter:           true,
+				ProtocolVersion: "\u0003",
+			},
+			{
+				NodeID:          "raft-2",
+				Address:         "10.0.0.2:8201",
+				Leader:          false,
+				Voter:           true,
+				ProtocolVersion: "\u0003",
+			},
+			{
+				NodeID:          "raft-3",
+				Address:         "10.0.0.3:8201",
+				Leader:          false,
+				Voter:           false,
+				ProtocolVersion: "\u0003",
+			},
+		},
+	})
+}
+
+func (m *MockClient) RemoveRaftPeer(uuid, _ string) tea.Cmd {
+	return m.ErrorOr(uuid, types.ClientSuccessMsg{Message: "raft peer removed"})
+}

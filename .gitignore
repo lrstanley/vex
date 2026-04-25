@@ -10,6 +10,7 @@ tmp
 *.test
 *.prof
 *.conf
+AGENTS.md
 vex
 mock-cluster/mock-cluster
 **/.env

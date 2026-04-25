@@ -24,6 +24,7 @@ import (
 	"github.com/lrstanley/vex/internal/ui/pages/aclpolicies"
 	"github.com/lrstanley/vex/internal/ui/pages/configstate"
 	"github.com/lrstanley/vex/internal/ui/pages/mounts"
+	"github.com/lrstanley/vex/internal/ui/pages/raftconfig"
 	"github.com/lrstanley/vex/internal/ui/pages/recursivesecrets"
 	"github.com/lrstanley/vex/internal/ui/state"
 	"github.com/lrstanley/vex/internal/ui/styles"
@@ -63,6 +64,13 @@ func pageInitializer(app types.AppState) []commander.PageRef {
 			Commands:    configstate.Commands,
 			New: func() types.Page {
 				return configstate.New(app)
+			},
+		},
+		{
+			Description: "View raft configuration",
+			Commands:    raftconfig.Commands,
+			New: func() types.Page {
+				return raftconfig.New(app)
 			},
 		},
 	}
