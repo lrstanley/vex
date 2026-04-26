@@ -55,6 +55,7 @@ func (m *Model) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		m.SetDimensions(msg.Width, msg.Height)
 		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()

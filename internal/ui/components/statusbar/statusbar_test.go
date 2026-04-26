@@ -5,20 +5,43 @@
 package statusbar
 
 import (
-	"os"
 	"testing"
 
-	"github.com/gkampitakis/go-snaps/snaps"
+	tea "charm.land/bubbletea/v2"
+	vapi "github.com/hashicorp/vault/api"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/config"
+	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
 
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
+// applyTestVaultData sends client responses the statusbar vault element consumes so
+// snapshots include address/cluster, seal/version, and token display fields.
+func applyTestVaultData(tb testing.TB, tm *steep.Model) {
+	tb.Helper()
+	for _, msg := range []tea.Msg{
+		types.ClientMsg{
+			Msg: types.ClientConfigMsg{
+				Address: "https://vault.example.com:443",
+				Health: &vapi.HealthResponse{
+					Initialized: true,
+					Sealed:      false,
+					ClusterName: "acme-corp",
+					Version:     "1.20.0",
+				},
+			},
+		},
+		types.ClientMsg{
+			Msg: types.ClientTokenLookupSelfMsg{
+				Result: &types.TokenLookupResult{
+					DisplayName: "dev-admin",
+				},
+			},
+		},
+	} {
+		tm.Send(msg)
+	}
 }
 
 func TestNew(t *testing.T) {
@@ -27,32 +50,37 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.Height = testui.DefaultTermHeight
-		m.Width = testui.DefaultTermWidth
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, config.AppName)
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		applyTestVaultData(t, tm)
+		tm.WaitContainsStrings(t, []string{
+			config.AppName,
+			"acme-corp",
+			"unsealed",
+			"v1.20.0",
+			"dev-admin",
+		})
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("0-width-height", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.Height = 0
-		m.Width = 0
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, config.AppName)
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0))
+		tm.WaitSettleMessages(t).ExpectDimensions(t, 0, 0)
 	})
 
 	t.Run("small-dimensions", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.Height = 3
-		m.Width = 40
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, config.AppName)
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(40, 3))
+		applyTestVaultData(t, tm)
+		tm.WaitContainsStrings(t, []string{
+			config.AppName,
+			"acme-corp",
+			"unsealed",
+		})
+		tm.RequireSnapshotNoANSI(t)
 	})
 }

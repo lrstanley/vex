@@ -5,21 +5,13 @@
 package genericcode
 
 import (
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
-
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
-}
 
 func TestNew(t *testing.T) {
 	t.Parallel()
@@ -28,51 +20,51 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Test Title", "test content\nline 2\nline 3", "text")
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectContains(t, "test content", "line 2", "line 3")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsStrings(t, []string{"test content", "line 2", "line 3"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("json-content", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "JSON Test", "{\"name\": \"test\", \"value\": 123}", "json")
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectContains(t, "name", "test", "value", "123")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsStrings(t, []string{"name", "test", "value", "123"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("go-code-content", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Go Code Test", "func test() {\n    return true\n}", "go")
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectContains(t, "func", "test", "return", "true")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsStrings(t, []string{"func", "test", "return", "true"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("empty-content", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Empty Test", "", "text")
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("zero-dimensions", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Zero Test", "test content", "text")
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(0, 0))
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0))
+		tm.WaitSettleMessages(t).ExpectDimensions(t, 0, 0)
 	})
 
 	t.Run("larger-than-term-size", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app, "Large Test", strings.Repeat("test content\n", 200), "text")
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(100, 15))
-		tm.ExpectContains(t, "test content")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(100, 15))
+		tm.WaitContainsString(t, "test content")
+		tm.RequireSnapshotNoANSI(t)
 	})
 }

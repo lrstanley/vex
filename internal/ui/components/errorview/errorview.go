@@ -60,8 +60,9 @@ func (m *Model) Init() tea.Cmd {
 func (m *Model) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
-	switch msg.(type) {
+	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		m.SetDimensions(msg.Width, msg.Height)
 		return nil
 	case styles.ThemeUpdatedMsg:
 		m.setStyles()

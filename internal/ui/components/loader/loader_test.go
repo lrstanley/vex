@@ -5,48 +5,33 @@
 package loader
 
 import (
-	"os"
 	"testing"
 
-	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
-
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
-}
 
 func TestNew(t *testing.T) {
 	t.Parallel()
 	t.Run("basic-loader", func(t *testing.T) {
 		t.Parallel()
 		m := New()
-		m.SetHeight(testui.DefaultTermHeight)
-		m.SetWidth(testui.DefaultTermWidth)
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "loading")
-		tm.ExpectViewDimensions(t, m.GetWidth(), m.GetHeight())
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsString(t, "loading")
+		tm.ExpectDimensions(t, m.GetWidth(), m.GetHeight()).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("0-width-height", func(t *testing.T) {
 		t.Parallel()
 		m := New()
-		m.SetHeight(0)
-		m.SetWidth(0)
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0))
+		tm.WaitSettleView(t).ExpectDimensions(t, 0, 0)
 	})
 
 	t.Run("small-dimensions", func(t *testing.T) {
 		t.Parallel()
 		m := New()
-		m.SetHeight(5)
-		m.SetWidth(20)
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "loading")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(20, 5))
+		tm.WaitContainsString(t, "loading")
+		tm.RequireSnapshotNoANSI(t)
 	})
 }

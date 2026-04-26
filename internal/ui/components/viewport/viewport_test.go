@@ -5,21 +5,13 @@
 package viewport
 
 import (
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
-
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
-}
 
 func TestNew(t *testing.T) {
 	t.Parallel()
@@ -27,32 +19,25 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.SetHeight(testui.DefaultTermHeight)
-		m.SetWidth(testui.DefaultTermWidth)
 		m.SetContent("test content\nline 2\nline 3")
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "test content", "line 2", "line 3")
-		tm.ExpectViewDimensions(t, m.GetWidth(), m.GetHeight())
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsStrings(t, []string{"test content", "line 2", "line 3"})
+		tm.ExpectDimensions(t, m.GetWidth(), m.GetHeight()).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("empty-content", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.SetHeight(testui.DefaultTermHeight)
-		m.SetWidth(testui.DefaultTermWidth)
 		m.SetContent("")
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitSettleMessages(t).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("json-content", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.SetHeight(testui.DefaultTermHeight)
-		m.SetWidth(testui.DefaultTermWidth)
 		data := map[string]any{
 			"name":  "test",
 			"value": 123,
@@ -61,21 +46,19 @@ func TestNew(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to set JSON: %v", err)
 		}
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "name", "test", "value", "123")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsStrings(t, []string{"name", "test", "value", "123"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("code-content", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.SetHeight(testui.DefaultTermHeight)
-		m.SetWidth(testui.DefaultTermWidth)
 		m.SetCode("func test() {\n    return true\n}", "go")
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "func", "test", "return", "true")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsStrings(t, []string{"func", "test", "return", "true"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("0-width-height", func(t *testing.T) {
@@ -83,28 +66,28 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
 		m.SetContent("test content")
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(0, 0))
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0))
+		tm.WaitSettleMessages(t).ExpectDimensions(t, 0, 0)
 	})
 
 	t.Run("content-larger-than-height", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		tm := testui.NewNonRootModel(t, m, false)
-		m.SetContent(strings.Repeat("test content\n", testui.DefaultTermHeight*2))
-		tm.ExpectContains(t, "test content")
-		tm.ExpectViewSnapshot(t)
+		m.SetContent(strings.Repeat("test content\n", steep.DefaultTermHeight*2))
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsString(t, "test content")
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("content-larger-than-height-at-bottom", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		tm := testui.NewNonRootModel(t, m, false)
-		m.SetContent(strings.TrimSpace(strings.Repeat("test content\n", testui.DefaultTermHeight*2)))
+		m.SetContent(strings.TrimSpace(strings.Repeat("test content\n", steep.DefaultTermHeight*2)))
+		tm := steep.NewViewModel(t, m)
 		m.GotoBottom()
-		tm.ExpectContains(t, "test content")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsString(t, "test content")
+		tm.RequireSnapshotNoANSI(t)
 	})
 }

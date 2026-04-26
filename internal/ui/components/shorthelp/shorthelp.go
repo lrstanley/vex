@@ -39,7 +39,9 @@ type Model struct {
 
 func New() *Model {
 	m := &Model{
-		ComponentModel: types.ComponentModel{},
+		ComponentModel: types.ComponentModel{
+			Height: 1,
+		},
 	}
 
 	m.setStyles()

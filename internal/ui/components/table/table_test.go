@@ -6,16 +6,15 @@ package table
 
 import (
 	"fmt"
-	"os"
 	"slices"
 	"testing"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
 
 // testRow implements the Row interface for testing.
@@ -24,14 +23,46 @@ type testRow struct {
 	data []string
 }
 
-func (r testRow) ID() ID {
-	return ID(r.id)
+type testModel struct {
+	inner *Model[testRow]
 }
 
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
+func (m testModel) Init() tea.Cmd {
+	return m.inner.Init()
+}
+
+func (m testModel) Update(msg tea.Msg) tea.Cmd {
+	if msg, ok := msg.(mutateMsg); ok {
+		if msg.fn != nil {
+			msg.fn()
+		}
+		return nil
+	}
+	return m.inner.Update(msg)
+}
+
+func (m testModel) View() string {
+	return m.inner.View()
+}
+
+type mutateMsg struct {
+	id int
+	fn func()
+}
+
+func mutate(tb testing.TB, tm *steep.Model, fn func()) {
+	tb.Helper()
+
+	msg := mutateMsg{id: len(tm.Messages()) + 1, fn: fn}
+	tm.Send(msg)
+	steep.WaitForMessageWhere(tb, tm, func(got mutateMsg) bool {
+		return got.id == msg.id
+	})
+	tm.WaitSettleMessages(tb, steep.WithSettleTimeout(25*time.Millisecond), steep.WithCheckInterval(5*time.Millisecond))
+}
+
+func (r testRow) ID() ID {
+	return ID(r.id)
 }
 
 func TestNew(t *testing.T) {
@@ -42,22 +73,23 @@ func TestNew(t *testing.T) {
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 
 		columns := []*Column[testRow]{
-			{ID: "name", Title: "Name"},
-			{ID: "description", Title: "Description"},
+			{ID: "name", Title: "Name", AccessorFn: func(row testRow) string { return row.data[0] }},
+			{ID: "description", Title: "Description", AccessorFn: func(row testRow) string { return row.data[1] }},
 		}
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"item1", "description1"}},
-			{id: "2", data: []string{"item2", "description2"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"item1", "description1"}},
+				{id: "2", data: []string{"item2", "description2"}},
+			})
 		})
 
-		tm.ExpectViewContains(t, "item1", "item2", "Name", "Description")
-		tm.ExpectViewDimensions(t, m.GetWidth(), m.GetHeight())
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsStrings(t, []string{"item1", "item2", "Name", "Description"})
+		tm.ExpectDimensions(t, m.GetWidth(), m.GetHeight()).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("loading-state", func(t *testing.T) {
@@ -71,9 +103,9 @@ func TestNew(t *testing.T) {
 		m := New(app, Config[testRow]{Columns: columns})
 		m.loading = true
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(40, 5))
-		tm.ExpectViewContains(t, "loading")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(40, 5))
+		tm.WaitContainsString(t, "loading")
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("no-results", func(t *testing.T) {
@@ -89,10 +121,12 @@ func TestNew(t *testing.T) {
 			NoResultsMsg: "no items found",
 		})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(40, 5))
-		m.SetRows([]testRow{})
-		tm.ExpectViewContains(t, "no items found")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(40, 5))
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{})
+		})
+		tm.WaitContainsString(t, "no items found")
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("filtered-no-results", func(t *testing.T) {
@@ -108,16 +142,18 @@ func TestNew(t *testing.T) {
 			NoResultsFilterMsg: "no results for %q",
 		})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(60, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(60, 5))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"item1"}},
-			{id: "2", data: []string{"item2"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"item1"}},
+				{id: "2", data: []string{"item2"}},
+			})
+			m.SetFilter("nonexistent")
 		})
-		m.SetFilter("nonexistent")
 
-		tm.ExpectViewContains(t, "no results for")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsString(t, "no results for")
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("0-width-height", func(t *testing.T) {
@@ -130,14 +166,14 @@ func TestNew(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(0, 0))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(0, 0))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"item1"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"item1"}},
+			})
 		})
-		time.Sleep(100 * time.Millisecond)
-		tm.ExpectViewNotContains(t, "item1")
-		tm.ExpectViewSnapshot(t)
+		tm.ExpectStringNotContains(t, "item1").WaitSettleView(t).ExpectDimensions(t, 0, 0)
 	})
 }
 
@@ -155,32 +191,40 @@ func TestTableScrolling(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, testui.DefaultTermHeight))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, steep.DefaultTermHeight))
 
 		// Create many rows to exceed the height
 		var rows []testRow
-		for i := range testui.DefaultTermHeight * 2 {
+		for i := range steep.DefaultTermHeight * 2 {
 			rows = append(rows, testRow{
 				id:   string(rune('a' + i)),
 				data: []string{fmt.Sprintf("item%d", i), fmt.Sprintf("value%d", i)},
 			})
 		}
-		m.SetRows(rows)
+		mutate(t, tm, func() {
+			m.SetRows(rows)
+		})
 
-		tm.ExpectViewContains(t, "item0", "item1", "item2")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsStrings(t, []string{"item0", "item1", "item2"})
+		tm.RequireSnapshotNoANSI(t)
 
-		m.MoveDown(testui.DefaultTermHeight - 1 + 5)
-		tm.ExpectViewContains(t, fmt.Sprintf("item%d", len(slices.Collect(m.GetVisibleRows()))+5))
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.MoveDown(steep.DefaultTermHeight - 1 + 5)
+		})
+		tm.WaitContainsString(t, fmt.Sprintf("item%d", len(slices.Collect(m.GetVisibleRows()))+5))
+		tm.RequireSnapshotNoANSI(t)
 
-		m.GoToBottom()
-		tm.ExpectViewContains(t, fmt.Sprintf("item%d", len(rows)-1))
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.GoToBottom()
+		})
+		tm.WaitContainsString(t, fmt.Sprintf("item%d", len(rows)-1))
+		tm.RequireSnapshotNoANSI(t)
 
-		m.GoToTop()
-		tm.ExpectViewContains(t, "item0")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.GoToTop()
+		})
+		tm.WaitContainsString(t, "item0")
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("horizontal-truncation", func(t *testing.T) {
@@ -196,25 +240,31 @@ func TestTableScrolling(t *testing.T) {
 		m := New(app, Config[testRow]{Columns: columns})
 
 		// Set small width to force horizontal scrolling
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(55, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(55, 5))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"item1", "This is a very long description that will cause horizontal scrolling", "value1"}},
-			{id: "2", data: []string{"item2", "Another long description for testing horizontal scroll", "value2"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"item1", "This is a very long description that will cause horizontal scrolling", "value1"}},
+				{id: "2", data: []string{"item2", "Another long description for testing horizontal scroll", "value2"}},
+			})
 		})
 
-		tm.ExpectViewContains(t, "This is a very long description")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsString(t, "This is a very long description")
+		tm.RequireSnapshotNoANSI(t)
 
 		// As far right as possible.
-		m.MoveRight(100)
-		tm.ExpectViewContains(t, "value1")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.MoveRight(100)
+		})
+		tm.WaitContainsString(t, "value1")
+		tm.RequireSnapshotNoANSI(t)
 
 		// As far left as possible.
-		m.MoveLeft(100)
-		tm.ExpectViewContains(t, "This is a very long description")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.MoveLeft(100)
+		})
+		tm.WaitContainsString(t, "This is a very long description")
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("too-small-x-y", func(t *testing.T) {
@@ -230,24 +280,26 @@ func TestTableScrolling(t *testing.T) {
 		m := New(app, Config[testRow]{Columns: columns})
 
 		// Set small dimensions to force both scrollbars
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(55, 10))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(55, 10))
 
 		// Create many rows with long content
 		var rows []testRow
-		for i := range testui.DefaultTermHeight * 2 {
+		for i := range steep.DefaultTermHeight * 2 {
 			rows = append(rows, testRow{
 				id:   string(rune('a' + i)),
 				data: []string{fmt.Sprintf("item%d", i), fmt.Sprintf("This is a very long description for item %d that will cause horizontal scrolling", i), fmt.Sprintf("value%d", i)},
 			})
 		}
-		m.SetRows(rows)
-		tm.ExpectViewContains(t, "This is a very long")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.SetRows(rows)
+		})
+		tm.WaitContainsString(t, "This is a very long")
+		tm.RequireSnapshotNoANSI(t)
 
 		// Test scrolling both directions
 		m.MoveDown(5)
 		m.MoveRight(15)
-		tm.ExpectViewSnapshot(t)
+		tm.RequireSnapshotNoANSI(t)
 	})
 }
 
@@ -266,17 +318,18 @@ func TestTableTruncation(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(60, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(60, 5))
 
 		rows := []testRow{
 			{id: "1", data: []string{"Very Long Name That Should Be Truncated", "This is a very long description that should be truncated", "123456789"}},
 			{id: "2", data: []string{"Another Long Name", "Another long description", "987654321"}},
 		}
-		m.SetRows(rows)
+		mutate(t, tm, func() {
+			m.SetRows(rows)
+		})
 
-		tm.ExpectViewContains(t, "Very Long")
-		tm.ExpectViewNotContains(t, "Very Long Name")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsString(t, "Very Long")
+		tm.ExpectStringNotContains(t, "Very Long Name").RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("ellipsis-indicator", func(t *testing.T) {
@@ -290,14 +343,16 @@ func TestTableTruncation(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(20, 4))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(20, 4))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"Very Long Name", "Very Long Description"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"Very Long Name", "Very Long Description"}},
+			})
 		})
 
-		tm.ExpectViewContains(t, "Very Long Name")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsString(t, "Very Long Name")
+		tm.RequireSnapshotNoANSI(t)
 	})
 }
 
@@ -315,31 +370,37 @@ func TestTableFiltering(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 6))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 6))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"apple", "fruit"}},
-			{id: "2", data: []string{"banana", "fruit"}},
-			{id: "3", data: []string{"carrot", "vegetable"}},
-			{id: "4", data: []string{"broccoli", "vegetable"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"apple", "fruit"}},
+				{id: "2", data: []string{"banana", "fruit"}},
+				{id: "3", data: []string{"carrot", "vegetable"}},
+				{id: "4", data: []string{"broccoli", "vegetable"}},
+			})
 		})
 
 		// Test filtering by name
-		m.SetFilter("apple")
-		tm.ExpectViewContains(t, "apple")
-		tm.ExpectViewNotContains(t, "banana", "carrot", "broccoli")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.SetFilter("apple")
+		})
+		tm.WaitContainsString(t, "apple")
+		tm.ExpectStringNotContains(t, "banana", "carrot", "broccoli").RequireSnapshotNoANSI(t)
 
 		// Test filtering by category
-		m.SetFilter("fruit")
-		tm.ExpectViewContains(t, "apple", "banana")
-		tm.ExpectViewNotContains(t, "carrot", "broccoli")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.SetFilter("fruit")
+		})
+		tm.WaitContainsStrings(t, []string{"apple", "banana"})
+		tm.ExpectStringNotContains(t, "carrot", "broccoli").RequireSnapshotNoANSI(t)
 
 		// Test clearing filter
-		m.SetFilter("")
-		tm.ExpectViewContains(t, "apple", "banana", "carrot", "broccoli")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.SetFilter("")
+		})
+		tm.WaitContainsStrings(t, []string{"apple", "banana", "carrot", "broccoli"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 }
 
@@ -357,15 +418,17 @@ func TestTableSelection(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"item1", "value1"}},
-			{id: "2", data: []string{"item2", "value2"}},
-			{id: "3", data: []string{"item3", "value3"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"item1", "value1"}},
+				{id: "2", data: []string{"item2", "value2"}},
+				{id: "3", data: []string{"item3", "value3"}},
+			})
 		})
 
-		tm.ExpectViewContains(t, "item1", "item2", "item3")
+		tm.WaitContainsStrings(t, []string{"item1", "item2", "item3"})
 
 		// Test initial selection
 		selected, found := m.GetSelectedRow()
@@ -377,7 +440,9 @@ func TestTableSelection(t *testing.T) {
 		}
 
 		// Test moving selection
-		m.MoveDown(1)
+		mutate(t, tm, func() {
+			m.MoveDown(1)
+		})
 		selected, found = m.GetSelectedRow()
 		if !found {
 			t.Fatal("expected to have a selected row")
@@ -386,7 +451,7 @@ func TestTableSelection(t *testing.T) {
 			t.Fatalf("expected second row to be selected, got %s", selected.ID())
 		}
 
-		tm.ExpectViewSnapshot(t)
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("selection-with-filter", func(t *testing.T) {
@@ -400,24 +465,30 @@ func TestTableSelection(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"apple", "fruit"}},
-			{id: "2", data: []string{"banana", "fruit"}},
-			{id: "3", data: []string{"carrot", "vegetable"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"apple", "fruit"}},
+				{id: "2", data: []string{"banana", "fruit"}},
+				{id: "3", data: []string{"carrot", "vegetable"}},
+			})
 		})
 
-		tm.ExpectViewContains(t, "apple", "banana", "carrot")
+		tm.WaitContainsStrings(t, []string{"apple", "banana", "carrot"})
 
 		// Select second row
-		m.MoveDown(1)
-		tm.ExpectViewContains(t, "apple", "banana", "carrot")
+		mutate(t, tm, func() {
+			m.MoveDown(1)
+		})
+		tm.WaitContainsStrings(t, []string{"apple", "banana", "carrot"})
 
 		// Apply filter
-		m.SetFilter("fruit")
-		tm.ExpectViewContains(t, "apple", "banana")
-		tm.ExpectViewNotContains(t, "carrot")
+		mutate(t, tm, func() {
+			m.SetFilter("fruit")
+		})
+		tm.WaitContainsStrings(t, []string{"apple", "banana"})
+		tm.ExpectStringNotContains(t, "carrot")
 
 		// Check that selection is maintained
 		selected, found := m.GetSelectedRow()
@@ -428,7 +499,7 @@ func TestTableSelection(t *testing.T) {
 			t.Fatalf("expected second row to be selected, got %s", selected.ID())
 		}
 
-		tm.ExpectViewSnapshot(t)
+		tm.RequireSnapshotNoANSI(t)
 	})
 }
 
@@ -447,24 +518,29 @@ func TestTableColumns(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
 
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"item1", "description1", "value1"}},
-			{id: "2", data: []string{"item2", "description2", "value2"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"item1", "description1", "value1"}},
+				{id: "2", data: []string{"item2", "description2", "value2"}},
+			})
 		})
 
 		// Test disabling a column
-		m.ToggleColumn("description", false)
-		tm.ExpectViewContains(t, "item1", "item2")
-		tm.ExpectViewNotContains(t, "description1", "description2")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.ToggleColumn("description", false)
+		})
+		tm.WaitContainsStrings(t, []string{"item1", "item2"})
+		tm.ExpectStringNotContains(t, "description1", "description2").RequireSnapshotNoANSI(t)
 
 		// Test re-enabling a column
-		m.ToggleColumn("description", true)
-		tm.ExpectViewContains(t, "item1", "item2")
-		tm.ExpectViewContains(t, "description1", "description2")
-		tm.ExpectViewSnapshot(t)
+		mutate(t, tm, func() {
+			m.ToggleColumn("description", true)
+		})
+		tm.WaitContainsStrings(t, []string{"item1", "item2"})
+		tm.WaitContainsStrings(t, []string{"description1", "description2"})
+		tm.RequireSnapshotNoANSI(t)
 
 		// Test getting column by ID
 		col := m.GetColumnByID("name")
@@ -491,7 +567,7 @@ func TestTableData(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(60, 8))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(60, 8))
 
 		// Test initial empty state
 		if m.TotalRows() != 0 {
@@ -499,9 +575,11 @@ func TestTableData(t *testing.T) {
 		}
 
 		// Test adding rows
-		m.SetRows([]testRow{
-			{id: "1", data: []string{"item1", "value1"}},
-			{id: "2", data: []string{"item2", "value2"}},
+		mutate(t, tm, func() {
+			m.SetRows([]testRow{
+				{id: "1", data: []string{"item1", "value1"}},
+				{id: "2", data: []string{"item2", "value2"}},
+			})
 		})
 
 		if m.TotalRows() != 2 {
@@ -510,7 +588,9 @@ func TestTableData(t *testing.T) {
 
 		// Test updating a row
 		updatedRow := testRow{id: "1", data: []string{"updated_item1", "updated_value1"}}
-		m.UpdateRow(updatedRow)
+		mutate(t, tm, func() {
+			m.UpdateRow(updatedRow)
+		})
 
 		// Test getting row by ID
 		retrievedRow := m.GetRowByID("1")
@@ -520,7 +600,9 @@ func TestTableData(t *testing.T) {
 
 		// Test prepending a row
 		newRow := testRow{id: "0", data: []string{"item0", "value0"}}
-		m.PrependRow(newRow)
+		mutate(t, tm, func() {
+			m.PrependRow(newRow)
+		})
 
 		if m.TotalRows() != 3 {
 			t.Fatalf("expected 3 rows after prepend, got %d", m.TotalRows())
@@ -528,20 +610,24 @@ func TestTableData(t *testing.T) {
 
 		// Test appending a row
 		appendRow := testRow{id: "3", data: []string{"item3", "value3"}}
-		m.AppendRow(appendRow)
+		mutate(t, tm, func() {
+			m.AppendRow(appendRow)
+		})
 
 		if m.TotalRows() != 4 {
 			t.Fatalf("expected 4 rows after append, got %d", m.TotalRows())
 		}
 
 		// Test deleting a row
-		m.DeleteRowByID("2")
+		mutate(t, tm, func() {
+			m.DeleteRowByID("2")
+		})
 
 		if m.TotalRows() != 3 {
 			t.Fatalf("expected 3 rows after delete, got %d", m.TotalRows())
 		}
 
-		tm.ExpectViewSnapshot(t)
+		tm.RequireSnapshotNoANSI(t)
 	})
 }
 
@@ -559,21 +645,24 @@ func TestTableStyles(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(30, 5))
+		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
 
 		rows := []testRow{
 			{id: "1", data: []string{"item1", "value1"}},
 			{id: "2", data: []string{"item2", "value2"}},
 		}
-		m.SetRows(rows)
+		mutate(t, tm, func() {
+			m.SetRows(rows)
+		})
 
 		customStyles := Styles{
 			Header: lipgloss.NewStyle().
 				Border(lipgloss.NormalBorder(), false, false, true, false),
 		}
-		m.SetStyles(customStyles)
+		mutate(t, tm, func() {
+			m.SetStyles(customStyles)
+		})
 
-		tm.ExpectViewDimensions(t, m.GetWidth(), m.GetHeight())
-		tm.ExpectViewSnapshot(t)
+		tm.ExpectDimensions(t, m.GetWidth(), m.GetHeight()).RequireSnapshotNoANSI(t)
 	})
 }

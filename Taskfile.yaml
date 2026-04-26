@@ -60,6 +60,7 @@ tasks:
       - go get -u ./... && go get -u -t ./...
       - cd mock-cluster && go get -u ./... && go get -u -t ./... && go mod tidy
       - task: fetch
+      - if [ -f go.work ]; then go work sync; fi
   prepare:
     desc: prepare build environment
     deps: [ fetch ]
@@ -138,7 +139,8 @@ tasks:
     desc: run tests and update snapshots
     deps: [ prepare ]
     cmds:
-      - UPDATE_SNAPS=always go test -count 2 -p 3 {{ or .CLI_ARGS "./..." }}
+      - find . -type d -name "testdata" -exec rm -rfv {} +
+      - UPDATE_SNAPSHOTS=true go test -count 2 -p 3 {{ or .CLI_ARGS "./..." }}
   lint:
     desc: run linter
     deps: [ prepare ]
@@ -157,6 +159,8 @@ tasks:
     cmds:
       - mkdir -p tmp/
       - go run github.com/charmbracelet/vhs@latest demo.tape
-      - gifsicle -O3 --colors 256 --lossy=30 -o tmp/demo-optimized-$(date
-        +%Y-%m-%d-%H-%M-%S).gif tmp/demo.gif
+      - |
+        gifsicle -O3 --colors 256 --lossy=30 \
+          -o tmp/demo-optimized-$(date +%Y-%m-%d-%H-%M-%S).gif \
+          tmp/demo.gif
       - task: clean

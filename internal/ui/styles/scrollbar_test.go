@@ -5,18 +5,10 @@
 package styles
 
 import (
-	"os"
 	"testing"
 
-	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep/snapshot"
 )
-
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
-}
 
 func TestScrollbar(t *testing.T) {
 	t.Parallel()
@@ -103,7 +95,10 @@ func TestScrollbar(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			testui.ExpectSnapshotNonANSI(t, Scrollbar(tt.height, tt.total, tt.visible, tt.offset, IconScrollbar, " "))
+			snapshot.RequireEqual(t,
+				Scrollbar(tt.height, tt.total, tt.visible, tt.offset, IconScrollbar, " "),
+				snapshot.WithStripANSI(),
+			)
 		})
 	}
 }

@@ -5,23 +5,15 @@
 package commander
 
 import (
-	"os"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/types"
 	"github.com/lrstanley/vex/internal/ui/pages/genericcode"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
-
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
-}
 
 func newMockPageWithCommands(app types.AppState, commands []string, title, content, language string) types.Page {
 	p := genericcode.New(app, title, content, language)
@@ -72,47 +64,44 @@ func TestNew(t *testing.T) {
 			},
 		})
 
-		tm := testui.NewNonRootModel(t, commander, false, testui.WithTermSize(defaultWidth, defaultHeight))
+		tm := steep.NewViewModel(t, commander, steep.WithInitialTermSize(defaultWidth, defaultHeight))
 
-		tm.ExpectContains(t,
+		tm.WaitContainsStrings(t, []string{
 			"mock-page-1",
 			"mock-page-2",
 			"mock-page-3",
 			"mock-page-4",
-		)
-		tm.ExpectNotContains(t, "Current Page") // Since we didn't pass it in, and it has no commands.
-		tm.ExpectViewSnapshot(t)
+		})
+		tm.WaitNotContainsString(t, "Current Page") // Since we didn't pass it in, and it has no commands.
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 
-		go tm.Type("mock-page-1")
-		tm.ExpectContains(t, "Mock Page 1 Title", "mock-page-1", "mock-page-1-alias")
-		tm.ExpectNotContains(t, "mock-page-2", "mock-page-3", "mock-page-4")
-		tm.ExpectViewSnapshot(t)
+		tm.Type("mock-page-1")
+		tm.WaitContainsStrings(t, []string{"Mock Page 1 Title", "mock-page-1", "mock-page-1-alias"})
+		tm.WaitNotContainsStrings(t, []string{"mock-page-2", "mock-page-3", "mock-page-4"})
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 
 		for range 10 {
-			tm.Send(tea.KeyPressMsg{Code: tea.KeyBackspace})
+			tm.Send(tea.KeyPressMsg(tea.Key{Code: tea.KeyBackspace}))
 		}
 
 		// We should see all of the commands again.
-		tm.ExpectContains(t,
+		tm.WaitContainsStrings(t, []string{
 			"mock-page-1",
 			"mock-page-2",
 			"mock-page-3",
 			"mock-page-4",
-		)
-		tm.ExpectViewSnapshot(t)
+		})
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 
-		tm.Send(tea.KeyPressMsg{Code: tea.KeyEnter}) // Select first command.
-		tm.WaitForFilterMessages(t, types.OpenPageMsg{})
+		tm.Send(tea.KeyPressMsg(tea.Key{Code: tea.KeyEnter})) // Select first command.
+		steep.WaitForMessage[types.OpenPageMsg](t, tm)
 
-		dialogMsgs := tm.WaitForFilterMessages(t, types.DialogMsg{})
+		dialogMsgs := steep.WaitForMessages[types.DialogMsg](t, tm)
 		hasClose := false
 		for _, msg := range dialogMsgs {
-			switch msg := msg.(type) { //nolint:gocritic
-			case types.DialogMsg:
-				switch msg.Msg.(type) { //nolint:gocritic
-				case types.CloseActiveDialogMsg:
-					hasClose = true
-				}
+			switch msg.Msg.(type) {
+			case types.CloseActiveDialogMsg:
+				hasClose = true
 			}
 		}
 		if !hasClose {

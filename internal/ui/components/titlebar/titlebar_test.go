@@ -5,20 +5,12 @@
 package titlebar
 
 import (
-	"os"
 	"testing"
 
-	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
-
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
-}
 
 func TestNew(t *testing.T) {
 	t.Parallel()
@@ -26,32 +18,25 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.Height = testui.DefaultTermHeight
-		m.Width = testui.DefaultTermWidth
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "mock-page", "help")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsStrings(t, []string{"mock-page", "help"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("0-width-height", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.Height = 0
-		m.Width = 0
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "mock-page", "help")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0))
+		tm.ExpectDimensions(t, 0, 0)
 	})
 
 	t.Run("small-dimensions", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		m.Height = 3
-		m.Width = 40
-		tm := testui.NewNonRootModel(t, m, false)
-		tm.ExpectViewContains(t, "mock-page", "help")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(40, 3))
+		tm.WaitContainsStrings(t, []string{"mock-page", "help"})
+		tm.RequireSnapshotNoANSI(t)
 	})
 }

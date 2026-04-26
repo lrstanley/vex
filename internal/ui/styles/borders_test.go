@@ -9,29 +9,8 @@ import (
 	"testing"
 
 	"charm.land/lipgloss/v2"
-	"github.com/lrstanley/x/charm/testui"
-	"github.com/lucasb-eyer/go-colorful"
+	"github.com/lrstanley/x/charm/steep/snapshot"
 )
-
-func expectColor(t *testing.T, shouldMatch bool, c1, c2 color.Color) {
-	t.Helper()
-	cc1, _ := colorful.MakeColor(c1)
-	r1, g1, b1, _ := c1.RGBA()
-	cc2, _ := colorful.MakeColor(c2)
-	r2, g2, b2, _ := c2.RGBA()
-
-	matches := cc1.Hex() == cc2.Hex()
-
-	if (shouldMatch && !matches) || (!shouldMatch && matches) {
-		t.Errorf(
-			"color rgb(%d,%d,%d) (%s) and rgb(%d,%d,%d) (%s) shouldMatch:%v matches:%v",
-			r1>>8, g1>>8, b1>>8, cc1.Hex(),
-			r2>>8, g2>>8, b2>>8, cc2.Hex(),
-			shouldMatch,
-			matches,
-		)
-	}
-}
 
 func TestGetBorderGradient(t *testing.T) {
 	t.Parallel()
@@ -322,7 +301,7 @@ func TestBorder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := Border(tt.content, tt.fg, tt.element)
-			testui.ExpectSnapshotNonANSI(t, result)
+			snapshot.RequireEqual(t, result, snapshot.WithStripANSI())
 		})
 	}
 }
@@ -403,7 +382,7 @@ func TestBorderEdgeCases(t *testing.T) {
 				if result == "" {
 					t.Errorf("Expected non-empty result, got empty")
 				}
-				testui.ExpectSnapshotNonANSI(t, result)
+				snapshot.RequireEqual(t, result, snapshot.WithStripANSI())
 			}
 		})
 	}

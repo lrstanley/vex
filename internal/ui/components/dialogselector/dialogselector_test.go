@@ -5,22 +5,14 @@
 package dialogselector
 
 import (
-	"os"
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/components/table"
 	"github.com/lrstanley/vex/internal/ui/state"
-	"github.com/lrstanley/x/charm/testui"
+	"github.com/lrstanley/x/charm/steep"
 )
-
-func TestMain(m *testing.M) {
-	v := m.Run()
-	snaps.Clean(m, snaps.CleanOpts{Sort: true}) //nolint:errcheck
-	os.Exit(v)
-}
 
 func TestNew(t *testing.T) {
 	t.Parallel()
@@ -43,9 +35,9 @@ func TestNew(t *testing.T) {
 			{"item3", "item3", "description 3"},
 		})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(testui.DefaultTermWidth, testui.DefaultTermHeight))
-		tm.ExpectViewContains(t, "description 1")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsString(t, "description 1")
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("empty-list", func(t *testing.T) {
@@ -62,9 +54,9 @@ func TestNew(t *testing.T) {
 
 		m.SetItems([][]string{})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(testui.DefaultTermWidth, testui.DefaultTermHeight))
-		tm.ExpectViewContains(t, "no results found")
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m)
+		tm.WaitContainsString(t, "no results found")
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("0-width-height", func(t *testing.T) {
@@ -76,15 +68,16 @@ func TestNew(t *testing.T) {
 				{ID: "name", Title: "Name"},
 				{ID: "description", Title: "Description"},
 			},
-			SelectFunc: func(id string) tea.Cmd { return nil },
+			SelectFunc: func(_ string) tea.Cmd { return nil },
 		})
 
 		// Set items after creation
 		// First element is the ID, subsequent elements are the column data
 		m.SetItems([][]string{{"item1", "item1", "description"}})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(0, 0))
-		tm.ExpectViewSnapshot(t)
+		steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0)).
+			WaitSettleView(t).
+			ExpectDimensions(t, 0, 0)
 	})
 }
 
@@ -102,7 +95,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 
 		m := New(app, Config{
 			Columns: columns,
-			SelectFunc: func(id string) tea.Cmd {
+			SelectFunc: func(_ string) tea.Cmd {
 				return nil
 			},
 		})
@@ -116,11 +109,11 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 			{"broccoli", "broccoli", "vegetable"},
 		})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(60, 10))
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(60, 10))
 
 		// Test initial state shows all items
-		tm.ExpectViewContains(t, "apple", "banana", "carrot", "broccoli")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsStrings(t, []string{"apple", "banana", "carrot", "broccoli"})
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 
 		// Note: Filtering is handled internally through the input field
 		// We can't directly test SetFilter as it's not exposed
@@ -136,7 +129,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 
 		m := New(app, Config{
 			Columns: columns,
-			SelectFunc: func(id string) tea.Cmd {
+			SelectFunc: func(_ string) tea.Cmd {
 				return nil
 			},
 		})
@@ -148,8 +141,8 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 			{"carrot", "carrot"},
 		})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(40, 8))
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(40, 8))
+		tm.RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("selection", func(t *testing.T) {
@@ -163,7 +156,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 
 		m := New(app, Config{
 			Columns: columns,
-			SelectFunc: func(id string) tea.Cmd {
+			SelectFunc: func(_ string) tea.Cmd {
 				// Selection callback - can be tested by verifying the component works
 				return nil
 			},
@@ -176,11 +169,11 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 			{"item3", "item3", "value3"},
 		})
 
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(50, 8))
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(50, 8))
 
 		// Test initial state
-		tm.ExpectViewContains(t, "item1", "item2", "item3")
-		tm.ExpectViewSnapshot(t)
+		tm.WaitContainsStrings(t, []string{"item1", "item2", "item3"})
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 
 		// Test that the component renders correctly with data
 		// The table component handles selection internally
@@ -197,7 +190,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 
 		m := New(app, Config{
 			Columns: columns,
-			SelectFunc: func(id string) tea.Cmd {
+			SelectFunc: func(_ string) tea.Cmd {
 				return nil
 			},
 		})
@@ -209,11 +202,21 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 		})
 
 		// Test with different dimensions
-		tm := testui.NewNonRootModel(t, m, false, testui.WithTermSize(80, 20))
-		tm.ExpectViewSnapshot(t)
+		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(80, 20))
+		tm.RequireSnapshotNoANSI(t)
 
 		// Test with small dimensions
-		tm2 := testui.NewNonRootModel(t, m, false, testui.WithTermSize(40, 10))
-		tm2.ExpectViewSnapshot(t)
+		m2 := New(app, Config{
+			Columns: columns,
+			SelectFunc: func(_ string) tea.Cmd {
+				return nil
+			},
+		})
+		m2.SetItems([][]string{
+			{"item1", "item1", "description 1"},
+			{"item2", "item2", "description 2"},
+		})
+		tm2 := steep.NewViewModel(t, m2, steep.WithInitialTermSize(40, 10))
+		tm2.RequireSnapshotNoANSI(t)
 	})
 }
