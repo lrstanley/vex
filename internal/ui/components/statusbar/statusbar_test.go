@@ -18,7 +18,7 @@ import (
 
 // applyTestVaultData sends client responses the statusbar vault element consumes so
 // snapshots include address/cluster, seal/version, and token display fields.
-func applyTestVaultData(tb testing.TB, tm *steep.Model) {
+func applyTestVaultData(tb testing.TB, tm *steep.Harness) {
 	tb.Helper()
 	for _, msg := range []tea.Msg{
 		types.ClientMsg{
@@ -50,7 +50,7 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		applyTestVaultData(t, tm)
 		tm.WaitContainsStrings(t, []string{
 			config.AppName,
@@ -66,15 +66,16 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0))
-		tm.WaitSettleMessages(t).ExpectDimensions(t, 0, 0)
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(0, 0))
+		tm.WaitSettleMessages(t).
+			RequireDimensions(t, 0, 0)
 	})
 
 	t.Run("small-dimensions", func(t *testing.T) {
 		t.Parallel()
 		app := state.NewMockAppState(api.NewMockClient(), nil)
 		m := New(app)
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(40, 3))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(40, 3))
 		applyTestVaultData(t, tm)
 		tm.WaitContainsStrings(t, []string{
 			config.AppName,

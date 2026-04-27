@@ -15,22 +15,24 @@ func TestNew(t *testing.T) {
 	t.Run("basic-loader", func(t *testing.T) {
 		t.Parallel()
 		m := New()
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		tm.WaitContainsString(t, "loading")
-		tm.ExpectDimensions(t, m.GetWidth(), m.GetHeight()).RequireSnapshotNoANSI(t)
+		tm.RequireDimensions(t, m.GetWidth(), m.GetHeight()).
+			RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("0-width-height", func(t *testing.T) {
 		t.Parallel()
 		m := New()
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0))
-		tm.WaitSettleView(t).ExpectDimensions(t, 0, 0)
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(0, 0))
+		tm.WaitSettleView(t).
+			RequireDimensions(t, 0, 0)
 	})
 
 	t.Run("small-dimensions", func(t *testing.T) {
 		t.Parallel()
 		m := New()
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(20, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(20, 5))
 		tm.WaitContainsString(t, "loading")
 		tm.RequireSnapshotNoANSI(t)
 	})

@@ -35,7 +35,7 @@ func TestNew(t *testing.T) {
 			{"item3", "item3", "description 3"},
 		})
 
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		tm.WaitContainsString(t, "description 1")
 		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 	})
@@ -54,7 +54,7 @@ func TestNew(t *testing.T) {
 
 		m.SetItems([][]string{})
 
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		tm.WaitContainsString(t, "no results found")
 		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 	})
@@ -75,9 +75,9 @@ func TestNew(t *testing.T) {
 		// First element is the ID, subsequent elements are the column data
 		m.SetItems([][]string{{"item1", "item1", "description"}})
 
-		steep.NewViewModel(t, m, steep.WithInitialTermSize(0, 0)).
+		steep.NewComponentHarness(t, m, steep.WithInitialTermSize(0, 0)).
 			WaitSettleView(t).
-			ExpectDimensions(t, 0, 0)
+			RequireDimensions(t, 0, 0)
 	})
 }
 
@@ -109,7 +109,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 			{"broccoli", "broccoli", "vegetable"},
 		})
 
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(60, 10))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(60, 10))
 
 		// Test initial state shows all items
 		tm.WaitContainsStrings(t, []string{"apple", "banana", "carrot", "broccoli"})
@@ -141,8 +141,8 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 			{"carrot", "carrot"},
 		})
 
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(40, 8))
-		tm.RequireSnapshotNoANSI(t)
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(40, 8))
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("selection", func(t *testing.T) {
@@ -169,7 +169,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 			{"item3", "item3", "value3"},
 		})
 
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(50, 8))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(50, 8))
 
 		// Test initial state
 		tm.WaitContainsStrings(t, []string{"item1", "item2", "item3"})
@@ -202,8 +202,8 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 		})
 
 		// Test with different dimensions
-		tm := steep.NewViewModel(t, m, steep.WithInitialTermSize(80, 20))
-		tm.RequireSnapshotNoANSI(t)
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(80, 20))
+		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 
 		// Test with small dimensions
 		m2 := New(app, Config{
@@ -216,7 +216,7 @@ func TestDialogSelectorFunctionality(t *testing.T) {
 			{"item1", "item1", "description 1"},
 			{"item2", "item2", "description 2"},
 		})
-		tm2 := steep.NewViewModel(t, m2, steep.WithInitialTermSize(40, 10))
-		tm2.RequireSnapshotNoANSI(t)
+		tm2 := steep.NewComponentHarness(t, m2, steep.WithInitialTermSize(40, 10))
+		tm2.WaitSettleView(t).RequireSnapshotNoANSI(t)
 	})
 }

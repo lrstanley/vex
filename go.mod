@@ -17,7 +17,7 @@ require (
 	github.com/lrstanley/bubbletint/v2 v2.0.1
 	github.com/lrstanley/clix/v2 v2.0.0
 	github.com/lrstanley/x/charm/formatter v0.0.0-20260418212558-96c5cf679e1d
-	github.com/lrstanley/x/charm/steep v0.0.0-20260426085117-8cec25a67e86
+	github.com/lrstanley/x/charm/steep v0.0.0-20260427022739-29558ae5735c
 	github.com/lrstanley/x/http/utils v0.0.0-20260418212558-96c5cf679e1d
 	github.com/lrstanley/x/logging/handlers v0.0.0-20260418212558-96c5cf679e1d
 	github.com/lrstanley/x/sync v0.0.0-20260418212558-96c5cf679e1d

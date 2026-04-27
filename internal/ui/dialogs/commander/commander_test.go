@@ -64,7 +64,7 @@ func TestNew(t *testing.T) {
 			},
 		})
 
-		tm := steep.NewViewModel(t, commander, steep.WithInitialTermSize(defaultWidth, defaultHeight))
+		tm := steep.NewComponentHarness(t, commander, steep.WithInitialTermSize(defaultWidth, defaultHeight))
 
 		tm.WaitContainsStrings(t, []string{
 			"mock-page-1",
@@ -94,9 +94,9 @@ func TestNew(t *testing.T) {
 		tm.WaitSettleView(t).RequireSnapshotNoANSI(t)
 
 		tm.Send(tea.KeyPressMsg(tea.Key{Code: tea.KeyEnter})) // Select first command.
-		steep.WaitForMessage[types.OpenPageMsg](t, tm)
+		steep.WaitMessage[types.OpenPageMsg](t, tm)
 
-		dialogMsgs := steep.WaitForMessages[types.DialogMsg](t, tm)
+		dialogMsgs := steep.WaitMessages[types.DialogMsg](t, tm)
 		hasClose := false
 		for _, msg := range dialogMsgs {
 			switch msg.Msg.(type) {

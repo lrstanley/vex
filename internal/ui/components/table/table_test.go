@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/lrstanley/vex/internal/api"
 	"github.com/lrstanley/vex/internal/ui/state"
@@ -23,40 +22,12 @@ type testRow struct {
 	data []string
 }
 
-type testModel struct {
-	inner *Model[testRow]
-}
-
-func (m testModel) Init() tea.Cmd {
-	return m.inner.Init()
-}
-
-func (m testModel) Update(msg tea.Msg) tea.Cmd {
-	if msg, ok := msg.(mutateMsg); ok {
-		if msg.fn != nil {
-			msg.fn()
-		}
-		return nil
-	}
-	return m.inner.Update(msg)
-}
-
-func (m testModel) View() string {
-	return m.inner.View()
-}
-
-type mutateMsg struct {
-	id int
-	fn func()
-}
-
-func mutate(tb testing.TB, tm *steep.Model, fn func()) {
+func mutate(tb testing.TB, tm *steep.Harness, fn func()) {
 	tb.Helper()
 
-	msg := mutateMsg{id: len(tm.Messages()) + 1, fn: fn}
-	tm.Send(msg)
-	steep.WaitForMessageWhere(tb, tm, func(got mutateMsg) bool {
-		return got.id == msg.id
+	steep.Mutate(tb, tm, func(m *Model[testRow]) *Model[testRow] {
+		fn()
+		return m
 	})
 	tm.WaitSettleMessages(tb, steep.WithSettleTimeout(25*time.Millisecond), steep.WithCheckInterval(5*time.Millisecond))
 }
@@ -79,7 +50,7 @@ func TestNew(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(30, 5))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -89,7 +60,8 @@ func TestNew(t *testing.T) {
 		})
 
 		tm.WaitContainsStrings(t, []string{"item1", "item2", "Name", "Description"})
-		tm.ExpectDimensions(t, m.GetWidth(), m.GetHeight()).RequireSnapshotNoANSI(t)
+		tm.RequireDimensions(t, m.GetWidth(), m.GetHeight()).
+			RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("loading-state", func(t *testing.T) {
@@ -103,7 +75,7 @@ func TestNew(t *testing.T) {
 		m := New(app, Config[testRow]{Columns: columns})
 		m.loading = true
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(40, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(40, 5))
 		tm.WaitContainsString(t, "loading")
 		tm.RequireSnapshotNoANSI(t)
 	})
@@ -121,7 +93,7 @@ func TestNew(t *testing.T) {
 			NoResultsMsg: "no items found",
 		})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(40, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(40, 5))
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{})
 		})
@@ -142,7 +114,7 @@ func TestNew(t *testing.T) {
 			NoResultsFilterMsg: "no results for %q",
 		})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(60, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(60, 5))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -166,14 +138,15 @@ func TestNew(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(0, 0))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(0, 0))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
 				{id: "1", data: []string{"item1"}},
 			})
 		})
-		tm.ExpectStringNotContains(t, "item1").WaitSettleView(t).ExpectDimensions(t, 0, 0)
+		tm.RequireStringNotContains(t, "item1").WaitSettleView(t).
+			RequireDimensions(t, 0, 0)
 	})
 }
 
@@ -191,7 +164,7 @@ func TestTableScrolling(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, steep.DefaultTermHeight))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(30, steep.DefaultTermHeight))
 
 		// Create many rows to exceed the height
 		var rows []testRow
@@ -240,7 +213,7 @@ func TestTableScrolling(t *testing.T) {
 		m := New(app, Config[testRow]{Columns: columns})
 
 		// Set small width to force horizontal scrolling
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(55, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(55, 5))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -280,7 +253,7 @@ func TestTableScrolling(t *testing.T) {
 		m := New(app, Config[testRow]{Columns: columns})
 
 		// Set small dimensions to force both scrollbars
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(55, 10))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(55, 10))
 
 		// Create many rows with long content
 		var rows []testRow
@@ -297,8 +270,10 @@ func TestTableScrolling(t *testing.T) {
 		tm.RequireSnapshotNoANSI(t)
 
 		// Test scrolling both directions
-		m.MoveDown(5)
-		m.MoveRight(15)
+		mutate(t, tm, func() {
+			m.MoveDown(5)
+			m.MoveRight(15)
+		})
 		tm.RequireSnapshotNoANSI(t)
 	})
 }
@@ -318,7 +293,7 @@ func TestTableTruncation(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(60, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(60, 5))
 
 		rows := []testRow{
 			{id: "1", data: []string{"Very Long Name That Should Be Truncated", "This is a very long description that should be truncated", "123456789"}},
@@ -329,7 +304,8 @@ func TestTableTruncation(t *testing.T) {
 		})
 
 		tm.WaitContainsString(t, "Very Long")
-		tm.ExpectStringNotContains(t, "Very Long Name").RequireSnapshotNoANSI(t)
+		tm.RequireStringNotContains(t, "Very Long Name").
+			RequireSnapshotNoANSI(t)
 	})
 
 	t.Run("ellipsis-indicator", func(t *testing.T) {
@@ -343,7 +319,7 @@ func TestTableTruncation(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(20, 4))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(20, 4))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -370,7 +346,7 @@ func TestTableFiltering(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 6))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(30, 6))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -386,14 +362,16 @@ func TestTableFiltering(t *testing.T) {
 			m.SetFilter("apple")
 		})
 		tm.WaitContainsString(t, "apple")
-		tm.ExpectStringNotContains(t, "banana", "carrot", "broccoli").RequireSnapshotNoANSI(t)
+		tm.RequireStringNotContains(t, "banana", "carrot", "broccoli").
+			RequireSnapshotNoANSI(t)
 
 		// Test filtering by category
 		mutate(t, tm, func() {
 			m.SetFilter("fruit")
 		})
 		tm.WaitContainsStrings(t, []string{"apple", "banana"})
-		tm.ExpectStringNotContains(t, "carrot", "broccoli").RequireSnapshotNoANSI(t)
+		tm.RequireStringNotContains(t, "carrot", "broccoli").
+			RequireSnapshotNoANSI(t)
 
 		// Test clearing filter
 		mutate(t, tm, func() {
@@ -418,7 +396,7 @@ func TestTableSelection(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(30, 5))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -465,7 +443,7 @@ func TestTableSelection(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(30, 5))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -488,7 +466,7 @@ func TestTableSelection(t *testing.T) {
 			m.SetFilter("fruit")
 		})
 		tm.WaitContainsStrings(t, []string{"apple", "banana"})
-		tm.ExpectStringNotContains(t, "carrot")
+		tm.RequireStringNotContains(t, "carrot")
 
 		// Check that selection is maintained
 		selected, found := m.GetSelectedRow()
@@ -518,7 +496,7 @@ func TestTableColumns(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(30, 5))
 
 		mutate(t, tm, func() {
 			m.SetRows([]testRow{
@@ -532,7 +510,8 @@ func TestTableColumns(t *testing.T) {
 			m.ToggleColumn("description", false)
 		})
 		tm.WaitContainsStrings(t, []string{"item1", "item2"})
-		tm.ExpectStringNotContains(t, "description1", "description2").RequireSnapshotNoANSI(t)
+		tm.RequireStringNotContains(t, "description1", "description2").
+			RequireSnapshotNoANSI(t)
 
 		// Test re-enabling a column
 		mutate(t, tm, func() {
@@ -567,7 +546,7 @@ func TestTableData(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(60, 8))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(60, 8))
 
 		// Test initial empty state
 		if m.TotalRows() != 0 {
@@ -645,7 +624,7 @@ func TestTableStyles(t *testing.T) {
 
 		m := New(app, Config[testRow]{Columns: columns})
 
-		tm := steep.NewViewModel(t, testModel{inner: m}, steep.WithInitialTermSize(30, 5))
+		tm := steep.NewComponentHarness(t, m, steep.WithInitialTermSize(30, 5))
 
 		rows := []testRow{
 			{id: "1", data: []string{"item1", "value1"}},
@@ -663,6 +642,7 @@ func TestTableStyles(t *testing.T) {
 			m.SetStyles(customStyles)
 		})
 
-		tm.ExpectDimensions(t, m.GetWidth(), m.GetHeight()).RequireSnapshotNoANSI(t)
+		tm.RequireDimensions(t, m.GetWidth(), m.GetHeight()).
+			RequireSnapshotNoANSI(t)
 	})
 }

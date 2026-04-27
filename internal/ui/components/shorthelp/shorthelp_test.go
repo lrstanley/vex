@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 			key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 			key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "help")),
 		)
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		tm.WaitContainsStrings(t, []string{"quit", "help"})
 		tm.RequireSnapshotNoANSI(t)
 	})
@@ -30,7 +30,7 @@ func TestNew(t *testing.T) {
 		t.Parallel()
 		m := New()
 		m.SetMaxWidth(steep.DefaultTermWidth)
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		tm.WaitSettleMessages(t).RequireSnapshotNoANSI(t)
 	})
 
@@ -41,7 +41,7 @@ func TestNew(t *testing.T) {
 		kb := key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit"))
 		kb.SetEnabled(false)
 		m.SetKeyBinds(kb)
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		tm.WaitSettleMessages(t).RequireSnapshotNoANSI(t)
 	})
 
@@ -55,7 +55,7 @@ func TestNew(t *testing.T) {
 			key.NewBinding(key.WithKeys("q"), key.WithHelp("q", "quit")),
 			key.NewBinding(key.WithKeys("h"), key.WithHelp("h", "help")),
 		)
-		tm := steep.NewViewModel(t, m)
+		tm := steep.NewComponentHarness(t, m)
 		tm.WaitContainsStrings(t, []string{"quit", "help"})
 		tm.RequireSnapshotNoANSI(t)
 	})

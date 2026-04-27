@@ -87,8 +87,8 @@ github.com/lrstanley/clix/v2 v2.0.0 h1:By5ypCwwWwKjUdUGGs4nI+W1Oqt4Bz+aGDaqM7try
 github.com/lrstanley/clix/v2 v2.0.0/go.mod h1:QC/Dx4iZ0r3mlJk5S+7Bb6DmEem03ZRwMCy0h/DJFG0=
 github.com/lrstanley/x/charm/formatter v0.0.0-20260418212558-96c5cf679e1d h1:LbLAuJEOIgwqAdMotf0n+DOrshfWIuglOpcQqG94Ozg=
 github.com/lrstanley/x/charm/formatter v0.0.0-20260418212558-96c5cf679e1d/go.mod h1:3+qG1JyXYrFV1HfqW9E3prGKgOsGSX6iZim+zA7ir3A=
-github.com/lrstanley/x/charm/steep v0.0.0-20260426085117-8cec25a67e86 h1:gE9r3GtAv/uMd6shGJ9xouMqi4Ndd9NzlY3m3t6WK3k=
-github.com/lrstanley/x/charm/steep v0.0.0-20260426085117-8cec25a67e86/go.mod h1:oAahO7RbAGsq+9o49TUaxbUFGncrtDf4SocEbz5HJiw=
+github.com/lrstanley/x/charm/steep v0.0.0-20260427022739-29558ae5735c h1:HQKZPEDKAexsWzSUYW8fLQP+Pk8Q0tAKBJB2uHCmQ3I=
+github.com/lrstanley/x/charm/steep v0.0.0-20260427022739-29558ae5735c/go.mod h1:oAahO7RbAGsq+9o49TUaxbUFGncrtDf4SocEbz5HJiw=
 github.com/lrstanley/x/http/utils v0.0.0-20260418212558-96c5cf679e1d h1:4N4cnZzKP8S/0yryvifwI44BCukgsOtOYVvIdp4CNUg=
 github.com/lrstanley/x/http/utils v0.0.0-20260418212558-96c5cf679e1d/go.mod h1:T3UILz/S9XX/KdxoRlKAn+oSQywgNrEs+OmEfwwza3Y=
 github.com/lrstanley/x/logging/handlers v0.0.0-20260418212558-96c5cf679e1d h1:KtKdx59pWsxV6VUh27YEgqO/kbTYrgeDepeyxqIkoKA=
