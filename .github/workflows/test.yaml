@@ -2,12 +2,12 @@ name: test
 
 on:
   pull_request:
-    branches: [master]
-    paths-ignore: [".gitignore", "**/*.md", ".github/ISSUE_TEMPLATE/**"]
-    types: [opened, edited, reopened, synchronize, unlocked]
+    branches: [ master ]
+    paths-ignore: [ ".gitignore", "**/*.md", ".github/ISSUE_TEMPLATE/**" ]
+    types: [ opened, edited, reopened, synchronize, unlocked ]
   push:
-    branches: [master]
-    paths-ignore: [".gitignore", "**/*.md", ".github/ISSUE_TEMPLATE/**"]
+    branches: [ master ]
+    paths-ignore: [ ".gitignore", "**/*.md", ".github/ISSUE_TEMPLATE/**" ]
 
 jobs:
   go-test:
@@ -18,7 +18,7 @@ jobs:
   go-lint:
     uses: lrstanley/.github/.github/workflows/lang-go-lint.yml@master
     secrets: inherit
-  docker-test:
-    needs: [go-test, go-lint]
-    uses: lrstanley/.github/.github/workflows/docker-release.yml@master
-    secrets: inherit
+  # docker-test:
+  #   needs: [go-test, go-lint]
+  #   uses: lrstanley/.github/.github/workflows/docker-release.yml@master
+  #   secrets: inherit

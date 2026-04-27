@@ -2,8 +2,8 @@ name: generate-readme
 
 on:
   push:
-    branches: [master]
-    tags: [v*]
+    branches: [ master ]
+    tags: [ v* ]
   schedule:
     - cron: "0 13 * * *"
 
